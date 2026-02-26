@@ -1,0 +1,40 @@
+name: rehearsal_skill
+display_name: "预演 / Rehearsal"
+description: "Multi-scheme parallel simulation rehearsal with comparative evaluation. Part of the Four-Prediction system. / 多方案并行仿真推演与对比评价，四预闭环第三环。"
+trigger_phrases:
+  - "预演"
+  - "推演"
+  - "方案对比"
+  - "如果入流"
+  - "会怎样"
+  - "rehearsal"
+  - "what if"
+  - "scheme comparison"
+  - "simulate scenarios"
+input_schema:
+  schemes:
+    type: array
+    description: "List of simulation scheme configs / 仿真方案配置列表"
+  duration:
+    type: number
+    default: 3600
+    description: "Simulation duration per scheme (s) / 每方案仿真时长"
+  weights:
+    type: object
+    description: "Ranking weights {safety, efficiency, cost} / 排序权重"
+    default:
+      safety: 0.4
+      efficiency: 0.3
+      cost: 0.3
+output_schema:
+  ranking:
+    type: array
+  sim_results:
+    type: array
+  evaluations:
+    type: array
+tools_required:
+  - simulate_tank
+  - simulate_batch
+  - evaluate_performance
+max_execution_time: 180

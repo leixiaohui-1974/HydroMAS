@@ -101,12 +101,16 @@ def detect_mad(data: list[float], threshold: float = 3.5) -> dict:
     mad = np.nanmedian(np.abs(arr - median))
 
     if mad == 0:
-        return {
-            "outlier_indices": [],
-            "mask": [False] * len(data),
-            "n_outliers": 0,
-            "bounds": {"lower": float(median), "upper": float(median)},
-        }
+        # When MAD is 0 (>50% identical values), fall back to mean absolute deviation
+        mad = np.nanmean(np.abs(arr - median))
+        if mad == 0:
+            # All values truly identical — no outliers
+            return {
+                "outlier_indices": [],
+                "mask": [False] * len(data),
+                "n_outliers": 0,
+                "bounds": {"lower": float(median), "upper": float(median)},
+            }
 
     # Modified Z-score
     modified_z = 0.6745 * (arr - median) / mad

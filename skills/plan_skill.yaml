@@ -1,0 +1,33 @@
+name: plan_skill
+display_name: "预案 / Emergency Plan"
+description: "Generate executable emergency response plan based on rehearsal results. Part of the Four-Prediction system. / 基于预演结果生成可执行应急预案，四预闭环第四环。"
+trigger_phrases:
+  - "预案"
+  - "应急方案"
+  - "调度方案"
+  - "emergency plan"
+  - "response plan"
+  - "dispatch plan"
+input_schema:
+  rehearsal:
+    type: object
+    description: "Rehearsal results (or auto-triggered) / 预演结果"
+  schemes:
+    type: array
+    description: "Schemes for rehearsal (if rehearsal not provided) / 方案列表"
+  constraints:
+    type: object
+    description: "Scheduling constraints / 调度约束"
+output_schema:
+  plan:
+    type: object
+  schedule:
+    type: object
+  safety_check:
+    type: object
+tools_required:
+  - simulate_tank
+  - optimize_schedule
+  - check_odd
+  - evaluate_performance
+max_execution_time: 120

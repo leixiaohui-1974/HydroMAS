@@ -9,7 +9,7 @@ trigger_phrases:
   - "clean data"
   - "predict water level"
   - "data analysis"
-  - "forecast"
+  - "data prediction"
 input_schema:
   raw_data:
     type: array

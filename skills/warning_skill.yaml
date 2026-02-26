@@ -1,0 +1,36 @@
+name: warning_skill
+display_name: "预警 / Warning"
+description: "Generate graded warnings based on forecast results and ODD boundaries. Part of the Four-Prediction system. / 基于预报结果和ODD边界生成分级预警，四预闭环第二环。"
+trigger_phrases:
+  - "预警"
+  - "安不安全"
+  - "安全吗"
+  - "水位安全"
+  - "warning"
+  - "is it safe"
+  - "water level safety"
+input_schema:
+  forecast:
+    type: object
+    description: "Forecast result from forecast_skill (or raw data to trigger forecast) / 预报结果"
+  historical_data:
+    type: array
+    description: "Historical data (used if forecast not provided) / 历史数据"
+  odd_config:
+    type: object
+    description: "Custom ODD specification / 自定义ODD配置"
+output_schema:
+  warning_level:
+    type: string
+    enum: ["blue", "yellow", "orange", "red", "none"]
+  violations:
+    type: array
+  time_to_breach:
+    type: number
+  recommended_action:
+    type: string
+tools_required:
+  - check_odd
+  - predict_future
+  - clean_timeseries
+max_execution_time: 60

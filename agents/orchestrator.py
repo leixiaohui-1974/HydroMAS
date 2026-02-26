@@ -60,6 +60,11 @@ class OrchestratorAgent:
             "odd_assessment": "skills.odd_assessment.ODDAssessmentSkill",
             "optimization_design": "skills.optimization_design.OptimizationDesignSkill",
             "full_lifecycle": "skills.full_lifecycle.FullLifecycleSkill",
+            "forecast_skill": "skills.forecast_skill.ForecastSkill",
+            "warning_skill": "skills.warning_skill.WarningSkill",
+            "rehearsal_skill": "skills.rehearsal_skill.RehearsalSkill",
+            "plan_skill": "skills.plan_skill.PlanSkill",
+            "four_prediction_loop": "skills.four_prediction_loop.FourPredictionLoopSkill",
         }
 
         import importlib

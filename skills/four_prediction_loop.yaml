@@ -1,0 +1,42 @@
+name: four_prediction_loop
+display_name: "四预闭环 / Four-Prediction Loop"
+description: "Complete Four-Prediction closed loop: Forecast → Warning → Rehearsal → Plan. One-click execution of the full emergency decision workflow. / 四预完整闭环：预报→预警→预演→预案。一键执行完整应急决策流程。"
+trigger_phrases:
+  - "四预"
+  - "四预闭环"
+  - "一键四预"
+  - "预报预警预演预案"
+  - "four prediction"
+  - "four-prediction loop"
+  - "full emergency workflow"
+input_schema:
+  historical_data:
+    type: array
+    description: "Historical water level data / 历史水位数据"
+  horizon:
+    type: integer
+    default: 60
+  schemes:
+    type: array
+    description: "Rehearsal schemes (auto-generated if not provided) / 预演方案"
+  odd_config:
+    type: object
+output_schema:
+  forecast:
+    type: object
+  warning:
+    type: object
+  rehearsal:
+    type: object
+  plan:
+    type: object
+  summary:
+    type: object
+tools_required:
+  - clean_timeseries
+  - predict_future
+  - check_odd
+  - simulate_tank
+  - optimize_schedule
+  - evaluate_performance
+max_execution_time: 300

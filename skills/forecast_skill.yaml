@@ -1,0 +1,40 @@
+name: forecast_skill
+display_name: "预报 / Forecast"
+description: "Forecast future water level based on historical data. Part of the Four-Prediction system (预报→预警→预演→预案). / 基于历史数据预报未来水位，四预闭环第一环。"
+trigger_phrases:
+  - "预报"
+  - "预测水位"
+  - "未来水位"
+  - "水位会怎么变"
+  - "水位怎么样"
+  - "forecast water level"
+  - "forecast"
+  - "predict water level"
+  - "future water level"
+input_schema:
+  historical_data:
+    type: array
+    description: "Historical water level series / 历史水位序列"
+  horizon:
+    type: integer
+    default: 60
+    description: "Forecast horizon in steps / 预报时域（步数）"
+  model:
+    type: string
+    default: "linear"
+    enum: ["linear", "polynomial", "lstm"]
+  cleaning_methods:
+    type: array
+    default: ["outlier_3sigma", "interpolate_linear"]
+output_schema:
+  forecast:
+    type: object
+  accuracy:
+    type: object
+  confidence_level:
+    type: string
+tools_required:
+  - clean_timeseries
+  - predict_future
+  - evaluate_performance
+max_execution_time: 60
