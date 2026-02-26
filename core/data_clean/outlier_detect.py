@@ -97,8 +97,21 @@ def detect_mad(data: list[float], threshold: float = 3.5) -> dict:
         Dict with outlier indices and mask.
     """
     arr = np.array(data, dtype=float)
-    median = np.nanmedian(arr)
-    mad = np.nanmedian(np.abs(arr - median))
+
+    # Handle all-NaN case early
+    if np.all(np.isnan(arr)):
+        return {
+            "outlier_indices": list(range(len(data))),
+            "mask": [True] * len(data),
+            "n_outliers": len(data),
+            "bounds": {"lower": 0.0, "upper": 0.0},
+        }
+
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        median = np.nanmedian(arr)
+        mad = np.nanmedian(np.abs(arr - median))
 
     if mad == 0:
         # When MAD is 0 (>50% identical values), fall back to mean absolute deviation

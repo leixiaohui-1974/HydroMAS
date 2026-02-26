@@ -6,8 +6,10 @@ from core.prediction.linear_predictor import (
     predict_linear,
     predict_polynomial,
 )
+from core.prediction.lstm_predictor import predict_lstm
 
 __all__ = [
     "predict_linear",
     "predict_polynomial",
+    "predict_lstm",
 ]
