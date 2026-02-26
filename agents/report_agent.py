@@ -46,17 +46,22 @@ class ReportAgent:
 |--------|-------|
 """
         for key, value in metrics.items():
-            if value is not None:
+            if isinstance(value, (int, float)):
                 report += f"| {key} | {value:.4f} |\n"
+            elif value is not None:
+                report += f"| {key} | {value} |\n"
             else:
                 report += f"| {key} | N/A |\n"
+
+        water_levels = ctrl.get("water_level", [])
+        final_level = f"{water_levels[-1]:.4f}" if water_levels else "N/A"
 
         report += f"""
 ## Simulation Summary / 仿真概要
 
 - Duration: {ctrl.get("metadata", {}).get("steps", 0) * ctrl.get("metadata", {}).get("dt", 1)} s
 - Solver: {ctrl.get("metadata", {}).get("solver", "N/A")}
-- Final water level: {ctrl.get("water_level", [0])[-1]:.4f} m
+- Final water level: {final_level} m
 """
         return report
 

@@ -7,7 +7,11 @@ useful for MPC rolling optimization.
 
 from __future__ import annotations
 
+import logging
+
 from compute.ray_config import is_ray_available, init_ray
+
+logger = logging.getLogger(__name__)
 
 
 def create_mpc_actor(
@@ -55,8 +59,8 @@ def create_mpc_actor(
                     self.state_history = []
 
             return MPCControllerActor.remote(horizon, tank_area, dt, **mpc_kwargs)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Ray MPC actor creation failed, falling back to local: {e}")
 
     # Local fallback
     from core.control.mpc_controller import MPCController

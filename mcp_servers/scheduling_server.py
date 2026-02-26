@@ -30,6 +30,11 @@ def optimize_schedule(
     Returns:
         Dict with optimal schedule and metadata.
     """
+    if not demand_forecast:
+        raise ValueError("demand_forecast cannot be empty")
+    if supply_capacity <= 0:
+        raise ValueError(f"supply_capacity must be positive, got {supply_capacity}")
+
     c = constraints or {}
 
     if method == "lp":

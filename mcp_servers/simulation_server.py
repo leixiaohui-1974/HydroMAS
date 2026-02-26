@@ -34,6 +34,11 @@ def simulate_tank(
     Returns:
         Dict with time, water_level, outflow, inflow arrays and metadata.
     """
+    if duration <= 0:
+        raise ValueError(f"duration must be positive, got {duration}")
+    if dt <= 0:
+        raise ValueError(f"dt must be positive, got {dt}")
+
     from core.simulation.simulator import run_simulation
 
     profile = None
@@ -67,6 +72,9 @@ def simulate_batch(
     Returns:
         List of simulation results.
     """
+    if not schemes:
+        raise ValueError("schemes list cannot be empty")
+
     from compute.distributed_sim import parameter_sweep
 
     param_grid = []

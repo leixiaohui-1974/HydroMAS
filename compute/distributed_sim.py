@@ -6,10 +6,13 @@ Wraps core.simulation functions as Ray remote tasks for parallel execution.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from core.simulation.simulator import run_simulation
 from compute.ray_config import is_ray_available, init_ray
+
+logger = logging.getLogger(__name__)
 
 
 def _simulate_local(params: dict) -> dict:
@@ -49,8 +52,8 @@ def parameter_sweep(param_grid: list[dict], use_ray: bool = True) -> list[dict]:
 
             futures = [_remote_sim.remote(p) for p in param_grid]
             return ray.get(futures)
-        except Exception:
-            pass  # Fall back to local execution
+        except Exception as e:
+            logger.warning(f"Ray parameter sweep failed, falling back to local: {e}")
 
     # Local fallback
     return [run_simulation(**p) for p in param_grid]
@@ -76,6 +79,9 @@ def monte_carlo_sim(
     Returns:
         List of simulation results for each sample.
     """
+    if n_samples <= 0:
+        raise ValueError(f"n_samples must be positive, got {n_samples}")
+
     import numpy as np
     rng = np.random.default_rng(seed)
 

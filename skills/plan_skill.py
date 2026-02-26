@@ -53,11 +53,13 @@ class PlanSkill(BaseSkill):
                     "initial_h": s.get("initial_h", 0.5),
                 })
                 sim_results.append(sim)
+            if not sim_results:
+                return SkillResult(success=False, error="All scheme simulations failed")
             # Pick the scheme with best final level near target
             target = constraints.get("target_level", 1.0)
             best_idx = min(
                 range(len(sim_results)),
-                key=lambda i: abs(sim_results[i]["water_level"][-1] - target),
+                key=lambda i: abs(sim_results[i].get("water_level", [0.0])[-1] - target),
             )
             rehearsal = {
                 "ranking": [{"scheme_index": best_idx, "label": schemes[best_idx].get("label", "")}],

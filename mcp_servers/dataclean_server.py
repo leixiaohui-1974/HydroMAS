@@ -26,6 +26,9 @@ def clean_timeseries(
     Returns:
         Dict with cleaned data and processing steps.
     """
+    if not raw_data:
+        raise ValueError("raw_data cannot be empty")
+
     from core.data_clean.interpolation import clean_timeseries as _clean
     return _clean(raw_data=raw_data, methods=methods)
 
@@ -47,6 +50,9 @@ def detect_outliers(
     Returns:
         Dict with outlier indices and statistics.
     """
+    if not data:
+        raise ValueError("data list cannot be empty")
+
     from core.data_clean.outlier_detect import detect_3sigma, detect_iqr, detect_mad
 
     if method == "3sigma":

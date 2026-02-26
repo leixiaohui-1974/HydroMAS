@@ -29,6 +29,8 @@ def predict_linear(
 
     if len(data) < 2:
         raise ValueError("Need at least 2 data points for linear prediction")
+    if horizon <= 0:
+        raise ValueError(f"horizon must be positive, got {horizon}")
 
     if lookback is not None and lookback < len(data):
         data = data[-lookback:]
@@ -89,6 +91,8 @@ def predict_polynomial(
 
     if len(data) < degree + 1:
         raise ValueError(f"Need at least {degree + 1} points for degree-{degree} polynomial")
+    if horizon <= 0:
+        raise ValueError(f"horizon must be positive, got {horizon}")
 
     if lookback is not None and lookback < len(data):
         data = data[-lookback:]

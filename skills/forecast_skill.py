@@ -39,7 +39,11 @@ class ForecastSkill(BaseSkill):
             "raw_data": historical_data,
             "methods": methods,
         })
-        cleaned = clean_result["data"]
+        if isinstance(clean_result, dict) and "error" in clean_result:
+            return SkillResult(success=False, error=f"Data cleaning failed: {clean_result['error']}")
+        cleaned = clean_result.get("data", historical_data)
+        if not cleaned:
+            return SkillResult(success=False, error="Data cleaning produced empty result")
         steps.append("data_cleaning")
 
         # Step 2: Prediction
@@ -48,6 +52,8 @@ class ForecastSkill(BaseSkill):
             "horizon": horizon,
             "model": model,
         })
+        if isinstance(forecast, dict) and "error" in forecast:
+            return SkillResult(success=False, error=f"Prediction failed: {forecast['error']}")
         steps.append("prediction")
 
         # Step 3: Backtest accuracy evaluation

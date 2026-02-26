@@ -28,6 +28,11 @@ def predict_future(
     Returns:
         Dict with predictions, confidence intervals, and fit metrics.
     """
+    if not historical_data:
+        raise ValueError("historical_data cannot be empty")
+    if horizon <= 0:
+        raise ValueError(f"horizon must be positive, got {horizon}")
+
     if model == "linear":
         from core.prediction.linear_predictor import predict_linear
         return predict_linear(historical_data, horizon=horizon, lookback=lookback)

@@ -91,6 +91,9 @@ def sensitivity_morris(
     Returns:
         Dict with mu, mu_star, sigma for each parameter.
     """
+    if n_levels < 2:
+        raise ValueError(f"n_levels must be at least 2, got {n_levels}")
+
     rng = np.random.default_rng(seed)
     param_names = list(param_ranges.keys())
     k = len(param_names)

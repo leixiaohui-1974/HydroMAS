@@ -59,8 +59,9 @@ class WarningSkill(BaseSkill):
                 "raw_data": historical,
                 "methods": ["outlier_3sigma", "interpolate_linear"],
             })
+            cleaned = clean_result.get("data", historical)
             pred_result = await self.call_tool("predict_future", {
-                "historical_data": clean_result["data"],
+                "historical_data": cleaned,
                 "horizon": params.get("horizon", 60),
                 "model": params.get("model", "linear"),
             })

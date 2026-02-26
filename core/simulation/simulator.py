@@ -176,6 +176,11 @@ def run_simulation(
     Returns:
         Simulation result dict.
     """
+    if dt <= 0:
+        raise ValueError(f"dt must be positive, got {dt}")
+    if duration <= 0:
+        raise ValueError(f"duration must be positive, got {duration}")
+
     params = TankParams(**(tank_params or {}))
     params.validate()
 

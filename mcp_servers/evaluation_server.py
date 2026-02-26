@@ -31,6 +31,14 @@ def evaluate_performance(
     Returns:
         Dict of metric name to value.
     """
+    if not observed or not predicted:
+        raise ValueError("observed and predicted lists cannot be empty")
+    if len(observed) != len(predicted):
+        raise ValueError(
+            f"observed and predicted must have same length, "
+            f"got {len(observed)} and {len(predicted)}"
+        )
+
     from core.evaluation.metrics import evaluate_performance as _eval
     return _eval(observed, predicted, metrics, time_series, setpoint)
 

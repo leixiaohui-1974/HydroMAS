@@ -4,9 +4,13 @@
 
 from __future__ import annotations
 
+import logging
+
 from typing import Callable
 
 from compute.ray_config import is_ray_available, init_ray
+
+logger = logging.getLogger(__name__)
 
 
 def parallel_sensitivity(
@@ -66,7 +70,7 @@ def parallel_evaluate(
             remote_fn = ray.remote(evaluate_fn)
             futures = [remote_fn.remote(p) for p in param_list]
             return ray.get(futures)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Ray parallel evaluate failed, falling back to local: {e}")
 
     return [evaluate_fn(p) for p in param_list]

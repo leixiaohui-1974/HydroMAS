@@ -47,6 +47,11 @@ class MPCController:
             tank_area: Tank cross-section area (m²) / 水箱截面积
             dt: Time step (s) / 时间步长
         """
+        if tank_area <= 0:
+            raise ValueError(f"tank_area must be positive, got {tank_area}")
+        if dt <= 0:
+            raise ValueError(f"dt must be positive, got {dt}")
+
         self.horizon = horizon
         self.q_weight = q_weight
         self.r_weight = r_weight
@@ -98,7 +103,7 @@ class MPCController:
             return state_cost + control_cost
 
         result = minimize(cost, u0, method="L-BFGS-B", bounds=bounds)
-        optimal_u = result.x[0]
+        optimal_u = float(result.x[0]) if result.success else (self.u_min + self.u_max) / 2
 
         self._history.append({
             "current_h": current_h,

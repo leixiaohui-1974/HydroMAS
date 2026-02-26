@@ -55,6 +55,9 @@ class PIDController:
         Returns:
             Control output (inflow rate, m³/s) / 控制输出（入流量）
         """
+        if dt <= 0:
+            raise ValueError(f"dt must be positive, got {dt}")
+
         error = setpoint - measured
 
         # Proportional term

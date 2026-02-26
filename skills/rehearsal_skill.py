@@ -67,19 +67,25 @@ class RehearsalSkill(BaseSkill):
         # Step 2: Evaluate each scheme
         evaluations = []
         for sim in sim_results:
-            levels = sim["water_level"]
+            levels = sim.get("water_level", [])
+            if not levels:
+                evaluations.append({
+                    "max_level": 0.0, "min_level": 0.0, "final_level": 0.0,
+                    "level_range": 0.0, "odd_zone": "unknown", "odd_violations": 0,
+                })
+                continue
             # Check for ODD violations
             odd_check = await self.call_tool("check_odd", {
                 "current_state": {"water_level": max(levels)},
             })
-            n_violations = 1 if odd_check["zone"] == "mrc" else 0
+            n_violations = 1 if odd_check.get("zone") == "mrc" else 0
 
             eval_item = {
                 "max_level": max(levels),
                 "min_level": min(levels),
                 "final_level": levels[-1],
                 "level_range": max(levels) - min(levels),
-                "odd_zone": odd_check["zone"],
+                "odd_zone": odd_check.get("zone", "unknown"),
                 "odd_violations": n_violations,
             }
             evaluations.append(eval_item)

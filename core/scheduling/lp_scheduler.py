@@ -40,6 +40,11 @@ def optimize_schedule_lp(
     Returns:
         Dict with optimal schedule and metadata.
     """
+    if not demand_forecast:
+        raise ValueError("demand_forecast cannot be empty")
+    if supply_capacity <= 0:
+        raise ValueError(f"supply_capacity must be positive, got {supply_capacity}")
+
     try:
         import pulp
     except ImportError:
@@ -84,8 +89,8 @@ def optimize_schedule_lp(
             "message": "No feasible schedule found",
         }
 
-    schedule = [float(v.varValue) for v in q_in]
-    levels = [float(v.varValue) for v in h]
+    schedule = [float(v.varValue) if v.varValue is not None else 0.0 for v in q_in]
+    levels = [float(v.varValue) if v.varValue is not None else 0.0 for v in h]
 
     return {
         "status": "optimal",
