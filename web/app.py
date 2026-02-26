@@ -1,0 +1,128 @@
+"""FastAPI application — HydroOS-Agent Web Platform.
+FastAPI 应用 — HydroOS-Agent Web 平台。
+
+Usage:
+    uvicorn web.app:app --reload --port 8000
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from web.routers import (
+    simulation,
+    control,
+    prediction,
+    scheduling,
+    evaluation,
+    odd,
+    design,
+    dataclean,
+    identification,
+    skills,
+    assistant,
+)
+
+_BASE_DIR = Path(__file__).parent
+
+app = FastAPI(
+    title="HydroOS-Agent",
+    description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform",
+    version="0.1.0",
+)
+
+# Mount static files and templates
+app.mount("/static", StaticFiles(directory=_BASE_DIR / "static"), name="static")
+templates = Jinja2Templates(directory=_BASE_DIR / "templates")
+
+# Register API routers
+app.include_router(simulation.router, prefix="/api/simulation", tags=["Simulation / 仿真模拟"])
+app.include_router(control.router, prefix="/api/control", tags=["Control / 控制管理"])
+app.include_router(prediction.router, prefix="/api/prediction", tags=["Prediction / 智能预测"])
+app.include_router(scheduling.router, prefix="/api/scheduling", tags=["Scheduling / 调度优化"])
+app.include_router(evaluation.router, prefix="/api/evaluation", tags=["Evaluation / 性能评价"])
+app.include_router(odd.router, prefix="/api/odd", tags=["ODD / 安全监测"])
+app.include_router(design.router, prefix="/api/design", tags=["Design / 优化设计"])
+app.include_router(dataclean.router, prefix="/api/dataclean", tags=["DataClean / 数据清洗"])
+app.include_router(identification.router, prefix="/api/identification", tags=["Identification / 系统辨识"])
+app.include_router(skills.router, prefix="/api/skills", tags=["Skills / 技能工作流"])
+app.include_router(assistant.router, prefix="/api/assistant", tags=["Assistant / 智能助手"])
+
+
+# ---------- User Roles / 用户角色 ----------
+
+ROLES = {
+    "operator": {
+        "name": "调度运营",
+        "name_en": "Operations",
+        "icon": "activity",
+        "modules": ["dashboard", "control", "fourpred", "odd", "reports"],
+        "description": "实时监控、调度控制、四预系统、安全监测",
+    },
+    "engineer": {
+        "name": "规划设计",
+        "name_en": "Engineering",
+        "icon": "cpu",
+        "modules": ["dashboard", "simulation", "design", "control", "identification"],
+        "description": "仿真模拟、系统设计、敏感性分析、参数辨识",
+    },
+    "analyst": {
+        "name": "数据分析",
+        "name_en": "Analysis",
+        "icon": "bar-chart-2",
+        "modules": ["dashboard", "prediction", "data", "evaluation", "reports"],
+        "description": "智能预测、数据清洗、性能评价、报告生成",
+    },
+    "admin": {
+        "name": "系统管理",
+        "name_en": "Administration",
+        "icon": "shield",
+        "modules": [
+            "dashboard", "simulation", "control", "prediction",
+            "scheduling", "fourpred", "odd", "design", "data",
+            "identification", "evaluation", "reports",
+        ],
+        "description": "全功能访问，系统配置与管理",
+    },
+}
+
+
+@app.get("/")
+async def index(request: Request):
+    """Render main SPA page. / 渲染主单页应用。"""
+    return templates.TemplateResponse(request, "index.html", {
+        "roles": ROLES,
+    })
+
+
+@app.get("/api/roles")
+async def get_roles():
+    """Return available user roles. / 返回可用用户角色。"""
+    return ROLES
+
+
+@app.get("/api/system/status")
+async def system_status():
+    """Return system health summary. / 返回系统健康状态摘要。"""
+    from core.config import load_tank_config, load_odd_specs
+
+    config = load_tank_config()
+    odd_specs = load_odd_specs()
+
+    return {
+        "status": "online",
+        "tank_config_loaded": bool(config),
+        "odd_dimensions": len(odd_specs.get("dimensions", [])),
+        "version": "0.1.0",
+        "layers": {
+            "L0_core": "operational",
+            "L1_compute": "operational",
+            "L2_mcp_servers": "operational",
+            "L3_skills": "operational",
+            "L4_agents": "operational",
+        },
+    }
