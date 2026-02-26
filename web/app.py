@@ -10,8 +10,11 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -64,15 +67,21 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "frame-ancestors 'none'"
         )
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
         return response
 
 
 app.add_middleware(SecurityHeadersMiddleware)
 
-# CORS — allow same-origin by default; configurable for deployment
+# GZip compression for large simulation responses
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# CORS — configurable via ALLOWED_ORIGINS env var; defaults to same-origin
+_allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
+_allowed_origins = [o.strip() for o in _allowed_origins if o.strip()] or ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict in production
+    allow_origins=_allowed_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
@@ -84,7 +93,10 @@ app.add_middleware(
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
     """Convert ValueError from core/MCP layer to 400 response."""
-    return JSONResponse(status_code=400, content={"detail": str(exc)})
+    detail = str(exc)
+    if len(detail) > 200:
+        detail = detail[:200] + "..."
+    return JSONResponse(status_code=400, content={"detail": detail})
 
 
 @app.exception_handler(Exception)

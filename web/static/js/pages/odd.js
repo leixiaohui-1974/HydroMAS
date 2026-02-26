@@ -69,7 +69,7 @@ async function checkODD() {
         let html = `
             <div style="text-align:center;margin-bottom:1rem">
                 <span class="zone-badge ${zoneClass[result.zone]}" style="font-size:1.1rem;padding:0.5rem 1.5rem">
-                    ${zoneLabel[result.zone] || result.zone}
+                    ${escapeHtml(zoneLabel[result.zone] || result.zone)}
                 </span>
             </div>
         `;
@@ -83,7 +83,7 @@ async function checkODD() {
                     <td>${escapeHtml(d.dimension)}</td>
                     <td>${d.value !== undefined ? fmt(d.value, 3) : '—'}</td>
                     <td>${d.min !== undefined ? fmt(d.min,2) + ' ~ ' + fmt(d.max,2) : '—'}</td>
-                    <td><span class="zone-badge ${zoneClass[d.zone] || ''}">${d.zone}</span></td>
+                    <td><span class="zone-badge ${zoneClass[d.zone] || ''}">${escapeHtml(d.zone)}</span></td>
                 </tr>`;
             }
             html += '</tbody></table>';

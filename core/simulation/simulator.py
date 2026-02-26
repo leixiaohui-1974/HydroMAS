@@ -4,19 +4,31 @@
 
 from __future__ import annotations
 
+import bisect
+
 import numpy as np
 from typing import Literal
 
 from core.simulation.tank_model import TankParams, tank_ode, compute_outflow
 
 
-def _interpolate_inflow(t: float, q_in_profile: list[tuple[float, float]]) -> float:
-    """Linearly interpolate inflow at time t from a profile.
+def _make_inflow_cache(q_in_profile: list[tuple[float, float]]) -> dict:
+    """Pre-extract times/values for O(log n) interpolation."""
+    return {
+        "times": [p[0] for p in q_in_profile],
+        "values": [p[1] for p in q_in_profile],
+    }
+
+
+def _interpolate_inflow(t: float, q_in_profile: list[tuple[float, float]],
+                        _cache: dict | None = None) -> float:
+    """Linearly interpolate inflow at time t from a profile (O(log n) via bisect).
     从入流时序中线性插值得到 t 时刻的入流量。
 
     Args:
         t: Time (s) / 时间
         q_in_profile: List of (time, Q_in) pairs / 入流时序
+        _cache: Optional pre-extracted times/values for repeated calls
 
     Returns:
         Interpolated inflow rate (m³/s) / 插值后的入流量
@@ -26,22 +38,24 @@ def _interpolate_inflow(t: float, q_in_profile: list[tuple[float, float]]) -> fl
     if len(q_in_profile) == 1:
         return q_in_profile[0][1]
 
-    # Before first point, use first value
-    if t <= q_in_profile[0][0]:
-        return q_in_profile[0][1]
-    # After last point, use last value
-    if t >= q_in_profile[-1][0]:
-        return q_in_profile[-1][1]
+    if _cache is not None:
+        times = _cache["times"]
+        values = _cache["values"]
+    else:
+        times = [p[0] for p in q_in_profile]
+        values = [p[1] for p in q_in_profile]
 
-    # Linear interpolation
-    for i in range(len(q_in_profile) - 1):
-        t0, q0 = q_in_profile[i]
-        t1, q1 = q_in_profile[i + 1]
-        if t0 <= t <= t1:
-            alpha = (t - t0) / (t1 - t0) if t1 != t0 else 0.0
-            return q0 + alpha * (q1 - q0)
+    if t <= times[0]:
+        return values[0]
+    if t >= times[-1]:
+        return values[-1]
 
-    return q_in_profile[-1][1]
+    # O(log n) bisect lookup
+    i = bisect.bisect_right(times, t) - 1
+    t0, q0 = times[i], values[i]
+    t1, q1 = times[i + 1], values[i + 1]
+    alpha = (t - t0) / (t1 - t0) if t1 != t0 else 0.0
+    return q0 + alpha * (q1 - q0)
 
 
 def simulate_euler(
@@ -69,21 +83,23 @@ def simulate_euler(
     qout_arr = np.zeros(n_steps + 1)
     qin_arr = np.zeros(n_steps + 1)
 
+    cache = _make_inflow_cache(q_in_profile)
+
     h_arr[0] = initial_h
     time_arr[0] = 0.0
-    qin_arr[0] = _interpolate_inflow(0.0, q_in_profile)
+    qin_arr[0] = _interpolate_inflow(0.0, q_in_profile, cache)
     qout_arr[0] = compute_outflow(initial_h, params)
 
     for i in range(n_steps):
         t = i * dt
-        q_in = _interpolate_inflow(t, q_in_profile)
+        q_in = _interpolate_inflow(t, q_in_profile, cache)
         dhdt = tank_ode(h_arr[i], q_in, params)
         h_new = h_arr[i] + dhdt * dt
         h_new = max(params.h_min, min(params.h_max, h_new))
 
         time_arr[i + 1] = t + dt
         h_arr[i + 1] = h_new
-        qin_arr[i + 1] = _interpolate_inflow(t + dt, q_in_profile)
+        qin_arr[i + 1] = _interpolate_inflow(t + dt, q_in_profile, cache)
         qout_arr[i + 1] = compute_outflow(h_new, params)
 
     return {
@@ -120,17 +136,19 @@ def simulate_rk4(
     qout_arr = np.zeros(n_steps + 1)
     qin_arr = np.zeros(n_steps + 1)
 
+    cache = _make_inflow_cache(q_in_profile)
+
     h_arr[0] = initial_h
     time_arr[0] = 0.0
-    qin_arr[0] = _interpolate_inflow(0.0, q_in_profile)
+    qin_arr[0] = _interpolate_inflow(0.0, q_in_profile, cache)
     qout_arr[0] = compute_outflow(initial_h, params)
 
     for i in range(n_steps):
         t = i * dt
         h = h_arr[i]
-        q_in = _interpolate_inflow(t, q_in_profile)
-        q_in_mid = _interpolate_inflow(t + dt / 2, q_in_profile)
-        q_in_end = _interpolate_inflow(t + dt, q_in_profile)
+        q_in = _interpolate_inflow(t, q_in_profile, cache)
+        q_in_mid = _interpolate_inflow(t + dt / 2, q_in_profile, cache)
+        q_in_end = _interpolate_inflow(t + dt, q_in_profile, cache)
 
         k1 = tank_ode(h, q_in, params)
         k2 = tank_ode(h + 0.5 * dt * k1, q_in_mid, params)
@@ -142,7 +160,7 @@ def simulate_rk4(
 
         time_arr[i + 1] = t + dt
         h_arr[i + 1] = h_new
-        qin_arr[i + 1] = _interpolate_inflow(t + dt, q_in_profile)
+        qin_arr[i + 1] = _interpolate_inflow(t + dt, q_in_profile, cache)
         qout_arr[i + 1] = compute_outflow(h_new, params)
 
     return {

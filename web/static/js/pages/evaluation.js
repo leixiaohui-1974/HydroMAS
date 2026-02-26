@@ -81,7 +81,7 @@ async function runEval() {
 
         let html = '<table class="data-table"><thead><tr><th>指标</th><th>值</th></tr></thead><tbody>';
         for (const [k, v] of Object.entries(result)) {
-            html += `<tr><td>${k}</td><td>${fmt(v)}</td></tr>`;
+            html += `<tr><td>${escapeHtml(k)}</td><td>${fmt(v)}</td></tr>`;
         }
         html += '</tbody></table>';
         el.innerHTML = html;
@@ -111,7 +111,7 @@ async function runWNAL() {
 
         el.innerHTML = `
             <div class="card-grid card-grid-3" style="margin-bottom:1rem">
-                <div class="stat-card"><div class="stat-label">自主等级</div><div class="stat-value ${levelColors[result.level] || 'primary'}">${result.level}</div></div>
+                <div class="stat-card"><div class="stat-label">自主等级</div><div class="stat-value ${levelColors[result.level] || 'primary'}">${escapeHtml(result.level)}</div></div>
                 <div class="stat-card"><div class="stat-label">综合得分</div><div class="stat-value info">${fmt(result.score, 1)}</div></div>
                 <div class="stat-card"><div class="stat-label">等级描述</div><div class="stat-value" style="font-size:0.8rem">${escapeHtml(result.level_description)}</div></div>
             </div>

@@ -61,6 +61,8 @@ class MPCController:
         self.h_max = h_max
         self.tank_area = tank_area
         self.dt = dt
+        self._bounds = [(self.u_min, self.u_max)] * self.horizon
+        self._prev_solution: np.ndarray | None = None
         self._history: list[dict] = []
 
     def _predict(self, h0: float, u_seq: np.ndarray, q_out_est: float) -> np.ndarray:
@@ -93,8 +95,12 @@ class MPCController:
         Returns:
             Optimal control input for the current step (m³/s).
         """
-        u0 = np.full(self.horizon, (self.u_min + self.u_max) / 2)
-        bounds = [(self.u_min, self.u_max)] * self.horizon
+        # Warm-start from shifted previous solution
+        if self._prev_solution is not None:
+            u0 = np.roll(self._prev_solution, -1)
+            u0[-1] = u0[-2] if len(u0) > 1 else (self.u_min + self.u_max) / 2
+        else:
+            u0 = np.full(self.horizon, (self.u_min + self.u_max) / 2)
 
         def cost(u_seq: np.ndarray) -> float:
             h_pred = self._predict(current_h, u_seq, q_out_estimate)
@@ -102,8 +108,11 @@ class MPCController:
             control_cost = self.r_weight * np.sum(u_seq**2)
             return state_cost + control_cost
 
-        result = minimize(cost, u0, method="L-BFGS-B", bounds=bounds)
+        result = minimize(cost, u0, method="L-BFGS-B", bounds=self._bounds)
         optimal_u = float(result.x[0]) if result.success else (self.u_min + self.u_max) / 2
+
+        if result.success:
+            self._prev_solution = result.x
 
         self._history.append({
             "current_h": current_h,
@@ -122,6 +131,7 @@ class MPCController:
     def reset(self) -> None:
         """Reset controller state. / 重置控制器状态。"""
         self._history.clear()
+        self._prev_solution = None
 
 
 def run_mpc_control(
@@ -151,7 +161,7 @@ def run_mpc_control(
     tank = TankParams(**(tank_params or {}))
     tank.validate()
 
-    mpc_kw = mpc_params or {}
+    mpc_kw = dict(mpc_params) if mpc_params else {}
     mpc_kw.setdefault("tank_area", tank.area)
     mpc_kw.setdefault("dt", dt)
     mpc = MPCController(**mpc_kw)

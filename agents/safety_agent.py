@@ -12,6 +12,7 @@ to maintain the five-layer architecture.
 from __future__ import annotations
 
 import logging
+from collections import deque
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +22,9 @@ class SafetyAgent:
     ODD 监测与 MRC 触发的安全 Agent。
     """
 
-    def __init__(self, odd_config: dict | None = None):
+    def __init__(self, odd_config: dict | None = None, max_log_entries: int = 1000):
         self.odd_config = odd_config
-        self._violation_log: list[dict] = []
+        self._violation_log: deque[dict] = deque(maxlen=max_log_entries)
 
     def check_state(self, state: dict[str, float]) -> dict:
         """Check a single state against ODD (passive mode).

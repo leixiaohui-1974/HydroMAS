@@ -58,7 +58,7 @@ def get_default_tank_params() -> dict:
         Dict with area, cd, outlet_area, h_max, h_min.
     """
     config = load_tank_config()
-    return config["tank_params"]
+    return dict(config["tank_params"])
 
 
 def get_default_pid_params() -> dict:
@@ -69,7 +69,7 @@ def get_default_pid_params() -> dict:
         Dict with kp, ki, kd, output_min, output_max.
     """
     config = load_tank_config()
-    return config["control_defaults"]["pid"]
+    return dict(config["control_defaults"]["pid"])
 
 
 def get_default_mpc_params() -> dict:
@@ -80,7 +80,7 @@ def get_default_mpc_params() -> dict:
         Dict with horizon, q_weight, r_weight, u_min, u_max.
     """
     config = load_tank_config()
-    return config["control_defaults"]["mpc"]
+    return dict(config["control_defaults"]["mpc"])
 
 
 def get_default_simulation_params() -> dict:
@@ -91,7 +91,7 @@ def get_default_simulation_params() -> dict:
         Dict with duration, dt, initial_h, solver.
     """
     config = load_tank_config()
-    return config["simulation_defaults"]
+    return dict(config["simulation_defaults"])
 
 
 @functools.lru_cache(maxsize=1)

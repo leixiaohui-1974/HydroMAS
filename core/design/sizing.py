@@ -18,12 +18,13 @@ def optimize_tank_size(
     max_height: float = 3.0,
     cost_per_m2: float = 1000.0,
     cost_per_m_height: float = 500.0,
+    safety_factor: float = 1.0,
 ) -> dict:
     """Optimize tank area and height to minimize cost while meeting demand.
     优化水箱面积和高度，在满足需求的同时最小化成本。
 
     Constraints:
-        - Volume >= peak_demand * min_reserve_time (reserve capacity)
+        - Volume >= peak_demand * min_reserve_time * safety_factor (reserve capacity)
         - Area <= max_area
         - Height <= max_height
 
@@ -34,11 +35,12 @@ def optimize_tank_size(
         max_height: Maximum tank height (m) / 最大水箱高度
         cost_per_m2: Cost per unit area ($/m²) / 单位面积成本
         cost_per_m_height: Cost per unit height ($/m) / 单位高度成本
+        safety_factor: Multiplier on required volume (>=1.0) / 安全系数
 
     Returns:
         Dict with optimal dimensions, cost, and capacity.
     """
-    required_volume = peak_demand * min_reserve_time
+    required_volume = peak_demand * min_reserve_time * safety_factor
 
     def cost(x: np.ndarray) -> float:
         area, height = x

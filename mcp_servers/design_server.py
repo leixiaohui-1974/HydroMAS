@@ -36,6 +36,7 @@ def optimize_design(
         max_height=space.get("max_height", 3.0),
         cost_per_m2=space.get("cost_per_m2", 1000.0),
         cost_per_m_height=space.get("cost_per_m_height", 500.0),
+        safety_factor=req.get("safety_factor", 1.0),
     )
 
 

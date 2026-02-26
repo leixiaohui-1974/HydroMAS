@@ -10,6 +10,7 @@ import logging
 from fastapi import APIRouter
 
 from web.models import AssistantMessage
+from web.deps import get_orchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -44,20 +45,12 @@ QUICK_ACTIONS = {
 }
 
 
-def _get_orchestrator():
-    """Get or create the singleton OrchestratorAgent."""
-    if not hasattr(_get_orchestrator, "_instance"):
-        from agents.orchestrator import OrchestratorAgent
-        _get_orchestrator._instance = OrchestratorAgent()
-    return _get_orchestrator._instance
-
-
 @router.post("/chat")
 async def chat(msg: AssistantMessage):
     """Process a chat message through the Orchestrator Agent.
     通过编排 Agent 处理聊天消息。
     """
-    orch = _get_orchestrator()
+    orch = get_orchestrator()
 
     # Classify intent
     intent = await asyncio.to_thread(orch.classify_intent, msg.message)

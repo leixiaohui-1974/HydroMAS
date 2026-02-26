@@ -8,6 +8,7 @@ scripts, and produce visualizations.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -43,25 +44,26 @@ class AnalysisAgent:
             Comparison results with ranking.
         """
         from mcp_servers.simulation_server import simulate_tank
-        from mcp_servers.evaluation_server import evaluate_performance
 
         if metrics is None:
             metrics = ["RMSE", "MAE"]
         if weights is None:
             weights = {m: 1.0 / len(metrics) for m in metrics}
 
-        results = []
-        for i, scheme in enumerate(schemes):
-            sim = simulate_tank(**scheme)
-            results.append({
+        async def _run_one(i: int, scheme: dict) -> dict:
+            sim = await asyncio.to_thread(simulate_tank, **scheme)
+            return {
                 "scheme_index": i,
                 "scheme": scheme,
                 "simulation": sim,
                 "max_level": max(sim["water_level"]),
                 "min_level": min(sim["water_level"]),
                 "final_level": sim["water_level"][-1],
-            })
+            }
 
+        results = await asyncio.gather(*[_run_one(i, s) for i, s in enumerate(schemes)])
+
+        results = list(results)
         # Rank schemes
         ranking = sorted(results, key=lambda r: r["final_level"], reverse=True)
         for rank, r in enumerate(ranking):

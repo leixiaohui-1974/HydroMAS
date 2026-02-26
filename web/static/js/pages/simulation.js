@@ -107,7 +107,7 @@ async function runSimulation() {
                 <div class="stat-card"><div class="stat-label">最高水位</div><div class="stat-value primary">${fmt(safeMax(data.water_level), 3)}</div></div>
                 <div class="stat-card"><div class="stat-label">最终水位</div><div class="stat-value info">${fmt(data.water_level[data.water_level.length - 1], 3)}</div></div>
                 <div class="stat-card"><div class="stat-label">数据点数</div><div class="stat-value">${data.time.length}</div></div>
-                <div class="stat-card"><div class="stat-label">求解器</div><div class="stat-value" style="font-size:1rem">${meta.solver || 'N/A'}</div></div>
+                <div class="stat-card"><div class="stat-label">求解器</div><div class="stat-value" style="font-size:1rem">${escapeHtml(meta.solver || 'N/A')}</div></div>
             </div>
         `;
     } catch (err) {

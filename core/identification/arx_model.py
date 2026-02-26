@@ -93,6 +93,7 @@ def predict_arx(
     model: dict,
     y_history: list[float],
     u_future: list[float],
+    u_history: list[float] | None = None,
 ) -> list[float]:
     """Predict future outputs using an identified ARX model.
     使用辨识的 ARX 模型预测未来输出。
@@ -101,6 +102,7 @@ def predict_arx(
         model: ARX model dict from identify_arx / 辨识结果字典
         y_history: Recent output history (length >= na) / 近期输出历史
         u_future: Future input sequence / 未来输入序列
+        u_history: Recent input history (length >= nb+nk-1) / 近期输入历史
 
     Returns:
         List of predicted outputs / 预测输出序列
@@ -112,20 +114,23 @@ def predict_arx(
     nk = model["nk"]
 
     y_buf = list(y_history)
-    u_buf = list(y_history[:0])  # empty initially, we prepend from history
+    # Build combined u buffer: historical u followed by future u
+    u_buf = list(u_history or [])
+    u_offset = len(u_buf)  # index in u_buf where u_future[0] starts
+    u_buf.extend(u_future)
     predictions = []
 
-    for k, u_k in enumerate(u_future):
+    for k in range(len(u_future)):
         y_k = 0.0
         for j in range(na):
             idx = len(y_buf) - 1 - j
             if idx >= 0:
                 y_k -= a[j] * y_buf[idx]
         for j in range(nb):
-            # u(k - nk - j): need historical u values
-            u_idx = k - nk - j
-            if 0 <= u_idx < len(u_future):
-                y_k += b[j] * u_future[u_idx]
+            # u(k - nk - j) relative to u_future start
+            u_idx = u_offset + k - nk - j
+            if 0 <= u_idx < len(u_buf):
+                y_k += b[j] * u_buf[u_idx]
         y_buf.append(y_k)
         predictions.append(y_k)
 

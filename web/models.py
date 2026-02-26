@@ -6,7 +6,9 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+_MAX_SIMULATION_STEPS = 100_000
 
 
 # ---------- Simulation / 仿真 ----------
@@ -23,6 +25,15 @@ class SimulationRequest(BaseModel):
     tank_params: dict | None = Field(None, description="水箱参数")
     solver: Literal["euler", "rk4"] = Field("rk4", description="求解器")
 
+    @model_validator(mode="after")
+    def check_step_count(self):
+        if self.duration / self.dt > _MAX_SIMULATION_STEPS:
+            raise ValueError(
+                f"Too many simulation steps: duration/dt = {self.duration / self.dt:.0f} "
+                f"exceeds limit {_MAX_SIMULATION_STEPS}"
+            )
+        return self
+
 
 # ---------- Control / 控制 ----------
 
@@ -34,6 +45,15 @@ class ControlRequest(BaseModel):
     initial_h: float = Field(0.5, ge=0, description="初始水位 (m)")
     params: dict | None = Field(None, description="控制器参数")
     tank_params: dict | None = Field(None, description="水箱参数")
+
+    @model_validator(mode="after")
+    def check_step_count(self):
+        if self.duration / self.dt > _MAX_SIMULATION_STEPS:
+            raise ValueError(
+                f"Too many simulation steps: duration/dt = {self.duration / self.dt:.0f} "
+                f"exceeds limit {_MAX_SIMULATION_STEPS}"
+            )
+        return self
 
 
 # ---------- Prediction / 预测 ----------
@@ -53,7 +73,7 @@ class SchedulingRequest(BaseModel):
     supply_capacity: float | None = Field(None, gt=0, description="供水能力上限")
     method: Literal["lp", "rule"] = Field("lp", description="优化方法")
     constraints: dict | None = Field(None, description="附加约束 {min_level, max_level, ...}")
-    objective: str = Field("minimize_cost", description="优化目标")
+    objective: Literal["minimize_cost", "maximize_supply"] = Field("minimize_cost", description="优化目标")
 
 
 # ---------- Evaluation / 评价 ----------

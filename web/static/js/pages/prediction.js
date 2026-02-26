@@ -3,7 +3,7 @@
  * 预测页面 — 预报接口。
  */
 
-import { apiPost, apiGet, createLineChart, fmt, showLoader, showError, parseFloatList } from '../api.js';
+import { apiPost, apiGet, createLineChart, fmt, showLoader, showError, parseFloatList, escapeHtml } from '../api.js';
 
 let chart = null;
 
@@ -93,7 +93,7 @@ async function runPrediction() {
 
         resultsEl.innerHTML = `
             <div class="card-grid card-grid-3">
-                <div class="stat-card"><div class="stat-label">模型</div><div class="stat-value" style="font-size:1rem">${result.method || 'N/A'}</div></div>
+                <div class="stat-card"><div class="stat-label">模型</div><div class="stat-value" style="font-size:1rem">${escapeHtml(result.method || 'N/A')}</div></div>
                 <div class="stat-card"><div class="stat-label">R²</div><div class="stat-value primary">${fmt(result.r_squared, 4)}</div></div>
                 <div class="stat-card"><div class="stat-label">预测均值</div><div class="stat-value info">${fmt(result.predictions.reduce((a,b)=>a+b,0)/result.predictions.length, 3)}</div></div>
             </div>

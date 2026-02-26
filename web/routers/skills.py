@@ -5,17 +5,18 @@
 from __future__ import annotations
 
 import asyncio
+import math
 
 from fastapi import APIRouter
 
 from web.models import SkillRequest, FourPredRequest
+from web.deps import get_orchestrator, get_report_agent
 
 router = APIRouter()
 
 
 def _sanitize_floats(obj):
     """Replace NaN/Inf with None for JSON compliance."""
-    import math
     if isinstance(obj, float):
         if math.isnan(obj) or math.isinf(obj):
             return None
@@ -38,33 +39,17 @@ def _serialize_skill_result(result) -> dict:
     })
 
 
-def _get_orchestrator():
-    """Get or create the singleton OrchestratorAgent."""
-    if not hasattr(_get_orchestrator, "_instance"):
-        from agents.orchestrator import OrchestratorAgent
-        _get_orchestrator._instance = OrchestratorAgent()
-    return _get_orchestrator._instance
-
-
-def _get_report_agent():
-    """Get or create the singleton ReportAgent."""
-    if not hasattr(_get_report_agent, "_instance"):
-        from agents.report_agent import ReportAgent
-        _get_report_agent._instance = ReportAgent()
-    return _get_report_agent._instance
-
-
 @router.get("/list")
 async def list_skills():
     """List all available skills. / 列出所有可用技能。"""
-    orch = _get_orchestrator()
+    orch = get_orchestrator()
     return {"skills": orch.get_available_skills()}
 
 
 @router.post("/run")
 async def run_skill(req: SkillRequest):
     """Execute a skill by name. / 按名称执行技能。"""
-    orch = _get_orchestrator()
+    orch = get_orchestrator()
     available = orch.get_available_skills()
     valid_names = [s["name"] for s in available] if isinstance(available, list) else []
     if valid_names and req.skill_name not in valid_names:
@@ -114,7 +99,7 @@ async def run_control_design(params: dict | None = None):
 @router.post("/report/control")
 async def generate_control_report(results: dict):
     """Generate control system report. / 生成控制系统报告。"""
-    agent = _get_report_agent()
+    agent = get_report_agent()
     report_md = await asyncio.to_thread(agent.generate_control_report, results)
     return {"report_markdown": report_md}
 
@@ -122,7 +107,7 @@ async def generate_control_report(results: dict):
 @router.post("/report/odd")
 async def generate_odd_report(results: dict):
     """Generate ODD assessment report. / 生成 ODD 评估报告。"""
-    agent = _get_report_agent()
+    agent = get_report_agent()
     report_md = await asyncio.to_thread(agent.generate_odd_report, results)
     return {"report_markdown": report_md}
 
@@ -130,6 +115,6 @@ async def generate_odd_report(results: dict):
 @router.post("/report/lifecycle")
 async def generate_lifecycle_report(results: dict):
     """Generate lifecycle report. / 生成全生命周期报告。"""
-    agent = _get_report_agent()
+    agent = get_report_agent()
     report_md = await asyncio.to_thread(agent.generate_lifecycle_report, results)
     return {"report_markdown": report_md}

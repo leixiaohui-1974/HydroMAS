@@ -97,7 +97,9 @@ def monte_carlo_sim(
         tank_params = dict(params.get("tank_params", {}) or {})
 
         for param_name, (mean, std) in vary_params.items():
-            tank_params[param_name] = float(rng.normal(mean, std))
+            value = float(rng.normal(mean, std))
+            # Clamp to positive — physical tank params must be > 0
+            tank_params[param_name] = max(1e-9, value)
 
         params["tank_params"] = tank_params
         param_grid.append(params)

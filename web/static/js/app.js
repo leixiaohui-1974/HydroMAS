@@ -231,7 +231,7 @@ function navigateTo(page) {
     // Render page
     const content = document.getElementById('page-content');
     content.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-    item.render(content).catch(err => {
+    item.render(content).catch(async (err) => {
         const { escapeHtml: esc } = await import('./api.js');
         content.innerHTML = `<div class="alert alert-danger">页面加载失败: ${esc(err.message)}</div>`;
     });

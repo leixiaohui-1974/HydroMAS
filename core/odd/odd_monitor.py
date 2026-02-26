@@ -111,6 +111,11 @@ def check_odd_series(
     Returns:
         Dict with time-to-breach, worst zone, and per-step results.
     """
+    # Pre-resolve odd_spec once to avoid reconstructing per step
+    if odd_spec is None:
+        from core.odd.odd_definition import create_tank_odd
+        odd_spec = create_tank_odd()
+
     worst_zone: Zone = "normal"
     time_to_breach: float | None = None
     step_results = []

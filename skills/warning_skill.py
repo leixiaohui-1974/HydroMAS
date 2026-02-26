@@ -18,7 +18,7 @@ from skills.base_skill import BaseSkill, SkillResult
 
 # Warning level thresholds (fraction of horizon until breach)
 _WARNING_THRESHOLDS = {
-    "red": 0.0,      # Already breached or imminent
+    "red": 0.05,      # Breach within 5% of horizon (imminent)
     "orange": 0.15,   # Breach within ~15% of horizon
     "yellow": 0.30,   # Breach within ~30% of horizon
     "blue": 0.60,     # Breach within ~60% of horizon
