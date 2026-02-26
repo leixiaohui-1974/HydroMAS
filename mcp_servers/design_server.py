@@ -78,7 +78,7 @@ def run_sensitivity(
     elif method == "Morris":
         return sensitivity_morris(ranges, eval_fn, n_levels=n_levels)
     else:
-        raise ValueError(f"Unknown method: {method}")
+        raise ValueError(f"Unknown method: {method}. Use 'OAT' or 'Morris'.")
 
 
 if __name__ == "__main__":

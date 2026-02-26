@@ -74,7 +74,9 @@ def run_controller(
         u = mpc.compute(state["h"], setpoint, state.get("q_out", 0.005))
         return {"control_output": u, "error": setpoint - state["h"]}
 
-    raise ValueError(f"Unknown controller_type: {controller_type}")
+    # Unreachable: validation at top of function covers all invalid cases.
+    # Retained as defensive guard.
+    raise ValueError(f"Unknown controller_type: {controller_type}. Use 'PID' or 'MPC'.")
 
 
 if __name__ == "__main__":

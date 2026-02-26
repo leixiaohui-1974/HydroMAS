@@ -43,7 +43,7 @@ def parallel_sensitivity(
     elif method == "Morris":
         return sensitivity_morris(param_ranges, evaluate_fn, **kwargs)
     else:
-        raise ValueError(f"Unknown method: {method}")
+        raise ValueError(f"Unknown method: {method}. Use 'OAT' or 'Morris'.")
 
 
 def parallel_evaluate(

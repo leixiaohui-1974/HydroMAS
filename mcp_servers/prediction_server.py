@@ -15,6 +15,7 @@ def predict_future(
     horizon: int = 60,
     model: str = "linear",
     lookback: int | None = None,
+    degree: int = 2,
 ) -> dict:
     """Predict future water levels based on historical data.
     基于历史数据预测未来水位。
@@ -24,6 +25,7 @@ def predict_future(
         horizon: Number of future steps to predict / 预测步数
         model: Prediction model ("linear", "polynomial", "lstm") / 预测模型
         lookback: Number of recent points to use / 回看窗口
+        degree: Polynomial degree (only used when model="polynomial") / 多项式阶数
 
     Returns:
         Dict with predictions, confidence intervals, and fit metrics.
@@ -38,7 +40,7 @@ def predict_future(
         return predict_linear(historical_data, horizon=horizon, lookback=lookback)
     elif model == "polynomial":
         from core.prediction.linear_predictor import predict_polynomial
-        return predict_polynomial(historical_data, horizon=horizon, lookback=lookback)
+        return predict_polynomial(historical_data, horizon=horizon, lookback=lookback, degree=degree)
     elif model == "lstm":
         from core.prediction.lstm_predictor import predict_lstm
         return predict_lstm(historical_data, horizon=horizon)

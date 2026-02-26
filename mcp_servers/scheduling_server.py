@@ -58,7 +58,7 @@ def optimize_schedule(
             current_demand=demand_forecast[0] if demand_forecast else 0.01,
         )
     else:
-        raise ValueError(f"Unknown method: {method}")
+        raise ValueError(f"Unknown method: {method}. Use 'lp' or 'rule'.")
 
 
 if __name__ == "__main__":

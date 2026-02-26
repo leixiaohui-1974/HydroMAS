@@ -82,6 +82,12 @@ def monte_carlo_sim(
     if n_samples <= 0:
         raise ValueError(f"n_samples must be positive, got {n_samples}")
 
+    for param_name, (mean, std) in vary_params.items():
+        if std < 0:
+            raise ValueError(
+                f"Standard deviation for '{param_name}' must be non-negative, got {std}"
+            )
+
     import numpy as np
     rng = np.random.default_rng(seed)
 

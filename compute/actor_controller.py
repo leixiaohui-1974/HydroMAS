@@ -8,6 +8,7 @@ useful for MPC rolling optimization.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from compute.ray_config import is_ray_available, init_ray
 
@@ -19,7 +20,7 @@ def create_mpc_actor(
     tank_area: float = 1.0,
     dt: float = 1.0,
     **mpc_kwargs,
-):
+) -> Any:
     """Create a Ray Actor-backed MPC controller (or local fallback).
     创建基于 Ray Actor 的 MPC 控制器（或本地回退）。
 
