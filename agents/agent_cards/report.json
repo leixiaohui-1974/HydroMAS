@@ -1,0 +1,14 @@
+{
+  "name": "ReportAgent",
+  "display_name": "Report Agent / 报告 Agent",
+  "description": "Structured report generation agent. Produces Markdown reports for control design, ODD assessment, and lifecycle analysis.",
+  "version": "0.1.0",
+  "capabilities": [
+    "markdown_generation",
+    "control_report",
+    "odd_report",
+    "lifecycle_report"
+  ],
+  "protocol": "A2A",
+  "endpoint": "/agents/report"
+}

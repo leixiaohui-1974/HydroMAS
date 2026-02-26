@@ -1,0 +1,35 @@
+name: optimization_design
+display_name: "优化设计 / Optimization Design"
+description: "Optimization design workflow: design space → simulation verification → sensitivity analysis → evaluation. / 优化设计流程：设计空间→仿真验证→敏感性分析→评价。"
+trigger_phrases:
+  - "优化设计"
+  - "水箱尺寸"
+  - "参数优化"
+  - "敏感性分析"
+  - "optimize design"
+  - "tank sizing"
+  - "parameter optimization"
+  - "sensitivity analysis"
+input_schema:
+  requirements:
+    type: object
+    description: "Design requirements / 设计需求"
+  design_space:
+    type: object
+    description: "Parameter ranges / 参数范围"
+  objective:
+    type: string
+    default: "minimize_cost"
+output_schema:
+  optimal_design:
+    type: object
+  sensitivity:
+    type: object
+  verification:
+    type: object
+tools_required:
+  - optimize_design
+  - simulate_tank
+  - run_sensitivity
+  - evaluate_performance
+max_execution_time: 180

@@ -1,0 +1,46 @@
+name: control_system_design
+display_name: "控制系统设计 / Control System Design"
+description: "Complete control system design workflow: simulation → identification → controller design → closed-loop verification → performance evaluation. / 完整控制系统设计流程：仿真→辨识→控制器设计→闭环验证→性能评价。"
+trigger_phrases:
+  - "设计控制器"
+  - "PID调参"
+  - "控制系统"
+  - "闭环验证"
+  - "design controller"
+  - "PID tuning"
+  - "control system design"
+  - "closed-loop verification"
+input_schema:
+  plant_type:
+    type: string
+    default: "tank"
+    enum: ["tank", "canal", "network"]
+  controller_type:
+    type: string
+    default: "PID"
+    enum: ["PID", "MPC"]
+  setpoint:
+    type: number
+    description: "Target water level (m) / 目标水位"
+    default: 1.0
+  initial_h:
+    type: number
+    description: "Initial water level (m) / 初始水位"
+    default: 0.5
+  duration:
+    type: number
+    description: "Simulation duration (s) / 仿真时长"
+    default: 300
+output_schema:
+  controller_params:
+    type: object
+  performance_metrics:
+    type: object
+  simulation_results:
+    type: object
+tools_required:
+  - simulate_tank
+  - identify_parameters
+  - run_controller
+  - evaluate_performance
+max_execution_time: 120

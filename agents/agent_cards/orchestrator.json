@@ -1,0 +1,22 @@
+{
+  "name": "OrchestratorAgent",
+  "display_name": "HydroOS Orchestrator / HydroOS 主编排",
+  "description": "Main orchestration agent that understands user intent, routes to appropriate Skills/Tools/Agents, and coordinates multi-step workflows for water system management.",
+  "version": "0.1.0",
+  "capabilities": [
+    "intent_classification",
+    "skill_routing",
+    "tool_invocation",
+    "workflow_coordination"
+  ],
+  "supported_intents": [
+    "control_system_design",
+    "data_analysis",
+    "prediction",
+    "odd_assessment",
+    "optimization",
+    "full_lifecycle"
+  ],
+  "protocol": "A2A",
+  "endpoint": "/agents/orchestrator"
+}

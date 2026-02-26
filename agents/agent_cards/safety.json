@@ -1,0 +1,15 @@
+{
+  "name": "SafetyAgent",
+  "display_name": "Safety Agent / 安全 Agent",
+  "description": "ODD boundary guardian agent. Monitors system state, verifies action safety, and triggers MRC procedures when ODD violations are detected.",
+  "version": "0.1.0",
+  "capabilities": [
+    "odd_monitoring",
+    "action_verification",
+    "mrc_triggering",
+    "violation_logging"
+  ],
+  "modes": ["passive", "active"],
+  "protocol": "A2A",
+  "endpoint": "/agents/safety"
+}

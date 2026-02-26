@@ -1,0 +1,37 @@
+name: full_lifecycle
+display_name: "全生命周期闭环 / Full Lifecycle Loop"
+description: "Complete lifecycle workflow combining control design, data analysis, ODD assessment, and optimization. / 全生命周期闭环：组合控制设计、数据分析、ODD评估和优化设计。"
+trigger_phrases:
+  - "全生命周期"
+  - "从零开始设计"
+  - "完整设计流程"
+  - "full lifecycle"
+  - "design from scratch"
+  - "complete design"
+input_schema:
+  setpoint:
+    type: number
+    default: 1.0
+  initial_h:
+    type: number
+    default: 0.5
+  controller_type:
+    type: string
+    default: "PID"
+output_schema:
+  design:
+    type: object
+  control:
+    type: object
+  odd:
+    type: object
+  evaluation:
+    type: object
+tools_required:
+  - simulate_tank
+  - identify_parameters
+  - run_controller
+  - check_odd
+  - evaluate_performance
+  - optimize_design
+max_execution_time: 300

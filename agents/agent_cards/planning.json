@@ -1,0 +1,14 @@
+{
+  "name": "PlanningAgent",
+  "display_name": "Planning Agent / 规划 Agent",
+  "description": "Task decomposition and strategy planning agent. Breaks complex requests into structured task DAGs with dependency tracking.",
+  "version": "0.1.0",
+  "capabilities": [
+    "task_decomposition",
+    "dependency_analysis",
+    "plan_generation",
+    "strategy_selection"
+  ],
+  "protocol": "A2A",
+  "endpoint": "/agents/planning"
+}

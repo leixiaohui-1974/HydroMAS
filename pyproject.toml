@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "hydroos-agent"
+version = "0.1.0"
+description = "HydroOS-Agent: Multi-Agent Intelligent Decision Platform for Water Network Lifecycle Management"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "HydroOS Team"},
+]
+
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "pandas>=2.0",
+    "pydantic>=2.0",
+    "matplotlib>=3.7",
+    "control>=0.9",
+    "pulp>=2.7",
+    "ray>=2.9",
+    "mcp>=1.0",
+    "langgraph>=0.2",
+    "langchain-anthropic>=0.1",
+    "pyyaml>=6.0",
+    "plotly>=5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.1",
+    "ruff>=0.1",
+]
+lstm = [
+    "torch>=2.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.setuptools.packages.find]
+include = ["core*", "compute*", "mcp_servers*", "skills*", "agents*"]

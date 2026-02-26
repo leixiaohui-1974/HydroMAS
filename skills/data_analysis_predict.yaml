@@ -1,0 +1,39 @@
+name: data_analysis_predict
+display_name: "数据分析预测 / Data Analysis & Prediction"
+description: "Data analysis and prediction workflow: clean → feature engineering → predict → evaluate. / 数据分析预测流程：清洗→特征工程→预测→评价。"
+trigger_phrases:
+  - "清洗数据"
+  - "预测水位"
+  - "数据分析"
+  - "数据预测"
+  - "clean data"
+  - "predict water level"
+  - "data analysis"
+  - "forecast"
+input_schema:
+  raw_data:
+    type: array
+    description: "Raw time series data / 原始时序数据"
+  horizon:
+    type: integer
+    default: 60
+    description: "Prediction horizon (steps) / 预测步数"
+  model:
+    type: string
+    default: "linear"
+    enum: ["linear", "polynomial", "lstm"]
+  cleaning_methods:
+    type: array
+    default: ["outlier_3sigma", "interpolate_linear"]
+output_schema:
+  cleaned_data:
+    type: array
+  predictions:
+    type: object
+  accuracy:
+    type: object
+tools_required:
+  - clean_timeseries
+  - predict_future
+  - evaluate_performance
+max_execution_time: 60

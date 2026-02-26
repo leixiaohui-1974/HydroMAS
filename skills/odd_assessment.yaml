@@ -1,0 +1,35 @@
+name: odd_assessment
+display_name: "ODD安全评估 / ODD Safety Assessment"
+description: "ODD safety assessment workflow: define ODD → simulation scan → boundary calibration → report. / ODD安全评估流程：ODD定义→仿真扫描→边界标定→报告。"
+trigger_phrases:
+  - "评估ODD"
+  - "安全评估"
+  - "运行设计域"
+  - "安全边界"
+  - "assess ODD"
+  - "safety assessment"
+  - "operational design domain"
+  - "safety boundary"
+input_schema:
+  current_state:
+    type: object
+    description: "Current system state / 当前系统状态"
+  scan_scenarios:
+    type: array
+    description: "Scenarios to scan for ODD boundaries / 扫描场景"
+  odd_config:
+    type: object
+    description: "Custom ODD configuration / 自定义ODD配置"
+output_schema:
+  odd_result:
+    type: object
+  scan_results:
+    type: array
+  mrc_plan:
+    type: object
+tools_required:
+  - check_odd
+  - simulate_tank
+  - evaluate_performance
+  - get_mrc_plan
+max_execution_time: 120

@@ -1,0 +1,15 @@
+{
+  "name": "AnalysisAgent",
+  "display_name": "Analysis Agent / 分析 Agent",
+  "description": "Flexible data analysis agent capable of scheme comparison, sensitivity analysis, optimization, and dynamic visualization code generation.",
+  "version": "0.1.0",
+  "capabilities": [
+    "scheme_comparison",
+    "sensitivity_analysis",
+    "optimization",
+    "visualization",
+    "script_generation"
+  ],
+  "protocol": "A2A",
+  "endpoint": "/agents/analysis"
+}
