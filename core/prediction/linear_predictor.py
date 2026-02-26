@@ -27,13 +27,14 @@ def predict_linear(
     """
     data = np.array(historical_data, dtype=float)
 
-    if len(data) < 2:
-        raise ValueError("Need at least 2 data points for linear prediction")
     if horizon <= 0:
         raise ValueError(f"horizon must be positive, got {horizon}")
 
     if lookback is not None and lookback < len(data):
         data = data[-lookback:]
+
+    if len(data) < 2:
+        raise ValueError("Need at least 2 data points for linear prediction")
 
     n = len(data)
     x = np.arange(n, dtype=float)
@@ -89,13 +90,14 @@ def predict_polynomial(
     """
     data = np.array(historical_data, dtype=float)
 
-    if len(data) < degree + 1:
-        raise ValueError(f"Need at least {degree + 1} points for degree-{degree} polynomial")
     if horizon <= 0:
         raise ValueError(f"horizon must be positive, got {horizon}")
 
     if lookback is not None and lookback < len(data):
         data = data[-lookback:]
+
+    if len(data) < degree + 1:
+        raise ValueError(f"Need at least {degree + 1} points for degree-{degree} polynomial")
 
     n = len(data)
     x = np.arange(n, dtype=float)

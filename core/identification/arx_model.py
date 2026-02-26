@@ -114,6 +114,14 @@ def predict_arx(
     nk = model["nk"]
 
     y_buf = list(y_history)
+    # Warn if u_history not provided but nk > 0 (first nk predictions miss exogenous input)
+    if u_history is None and nk > 0:
+        import warnings
+        warnings.warn(
+            f"u_history not provided but nk={nk}; first {nk} predictions "
+            f"will have incomplete exogenous input contribution",
+            stacklevel=2,
+        )
     # Build combined u buffer: historical u followed by future u
     u_buf = list(u_history or [])
     u_offset = len(u_buf)  # index in u_buf where u_future[0] starts

@@ -110,13 +110,13 @@ class PlanningAgent:
             if any(kw in input_lower for kw in ["pid", "mpc", "控制器", "controller"]):
                 plan = TaskPlan(objective="Compare PID and MPC controllers")
                 for node in self.PLAN_TEMPLATES["compare_controllers"]:
-                    plan.add_node(copy.copy(node))
+                    plan.add_node(copy.deepcopy(node))
                 return plan
 
         if any(kw in input_lower for kw in ["完整分析", "full analysis", "全面"]):
             plan = TaskPlan(objective="Full system analysis")
             for node in self.PLAN_TEMPLATES["full_analysis"]:
-                plan.add_node(copy.copy(node))
+                plan.add_node(copy.deepcopy(node))
             return plan
 
         # Default: single-task plan

@@ -72,6 +72,26 @@ class SkillMetadata:
         )
 
 
+_TOOL_MODULE_MAP = {
+    "simulate_tank": ("mcp_servers.simulation_server", "simulate_tank"),
+    "simulate_batch": ("mcp_servers.simulation_server", "simulate_batch"),
+    "identify_parameters": ("mcp_servers.identification_server", "identify_parameters"),
+    "clean_timeseries": ("mcp_servers.dataclean_server", "clean_timeseries"),
+    "detect_outliers": ("mcp_servers.dataclean_server", "detect_outliers"),
+    "predict_future": ("mcp_servers.prediction_server", "predict_future"),
+    "optimize_schedule": ("mcp_servers.scheduling_server", "optimize_schedule"),
+    "run_controller": ("mcp_servers.control_server", "run_controller"),
+    "check_odd": ("mcp_servers.odd_server", "check_odd"),
+    "get_mrc_plan": ("mcp_servers.odd_server", "get_mrc_plan"),
+    "evaluate_performance": ("mcp_servers.evaluation_server", "evaluate_performance"),
+    "assess_wnal": ("mcp_servers.evaluation_server", "assess_wnal"),
+    "optimize_design": ("mcp_servers.design_server", "optimize_design"),
+    "run_sensitivity": ("mcp_servers.design_server", "run_sensitivity"),
+}
+
+_resolved_tools: dict[str, Any] = {}
+
+
 class BaseSkill(ABC):
     """Abstract base class for all Skills.
     所有 Skill 的抽象基类。
@@ -114,29 +134,16 @@ class BaseSkill(ABC):
         """Dynamically import and call a tool from mcp_servers.
         动态导入并调用 mcp_servers 中的工具。
         """
-        tool_module_map = {
-            "simulate_tank": ("mcp_servers.simulation_server", "simulate_tank"),
-            "simulate_batch": ("mcp_servers.simulation_server", "simulate_batch"),
-            "identify_parameters": ("mcp_servers.identification_server", "identify_parameters"),
-            "clean_timeseries": ("mcp_servers.dataclean_server", "clean_timeseries"),
-            "detect_outliers": ("mcp_servers.dataclean_server", "detect_outliers"),
-            "predict_future": ("mcp_servers.prediction_server", "predict_future"),
-            "optimize_schedule": ("mcp_servers.scheduling_server", "optimize_schedule"),
-            "run_controller": ("mcp_servers.control_server", "run_controller"),
-            "check_odd": ("mcp_servers.odd_server", "check_odd"),
-            "get_mrc_plan": ("mcp_servers.odd_server", "get_mrc_plan"),
-            "evaluate_performance": ("mcp_servers.evaluation_server", "evaluate_performance"),
-            "assess_wnal": ("mcp_servers.evaluation_server", "assess_wnal"),
-            "optimize_design": ("mcp_servers.design_server", "optimize_design"),
-            "run_sensitivity": ("mcp_servers.design_server", "run_sensitivity"),
-        }
-
-        if tool_name not in tool_module_map:
+        if tool_name not in _TOOL_MODULE_MAP:
             raise ValueError(f"Unknown tool: {tool_name}")
 
-        module_path, fn_name = tool_module_map[tool_name]
+        if tool_name in _resolved_tools:
+            return _resolved_tools[tool_name](**params)
+
+        module_path, fn_name = _TOOL_MODULE_MAP[tool_name]
         module = importlib.import_module(module_path)
         fn = getattr(module, fn_name)
+        _resolved_tools[tool_name] = fn
         return fn(**params)
 
     async def run(self, params: dict) -> SkillResult:

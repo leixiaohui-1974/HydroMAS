@@ -77,7 +77,7 @@ def simulate_euler(
     Returns:
         Dict with time, water_level, outflow, inflow arrays and metadata.
     """
-    n_steps = int(duration / dt)
+    n_steps = round(duration / dt)
     time_arr = np.zeros(n_steps + 1)
     h_arr = np.zeros(n_steps + 1)
     qout_arr = np.zeros(n_steps + 1)
@@ -130,7 +130,7 @@ def simulate_rk4(
     Returns:
         Dict with time, water_level, outflow, inflow arrays and metadata.
     """
-    n_steps = int(duration / dt)
+    n_steps = round(duration / dt)
     time_arr = np.zeros(n_steps + 1)
     h_arr = np.zeros(n_steps + 1)
     qout_arr = np.zeros(n_steps + 1)

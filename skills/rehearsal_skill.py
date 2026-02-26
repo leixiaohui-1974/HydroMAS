@@ -130,8 +130,9 @@ class RehearsalSkill(BaseSkill):
             if ev["min_level"] < 0.2:
                 safety_score *= max(0, ev["min_level"] / 0.2)
 
-            # Efficiency: how close final level is to target 1.0m
-            target = 1.0
+            # Efficiency: how close final level is to target
+            from core.config import get_default_tank_params
+            target = get_default_tank_params().get("target_level", 1.0)
             efficiency_score = max(0, 1 - abs(ev["final_level"] - target) / target)
 
             # Cost proxy: lower range = more stable = less energy

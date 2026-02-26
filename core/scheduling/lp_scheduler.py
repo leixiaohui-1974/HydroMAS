@@ -44,6 +44,11 @@ def optimize_schedule_lp(
         raise ValueError("demand_forecast cannot be empty")
     if supply_capacity <= 0:
         raise ValueError(f"supply_capacity must be positive, got {supply_capacity}")
+    if initial_level < min_level or initial_level > max_level:
+        raise ValueError(
+            f"initial_level ({initial_level}) must be between "
+            f"min_level ({min_level}) and max_level ({max_level})"
+        )
 
     try:
         import pulp
@@ -68,8 +73,11 @@ def optimize_schedule_lp(
     # Problem definition
     prob = pulp.LpProblem("water_schedule", pulp.LpMinimize)
 
-    # Objective: minimize total inflow (cost proxy)
-    prob += pulp.lpSum(q_in)
+    # Objective
+    if objective == "maximize_supply":
+        prob += -pulp.lpSum(q_in)  # maximize by negating
+    else:
+        prob += pulp.lpSum(q_in)   # minimize total inflow (cost proxy)
 
     # Initial condition
     prob += h[0] == initial_level

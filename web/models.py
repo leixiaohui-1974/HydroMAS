@@ -16,7 +16,7 @@ _MAX_SIMULATION_STEPS = 100_000
 class SimulationRequest(BaseModel):
     duration: float = Field(300, gt=0, le=86400, description="仿真时长 (s)")
     dt: float = Field(1.0, gt=0, le=60, description="时间步长 (s)")
-    initial_h: float = Field(0.5, ge=0, description="初始水位 (m)")
+    initial_h: float = Field(0.5, ge=0, le=100, description="初始水位 (m)")
     q_in_profile: list[list[float]] = Field(
         default=[[0, 0.01]],
         max_length=1000,
@@ -38,11 +38,11 @@ class SimulationRequest(BaseModel):
 # ---------- Control / 控制 ----------
 
 class ControlRequest(BaseModel):
-    setpoint: float = Field(1.0, ge=0, description="目标水位 (m)")
+    setpoint: float = Field(1.0, ge=0, le=100, description="目标水位 (m)")
     controller_type: Literal["PID", "MPC"] = Field("PID", description="控制器类型")
     duration: float = Field(300, gt=0, le=86400, description="仿真时长 (s)")
     dt: float = Field(1.0, gt=0, le=60, description="时间步长 (s)")
-    initial_h: float = Field(0.5, ge=0, description="初始水位 (m)")
+    initial_h: float = Field(0.5, ge=0, le=100, description="初始水位 (m)")
     params: dict | None = Field(None, description="控制器参数")
     tank_params: dict | None = Field(None, description="水箱参数")
 
@@ -89,6 +89,15 @@ class EvaluationRequest(BaseModel):
     time_series: list[float] | None = Field(None, description="时间序列")
     setpoint: float | None = Field(None, description="控制目标值")
 
+    @model_validator(mode="after")
+    def check_length_match(self):
+        if len(self.observed) != len(self.predicted):
+            raise ValueError(
+                f"observed and predicted must have same length, "
+                f"got {len(self.observed)} and {len(self.predicted)}"
+            )
+        return self
+
 
 class WNALRequest(BaseModel):
     capabilities: dict[str, float] = Field(..., description="各能力项得分 (0-100)")
@@ -106,16 +115,34 @@ class ODDSeriesRequest(BaseModel):
     times: list[float] | None = Field(None, description="时间戳序列")
     odd_config: dict | None = Field(None, description="自定义 ODD 配置")
 
+    @model_validator(mode="after")
+    def check_times_length(self):
+        if self.times is not None and len(self.times) != len(self.states):
+            raise ValueError(
+                f"times length ({len(self.times)}) must match states length ({len(self.states)})"
+            )
+        return self
+
 
 # ---------- Design / 设计 ----------
 
 class SensitivityRequest(BaseModel):
-    base_params: dict[str, float] = Field(..., description="基准参数")
+    base_params: dict[str, float] = Field(..., max_length=20, description="基准参数")
     param_ranges: dict[str, list[float]] = Field(
-        ..., description="参数范围 {name: [min, max]}"
+        ..., max_length=20, description="参数范围 {name: [min, max]}"
     )
     method: Literal["OAT", "Morris"] = Field("OAT", description="分析方法")
     n_levels: int = Field(10, ge=2, le=1000, description="水平数")
+
+    @model_validator(mode="after")
+    def check_total_evaluations(self):
+        total = self.n_levels * len(self.param_ranges)
+        if total > 5000:
+            raise ValueError(
+                f"Too many evaluations: {self.n_levels} x {len(self.param_ranges)} = {total} "
+                f"exceeds limit 5000"
+            )
+        return self
 
 
 class SizingRequest(BaseModel):

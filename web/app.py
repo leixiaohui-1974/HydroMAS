@@ -78,7 +78,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS — configurable via ALLOWED_ORIGINS env var; defaults to same-origin
 _allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
-_allowed_origins = [o.strip() for o in _allowed_origins if o.strip()] or ["*"]
+_allowed_origins = [o.strip() for o in _allowed_origins if o.strip()] or ["http://localhost:8000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,

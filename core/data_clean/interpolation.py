@@ -89,17 +89,23 @@ def median_filter(data: list[float], window_size: int = 5) -> dict:
         window_size += 1
 
     arr = np.array(data, dtype=float)
-    n = len(arr)
-    result = np.copy(arr)
-    half = window_size // 2
 
-    for i in range(n):
-        lo = max(0, i - half)
-        hi = min(n, i + half + 1)
-        window = arr[lo:hi]
-        valid = window[~np.isnan(window)]
-        if len(valid) > 0:
-            result[i] = np.median(valid)
+    if not np.any(np.isnan(arr)):
+        # Fast path: no NaN — use scipy's C implementation
+        from scipy.ndimage import median_filter as _scipy_medfilt
+        result = _scipy_medfilt(arr, size=window_size)
+    else:
+        # NaN-aware fallback
+        n = len(arr)
+        result = np.copy(arr)
+        half = window_size // 2
+        for i in range(n):
+            lo = max(0, i - half)
+            hi = min(n, i + half + 1)
+            window = arr[lo:hi]
+            valid = window[~np.isnan(window)]
+            if len(valid) > 0:
+                result[i] = np.median(valid)
 
     return {
         "data": result.tolist(),

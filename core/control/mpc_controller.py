@@ -65,18 +65,21 @@ class MPCController:
         self._prev_solution: np.ndarray | None = None
         self._history: list[dict] = []
 
-    def _predict(self, h0: float, u_seq: np.ndarray, q_out_est: float) -> np.ndarray:
+    def _predict(self, h0: float, u_seq: np.ndarray, q_out_est: float,
+                 h_buf: np.ndarray | None = None) -> np.ndarray:
         """Predict future water levels given control sequence.
         给定控制序列预测未来水位。
 
         Uses simplified linear model: h_{k+1} = h_k + (u_k - q_out_est) * dt / A
         """
-        h = np.zeros(self.horizon + 1)
-        h[0] = h0
+        if h_buf is None:
+            h_buf = np.zeros(self.horizon + 1)
+        h_buf[0] = h0
+        dt_over_a = self.dt / self.tank_area
         for k in range(self.horizon):
-            dh = (u_seq[k] - q_out_est) * self.dt / self.tank_area
-            h[k + 1] = np.clip(h[k] + dh, self.h_min, self.h_max)
-        return h
+            dh = (u_seq[k] - q_out_est) * dt_over_a
+            h_buf[k + 1] = max(self.h_min, min(self.h_max, h_buf[k] + dh))
+        return h_buf
 
     def compute(
         self,
@@ -102,9 +105,11 @@ class MPCController:
         else:
             u0 = np.full(self.horizon, (self.u_min + self.u_max) / 2)
 
+        h_buf = np.zeros(self.horizon + 1)  # pre-allocate once, reuse per eval
+
         def cost(u_seq: np.ndarray) -> float:
-            h_pred = self._predict(current_h, u_seq, q_out_estimate)
-            state_cost = self.q_weight * np.sum((h_pred[1:] - setpoint) ** 2)
+            self._predict(current_h, u_seq, q_out_estimate, h_buf)
+            state_cost = self.q_weight * np.sum((h_buf[1:] - setpoint) ** 2)
             control_cost = self.r_weight * np.sum(u_seq**2)
             return state_cost + control_cost
 
@@ -166,7 +171,7 @@ def run_mpc_control(
     mpc_kw.setdefault("dt", dt)
     mpc = MPCController(**mpc_kw)
 
-    n_steps = int(duration / dt)
+    n_steps = round(duration / dt)
     time_arr = []
     h_arr = []
     u_arr = []

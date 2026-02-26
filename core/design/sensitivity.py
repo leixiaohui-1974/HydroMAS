@@ -46,10 +46,15 @@ def sensitivity_oat(
             outputs.append(out)
 
         outputs = np.array(outputs)
-        # Sensitivity index: range of output / range of parameter (normalized)
+        # Sensitivity index: (output_range / param_range) / base_output (normalized)
         output_range = float(np.max(outputs) - np.min(outputs))
         param_range = p_max - p_min
-        sensitivity = output_range / abs(base_output) if base_output != 0 else output_range
+        if base_output != 0 and param_range != 0:
+            sensitivity = (output_range / param_range) / abs(base_output)
+        elif param_range != 0:
+            sensitivity = output_range / param_range
+        else:
+            sensitivity = output_range
 
         results[param_name] = {
             "levels": levels.tolist(),
@@ -124,7 +129,7 @@ def sensitivity_morris(
                 params_pert[pname] = float(lo + x_pert[j] * (hi - lo))
 
             y_pert = evaluate_fn(params_pert)
-            ee = (y_pert - y_base) / delta
+            ee = (y_pert - y_base) / (direction * delta)
             elementary_effects[name].append(ee)
 
     results = {}

@@ -35,6 +35,16 @@ class FourPredictionLoopSkill(BaseSkill):
         self._warning_skill = WarningSkill()
         self._rehearsal_skill = RehearsalSkill()
         self._plan_skill = PlanSkill()
+        self._sub_skills = [
+            self._forecast_skill, self._warning_skill,
+            self._rehearsal_skill, self._plan_skill,
+        ]
+
+    def register_tool(self, name, tool_fn):
+        """Register a tool for this skill and all sub-skills."""
+        super().register_tool(name, tool_fn)
+        for sub in self._sub_skills:
+            sub.register_tool(name, tool_fn)
 
     async def execute(self, params: dict) -> SkillResult:
         steps = []

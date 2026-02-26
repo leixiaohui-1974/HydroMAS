@@ -130,7 +130,7 @@ def run_pid_control(
     tank.validate()
 
     pid = PIDController(params)
-    n_steps = int(duration / dt)
+    n_steps = round(duration / dt)
 
     time_arr = []
     h_arr = []
