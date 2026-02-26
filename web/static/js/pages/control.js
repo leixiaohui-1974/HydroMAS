@@ -99,7 +99,7 @@ async function compareControllers() {
                 <tbody>
                     <tr><td>最终水位 (m)</td><td>${fmt(pid.water_level[pid.water_level.length-1])}</td><td>${fmt(mpc.water_level[mpc.water_level.length-1])}</td></tr>
                     <tr><td>最大水位 (m)</td><td>${fmt(safeMax(pid.water_level))}</td><td>${fmt(safeMax(mpc.water_level))}</td></tr>
-                    <tr><td>求解器</td><td>${pid.metadata?.solver||'N/A'}</td><td>${mpc.metadata?.solver||'N/A'}</td></tr>
+                    <tr><td>求解器</td><td>${escapeHtml(pid.metadata?.solver||'N/A')}</td><td>${escapeHtml(mpc.metadata?.solver||'N/A')}</td></tr>
                 </tbody>
             </table>
         `;
@@ -145,7 +145,7 @@ function showMetrics(el, data) {
         <div class="card-grid card-grid-4">
             <div class="stat-card"><div class="stat-label">最终水位</div><div class="stat-value primary">${fmt(wl[wl.length-1], 3)}</div></div>
             <div class="stat-card"><div class="stat-label">最大水位</div><div class="stat-value info">${fmt(safeMax(wl), 3)}</div></div>
-            <div class="stat-card"><div class="stat-label">控制器</div><div class="stat-value" style="font-size:1rem">${data.metadata?.solver||'N/A'}</div></div>
+            <div class="stat-card"><div class="stat-label">控制器</div><div class="stat-value" style="font-size:1rem">${escapeHtml(data.metadata?.solver||'N/A')}</div></div>
             <div class="stat-card"><div class="stat-label">数据点</div><div class="stat-value">${wl.length}</div></div>
         </div>
     `;

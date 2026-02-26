@@ -21,7 +21,7 @@ class SimulationRequest(BaseModel):
         description="入流量分段 [[t, q_in], ...]",
     )
     tank_params: dict | None = Field(None, description="水箱参数")
-    solver: Literal["euler", "rk4"] = Field("euler", description="求解器")
+    solver: Literal["euler", "rk4"] = Field("rk4", description="求解器")
 
 
 # ---------- Control / 控制 ----------
@@ -114,7 +114,7 @@ class OutlierDetectRequest(BaseModel):
 
 class InterpolateRequest(BaseModel):
     data: list[float | None] = Field(..., min_length=2, max_length=100000, description="含缺失值的数据")
-    method: str = Field("linear", description="插值方法")
+    method: Literal["linear", "spline", "median"] = Field("linear", description="插值方法")
 
 
 # ---------- Identification / 辨识 ----------
@@ -122,7 +122,7 @@ class InterpolateRequest(BaseModel):
 class IdentificationRequest(BaseModel):
     observed_h: list[float] = Field(..., min_length=3, max_length=100000, description="观测水位")
     observed_q_out: list[float] = Field(..., min_length=3, max_length=100000, description="观测出流量")
-    model_type: str = Field("nonlinear", description="模型类型")
+    model_type: Literal["nonlinear", "ARX"] = Field("nonlinear", description="模型类型")
     initial_guess: dict | None = Field(None, description="初始猜测")
 
 
@@ -150,6 +150,6 @@ class FourPredRequest(BaseModel):
 
 class AssistantMessage(BaseModel):
     message: str = Field(..., min_length=1, max_length=10000, description="用户消息")
-    role: str = Field("admin", description="用户角色")
+    role: Literal["operator", "engineer", "analyst", "admin"] = Field("admin", description="用户角色")
     params: dict = Field(default_factory=dict, description="附加参数")
     history: list[dict] = Field(default_factory=list, max_length=100, description="对话历史")

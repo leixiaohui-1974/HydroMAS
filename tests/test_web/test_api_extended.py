@@ -284,3 +284,167 @@ class TestQuickActionsEdge:
         assert resp.status_code == 200
         data = resp.json()
         assert len(data["actions"]) > 0
+
+
+# ---------- Skills /run Endpoint ----------
+
+class TestSkillsRunAPI:
+    def test_run_unknown_skill_returns_400(self):
+        """Unknown skill name should trigger ValueError -> 400."""
+        resp = client.post("/api/skills/run", json={
+            "skill_name": "nonexistent_skill",
+            "params": {},
+        })
+        assert resp.status_code == 400
+        assert "Unknown skill" in resp.json()["detail"]
+
+    def test_run_missing_skill_name_returns_422(self):
+        """Missing skill_name should return 422."""
+        resp = client.post("/api/skills/run", json={"params": {}})
+        assert resp.status_code == 422
+
+    def test_run_valid_skill(self):
+        """Run a known skill by name (control_system_design)."""
+        resp = client.post("/api/skills/run", json={
+            "skill_name": "control_system_design",
+            "params": {},
+        })
+        assert resp.status_code == 200
+
+
+# ---------- Stronger Assertions on Existing Endpoints ----------
+
+class TestResponseStructure:
+    def test_scheduling_lp_response_structure(self):
+        """LP scheduling response should contain status and schedule."""
+        resp = client.post("/api/scheduling/run", json={
+            "demand_forecast": [0.01, 0.02, 0.015, 0.01],
+            "method": "lp",
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "status" in data
+        assert data["status"] in ("optimal", "fallback", "infeasible")
+
+    def test_interpolate_response_structure(self):
+        """Interpolate response should contain data and steps."""
+        resp = client.post("/api/dataclean/interpolate", json={
+            "data": [1.0, None, None, 4.0, 5.0],
+            "method": "linear",
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "data" in data
+        assert len(data["data"]) == 5
+
+    def test_check_series_response_structure(self):
+        """ODD check-series should return worst_zone."""
+        resp = client.post("/api/odd/check-series", json={
+            "states": [
+                {"water_level": 0.8},
+                {"water_level": 1.0},
+                {"water_level": 1.5},
+            ],
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "worst_zone" in data
+
+    def test_four_prediction_actually_works(self):
+        """Four-prediction with valid data should succeed (parameter name fix)."""
+        wl_data = [0.5 + 0.02 * i + 0.1 * (i % 3 - 1) * 0.1 for i in range(50)]
+        resp = client.post("/api/skills/four-prediction", json={
+            "water_level_data": wl_data,
+            "risk_threshold": 0.7,
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["success"] is True
+        assert "forecast" in data["steps_completed"]
+
+
+# ---------- New Literal Validation ----------
+
+class TestNewLiteralValidation:
+    def test_invalid_interpolate_method(self):
+        """Invalid interpolate method should return 422."""
+        resp = client.post("/api/dataclean/interpolate", json={
+            "data": [1.0, None, 3.0],
+            "method": "cubic",
+        })
+        assert resp.status_code == 422
+
+    def test_invalid_identification_model_type(self):
+        """Invalid model_type should return 422."""
+        resp = client.post("/api/identification/run", json={
+            "observed_h": [0.5, 0.6, 0.7],
+            "observed_q_out": [0.01, 0.02, 0.03],
+            "model_type": "kalman",
+        })
+        assert resp.status_code == 422
+
+    def test_invalid_assistant_role(self):
+        """Invalid role should return 422."""
+        resp = client.post("/api/assistant/chat", json={
+            "message": "hello",
+            "role": "superuser",
+        })
+        assert resp.status_code == 422
+
+    def test_chat_max_length_message(self):
+        """Message at max_length should be accepted."""
+        resp = client.post("/api/assistant/chat", json={
+            "message": "a" * 10000,
+            "role": "admin",
+        })
+        assert resp.status_code == 200
+
+    def test_chat_exceeds_max_length(self):
+        """Message exceeding max_length should return 422."""
+        resp = client.post("/api/assistant/chat", json={
+            "message": "a" * 10001,
+            "role": "admin",
+        })
+        assert resp.status_code == 422
+
+
+# ---------- Enhanced Security Headers ----------
+
+class TestEnhancedSecurityHeaders:
+    def test_permissions_policy(self):
+        resp = client.get("/api/roles")
+        assert resp.headers.get("permissions-policy") == "camera=(), microphone=(), geolocation=()"
+
+    def test_csp_object_src_none(self):
+        resp = client.get("/api/roles")
+        csp = resp.headers.get("content-security-policy", "")
+        assert "object-src 'none'" in csp
+
+    def test_csp_base_uri_self(self):
+        resp = client.get("/api/roles")
+        csp = resp.headers.get("content-security-policy", "")
+        assert "base-uri 'self'" in csp
+
+    def test_csp_frame_ancestors_none(self):
+        resp = client.get("/api/roles")
+        csp = resp.headers.get("content-security-policy", "")
+        assert "frame-ancestors 'none'" in csp
+
+
+# ---------- Sanitize Floats Unit Test ----------
+
+class TestSanitizeFloats:
+    def test_nan_inf_replaced(self):
+        from web.routers.skills import _sanitize_floats
+        result = _sanitize_floats({
+            "a": float("nan"),
+            "b": [1.0, float("inf"), 2.0],
+            "c": {"nested": float("-inf")},
+            "d": 42,
+            "e": "string",
+        })
+        assert result["a"] is None
+        assert result["b"] == [1.0, None, 2.0]
+        assert result["c"]["nested"] is None
+        assert result["d"] == 42
+        assert result["e"] == "string"

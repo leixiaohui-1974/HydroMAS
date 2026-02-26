@@ -107,10 +107,10 @@ async function runSensitivity() {
         ranking.forEach((name, i) => {
             const p = result.parameters[name] || {};
             const idx = p.sensitivity_index !== undefined ? fmt(p.sensitivity_index, 4) : fmt(p.mu_star, 4);
-            html += `<tr><td>${i + 1}</td><td>${name}</td><td>${idx}</td></tr>`;
+            html += `<tr><td>${i + 1}</td><td>${escapeHtml(name)}</td><td>${idx}</td></tr>`;
         });
         html += '</tbody></table>';
-        html += `<p style="color:var(--text-secondary);margin-top:0.5rem;font-size:0.8rem">方法: ${result.method}</p>`;
+        html += `<p style="color:var(--text-secondary);margin-top:0.5rem;font-size:0.8rem">方法: ${escapeHtml(result.method)}</p>`;
 
         el.innerHTML = html;
     } catch (err) {
@@ -134,7 +134,7 @@ async function runSizing() {
                 <div class="stat-card"><div class="stat-label">所需容积</div><div class="stat-value primary">${fmt(result.required_volume, 2)} m³</div></div>
                 <div class="stat-card"><div class="stat-label">建议面积</div><div class="stat-value info">${fmt(result.recommended_area, 2)} m²</div></div>
             </div>
-            <div class="result-block">${JSON.stringify(result, null, 2)}</div>
+            <div class="result-block">${escapeHtml(JSON.stringify(result, null, 2))}</div>
         `;
     } catch (err) {
         showError(el, err);

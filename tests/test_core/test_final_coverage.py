@@ -78,14 +78,14 @@ class TestPredictionServerLSTM:
     """Test prediction server with LSTM model."""
 
     def test_lstm_model_via_server(self):
+        import pytest
         from mcp_servers.prediction_server import predict_future
-        result = predict_future(
-            historical_data=[0.5 + 0.001 * i for i in range(100)],
-            horizon=10,
-            model="lstm",
-        )
-        assert "error" in result
-        assert result["method"] == "lstm"
+        with pytest.raises(ValueError, match="torch not installed"):
+            predict_future(
+                historical_data=[0.5 + 0.001 * i for i in range(100)],
+                horizon=10,
+                model="lstm",
+            )
 
 
 class TestDesignServerMorris:

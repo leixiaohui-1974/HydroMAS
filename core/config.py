@@ -8,6 +8,7 @@ providing typed access to default parameters used across the platform.
 from __future__ import annotations
 
 import csv
+import functools
 import json
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ def _load_json(filename: str) -> dict:
         return json.load(f)
 
 
+@functools.lru_cache(maxsize=1)
 def load_tank_config() -> dict[str, Any]:
     """Load default tank configuration from data/tank_config.json.
     从 data/tank_config.json 加载默认水箱配置。
@@ -37,6 +39,7 @@ def load_tank_config() -> dict[str, Any]:
     return _load_json("tank_config.json")
 
 
+@functools.lru_cache(maxsize=1)
 def load_odd_specs() -> dict[str, Any]:
     """Load ODD specification from data/odd_specs.json.
     从 data/odd_specs.json 加载 ODD 规格。
@@ -91,6 +94,7 @@ def get_default_simulation_params() -> dict:
     return config["simulation_defaults"]
 
 
+@functools.lru_cache(maxsize=1)
 def load_sample_timeseries() -> dict[str, list[float]]:
     """Load sample time series data from data/sample_timeseries.csv.
     从 data/sample_timeseries.csv 加载样本时序数据。

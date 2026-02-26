@@ -12,18 +12,18 @@ class TestLSTMPredictor:
     """Test LSTM predictor stub behavior."""
 
     def test_lstm_without_torch(self):
-        """LSTM should return error when torch is not installed."""
+        """LSTM should raise ValueError when torch is not installed."""
         from core.prediction.lstm_predictor import predict_lstm
-        result = predict_lstm([1.0, 2.0, 3.0], horizon=5)
-        assert "error" in result
-        assert result["predictions"] == []
-        assert result["method"] == "lstm"
+        import pytest
+        with pytest.raises(ValueError, match="torch not installed"):
+            predict_lstm([1.0, 2.0, 3.0], horizon=5)
 
     def test_lstm_import_via_package(self):
-        """LSTM should be importable from package __init__."""
+        """LSTM should be importable from package __init__ and raise on missing torch."""
         from core.prediction import predict_lstm
-        result = predict_lstm([1.0, 2.0, 3.0], horizon=5)
-        assert result["method"] == "lstm"
+        import pytest
+        with pytest.raises(ValueError, match="torch not installed"):
+            predict_lstm([1.0, 2.0, 3.0], horizon=5)
 
 
 # ---------- Rule-Based Scheduler ----------
@@ -200,11 +200,11 @@ class TestMRCHandler:
         assert "open_drain" in action_types
 
     def test_water_level_lower_violation(self):
-        """Lower water level violation triggers reduce_inflow (emergency fill)."""
+        """Lower water level violation triggers increase_inflow (emergency fill)."""
         from core.odd.mrc_handler import determine_mrc_actions
         violations = [{"dimension": "water_level", "bound_violated": "lower", "value": 0.05, "limit": 0.1}]
         actions = determine_mrc_actions(violations)
-        assert actions[0]["action"] == "reduce_inflow"
+        assert actions[0]["action"] == "increase_inflow"
 
     def test_structural_pressure_violation(self):
         """Structural pressure triggers emergency_stop with highest priority."""

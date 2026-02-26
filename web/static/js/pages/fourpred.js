@@ -87,19 +87,19 @@ async function runFourPred() {
 
         if (data.forecast) {
             html += `<h4 style="margin:0.75rem 0 0.5rem">预报结果</h4>`;
-            html += `<div class="result-block">${JSON.stringify(data.forecast, null, 2).substring(0, 500)}</div>`;
+            html += `<div class="result-block">${escapeHtml(JSON.stringify(data.forecast, null, 2).substring(0, 500))}</div>`;
         }
         if (data.warning) {
             const risk = data.warning.risk_level || 'N/A';
-            html += `<h4 style="margin:0.75rem 0 0.5rem">预警结果 — 风险等级: <span class="zone-badge ${risk === 'high' ? 'zone-mrc' : risk === 'medium' ? 'zone-extended' : 'zone-normal'}">${risk}</span></h4>`;
+            html += `<h4 style="margin:0.75rem 0 0.5rem">预警结果 — 风险等级: <span class="zone-badge ${risk === 'high' ? 'zone-mrc' : risk === 'medium' ? 'zone-extended' : 'zone-normal'}">${escapeHtml(risk)}</span></h4>`;
         }
         if (data.rehearsal) {
             html += `<h4 style="margin:0.75rem 0 0.5rem">预演结果</h4>`;
-            html += `<div class="result-block">${JSON.stringify(data.rehearsal, null, 2).substring(0, 500)}</div>`;
+            html += `<div class="result-block">${escapeHtml(JSON.stringify(data.rehearsal, null, 2).substring(0, 500))}</div>`;
         }
         if (data.plan) {
             html += `<h4 style="margin:0.75rem 0 0.5rem">预案结果</h4>`;
-            html += `<div class="result-block">${JSON.stringify(data.plan, null, 2).substring(0, 500)}</div>`;
+            html += `<div class="result-block">${escapeHtml(JSON.stringify(data.plan, null, 2).substring(0, 500))}</div>`;
         }
 
         resultsEl.innerHTML = html;

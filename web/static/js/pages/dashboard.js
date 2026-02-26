@@ -3,7 +3,9 @@
  * 仪表盘页面 — 系统总览。
  */
 
-import { apiGet, apiPost, createLineChart, fmt } from '../api.js';
+import { apiGet, apiPost, createLineChart, fmt, escapeHtml } from '../api.js';
+
+let chart = null;
 
 export async function render(container) {
     container.innerHTML = `
@@ -62,7 +64,7 @@ async function loadStats() {
         const layerEl = document.getElementById('layer-status');
         if (layerEl) {
             layerEl.innerHTML = Object.entries(status.layers).map(([k, v]) =>
-                `<div class="stat-card"><div class="stat-label">${k}</div><div class="stat-value success" style="font-size:0.95rem">${v}</div></div>`
+                `<div class="stat-card"><div class="stat-label">${escapeHtml(k)}</div><div class="stat-value success" style="font-size:0.95rem">${escapeHtml(v)}</div></div>`
             ).join('');
         }
     } catch {
@@ -78,10 +80,11 @@ async function loadSimPreview() {
         });
         const canvas = document.getElementById('dash-sim-chart');
         if (canvas) {
+            if (chart) chart.destroy();
             const step = Math.max(1, Math.floor(sim.time.length / 100));
             const labels = sim.time.filter((_, i) => i % step === 0).map(t => t.toFixed(0));
             const wl = sim.water_level.filter((_, i) => i % step === 0);
-            createLineChart(canvas, labels, [{
+            chart = createLineChart(canvas, labels, [{
                 label: '水位 Water Level (m)',
                 data: wl,
                 borderColor: '#2563eb',
@@ -105,7 +108,7 @@ async function loadODDStatus() {
         el.innerHTML = `
             <div style="text-align:center;padding:1rem 0">
                 <span class="zone-badge ${zoneClass[result.zone] || 'zone-normal'}" style="font-size:1rem;padding:0.4rem 1.2rem">
-                    ${zoneLabel[result.zone] || result.zone}
+                    ${escapeHtml(zoneLabel[result.zone] || result.zone)}
                 </span>
                 <p style="color:var(--text-secondary);margin-top:0.75rem;font-size:0.85rem">
                     违规维度: ${result.violations ? result.violations.length : 0} / ${result.checked_dimensions || 6}
@@ -115,7 +118,7 @@ async function loadODDStatus() {
                 <thead><tr><th>维度</th><th>状态</th></tr></thead>
                 <tbody>
                     ${(result.dimension_results || []).map(d =>
-                        `<tr><td>${d.dimension}</td><td><span class="zone-badge ${zoneClass[d.zone] || ''}">${d.zone}</span></td></tr>`
+                        `<tr><td>${escapeHtml(d.dimension)}</td><td><span class="zone-badge ${zoneClass[d.zone] || ''}">${escapeHtml(d.zone)}</span></td></tr>`
                     ).join('')}
                 </tbody>
             </table>

@@ -4,12 +4,14 @@
 Operates in two modes:
     - Passive: Called by Orchestrator to verify an operation is safe
     - Active: Continuously monitors during simulation/control for ODD violations
+
+Routes all ODD checks through L2 MCP servers (mcp_servers.odd_server)
+to maintain the five-layer architecture.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +35,12 @@ class SafetyAgent:
         Returns:
             ODD check result with zone and violations.
         """
-        from core.odd.odd_monitor import check_odd
-        from core.odd.odd_definition import ODDSpec, create_tank_odd
+        from mcp_servers.odd_server import check_odd
 
-        odd_spec = ODDSpec.from_dict(self.odd_config) if self.odd_config else create_tank_odd()
-        result = check_odd(state, odd_spec)
+        result = check_odd(
+            current_state=state,
+            odd_config=self.odd_config,
+        )
 
         if result["violations"]:
             self._violation_log.append({
@@ -62,13 +65,16 @@ class SafetyAgent:
         result = self.check_state(current_state)
 
         if result["zone"] == "mrc":
-            from core.odd.mrc_handler import determine_mrc_actions
-            mrc_actions = determine_mrc_actions(result["violations"])
+            from mcp_servers.odd_server import get_mrc_plan
+            mrc_plan = get_mrc_plan(
+                violations=result["violations"],
+                current_state=current_state,
+            )
             return {
                 "safe": False,
                 "zone": "mrc",
                 "message": "System is outside ODD. MRC actions required. / 系统已超出ODD。需要MRC动作。",
-                "recommended_actions": mrc_actions,
+                "recommended_actions": mrc_plan.get("actions", []),
                 "proposed_action_blocked": True,
             }
 
@@ -99,15 +105,20 @@ class SafetyAgent:
         Returns:
             Monitoring summary with any violations detected.
         """
-        from core.odd.odd_monitor import check_odd_series
-        from core.odd.odd_definition import ODDSpec, create_tank_odd
+        from mcp_servers.odd_server import check_odd
 
-        odd_spec = ODDSpec.from_dict(self.odd_config) if self.odd_config else create_tank_odd()
-        result = check_odd_series(states, times, odd_spec)
+        result = check_odd(
+            current_state=states[0] if states else {},
+            odd_config=self.odd_config,
+            check_mode="predictive",
+            forecast_series=states,
+            time_series=times,
+        )
 
-        if result["worst_zone"] == "mrc":
+        if result.get("worst_zone") == "mrc":
             logger.warning(
-                f"ODD violation detected at time {result.get('time_to_breach')}"
+                "ODD violation detected at time %s",
+                result.get("time_to_breach"),
             )
 
         return result

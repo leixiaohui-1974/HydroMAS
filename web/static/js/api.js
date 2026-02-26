@@ -28,11 +28,10 @@ export async function apiGet(url) {
 /**
  * Escape HTML special characters to prevent XSS.
  */
+const _ESC = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 export function escapeHtml(str) {
     if (str === null || str === undefined) return '';
-    const div = document.createElement('div');
-    div.textContent = String(str);
-    return div.innerHTML;
+    return String(str).replace(/[&<>"']/g, c => _ESC[c]);
 }
 
 /**

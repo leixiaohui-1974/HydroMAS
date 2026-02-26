@@ -101,12 +101,14 @@ class BaseSkill(ABC):
         Returns:
             Tool result.
         """
+        import asyncio
+
         if tool_name in self._tool_registry:
             fn = self._tool_registry[tool_name]
-            return fn(**params)
+            return await asyncio.to_thread(fn, **params)
 
-        # Try dynamic import from mcp_servers
-        return self._call_tool_dynamic(tool_name, params)
+        # Try dynamic import from mcp_servers (run in thread to avoid blocking)
+        return await asyncio.to_thread(self._call_tool_dynamic, tool_name, params)
 
     def _call_tool_dynamic(self, tool_name: str, params: dict) -> Any:
         """Dynamically import and call a tool from mcp_servers.

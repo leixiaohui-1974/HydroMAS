@@ -59,7 +59,7 @@ class ControlSystemDesignSkill(BaseSkill):
         steps.append("closed_loop_control")
 
         # Step 4: Performance evaluation
-        n = min(len(ctrl_result["water_level"]), len(ctrl_result["water_level"]))
+        n = min(len(ctrl_result["water_level"]), len(ctrl_result["time"]))
         reference = [setpoint] * n
         eval_result = await self.call_tool("evaluate_performance", {
             "observed": reference,

@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Literal
 
 
-MRCAction = Literal["close_inlet", "open_drain", "emergency_stop", "alert", "reduce_inflow"]
+MRCAction = Literal["close_inlet", "open_drain", "emergency_stop", "alert", "increase_inflow"]
 
 
 def determine_mrc_actions(violations: list[dict]) -> list[dict]:
@@ -45,7 +45,7 @@ def determine_mrc_actions(violations: list[dict]) -> list[dict]:
                 })
             elif bound == "lower":
                 actions.append({
-                    "action": "reduce_inflow",
+                    "action": "increase_inflow",
                     "priority": 1,
                     "description": "Open inlet valve for emergency fill / 打开进水阀紧急补水",
                     "target_dimension": dim,

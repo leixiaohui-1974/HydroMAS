@@ -29,16 +29,10 @@ def predict_lstm(
     try:
         import torch  # noqa: F401
     except ImportError:
-        return {
-            "error": "torch not installed. Install with: pip install 'hydroos-agent[lstm]'",
-            "predictions": [],
-            "method": "lstm",
-        }
+        raise ValueError(
+            "torch not installed. Install with: pip install 'hydroos-agent[lstm]'"
+        )
 
     # Placeholder — full LSTM implementation for future expansion
     # LSTM 完整实现将在扩展阶段完成
-    return {
-        "error": "LSTM predictor not yet implemented",
-        "predictions": [],
-        "method": "lstm",
-    }
+    raise NotImplementedError("LSTM predictor not yet implemented")
