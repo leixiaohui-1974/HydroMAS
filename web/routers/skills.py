@@ -4,11 +4,38 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter
 
 from web.models import SkillRequest, FourPredRequest
 
 router = APIRouter()
+
+
+def _sanitize_floats(obj):
+    """Replace NaN/Inf with None for JSON compliance."""
+    import math
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_floats(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_floats(v) for v in obj]
+    return obj
+
+
+def _serialize_skill_result(result) -> dict:
+    """Convert SkillResult to a JSON-serializable dict."""
+    return _sanitize_floats({
+        "success": result.success,
+        "data": result.data,
+        "error": result.error,
+        "steps_completed": result.steps_completed,
+        "execution_time": result.execution_time,
+    })
 
 
 @router.get("/list")
@@ -26,7 +53,14 @@ async def run_skill(req: SkillRequest):
     from agents.orchestrator import OrchestratorAgent
 
     orch = OrchestratorAgent()
-    result = await orch._execute_skill(req.skill_name, req.params)
+    available = orch.get_available_skills()
+    valid_names = [s["name"] for s in available] if isinstance(available, list) else []
+    if valid_names and req.skill_name not in valid_names:
+        raise ValueError(
+            f"Unknown skill: '{req.skill_name}'. "
+            f"Available: {', '.join(valid_names)}"
+        )
+    result = await orch.handle_request(req.skill_name, req.params)
     return result
 
 
@@ -43,13 +77,7 @@ async def run_four_prediction(req: FourPredRequest):
         "inflow_data": req.inflow_data,
         "risk_threshold": req.risk_threshold,
     })
-    return {
-        "success": result.success,
-        "data": result.data,
-        "error": result.error,
-        "steps_completed": result.steps_completed,
-        "execution_time": result.execution_time,
-    }
+    return _serialize_skill_result(result)
 
 
 @router.post("/lifecycle")
@@ -59,13 +87,7 @@ async def run_lifecycle(params: dict | None = None):
 
     skill = FullLifecycleSkill()
     result = await skill.run(params or {})
-    return {
-        "success": result.success,
-        "data": result.data,
-        "error": result.error,
-        "steps_completed": result.steps_completed,
-        "execution_time": result.execution_time,
-    }
+    return _serialize_skill_result(result)
 
 
 @router.post("/control-design")
@@ -75,13 +97,7 @@ async def run_control_design(params: dict | None = None):
 
     skill = ControlSystemDesignSkill()
     result = await skill.run(params or {})
-    return {
-        "success": result.success,
-        "data": result.data,
-        "error": result.error,
-        "steps_completed": result.steps_completed,
-        "execution_time": result.execution_time,
-    }
+    return _serialize_skill_result(result)
 
 
 @router.post("/report/control")
@@ -90,7 +106,7 @@ async def generate_control_report(results: dict):
     from agents.report_agent import ReportAgent
 
     agent = ReportAgent()
-    report_md = agent.generate_control_report(results)
+    report_md = await asyncio.to_thread(agent.generate_control_report, results)
     return {"report_markdown": report_md}
 
 
@@ -100,7 +116,7 @@ async def generate_odd_report(results: dict):
     from agents.report_agent import ReportAgent
 
     agent = ReportAgent()
-    report_md = agent.generate_odd_report(results)
+    report_md = await asyncio.to_thread(agent.generate_odd_report, results)
     return {"report_markdown": report_md}
 
 
@@ -110,5 +126,5 @@ async def generate_lifecycle_report(results: dict):
     from agents.report_agent import ReportAgent
 
     agent = ReportAgent()
-    report_md = agent.generate_lifecycle_report(results)
+    report_md = await asyncio.to_thread(agent.generate_lifecycle_report, results)
     return {"report_markdown": report_md}

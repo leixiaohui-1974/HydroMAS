@@ -3,7 +3,7 @@
  * 报告页面 — 生成和查看 Markdown 报告。
  */
 
-import { apiPost, showLoader } from '../api.js';
+import { apiPost, showLoader, showError, escapeHtml } from '../api.js';
 
 export async function render(container) {
     container.innerHTML = `
@@ -51,7 +51,7 @@ async function genControlReport() {
         const report = await apiPost('/api/skills/report/control', skillResult.data);
         renderMarkdown(el, report.report_markdown);
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }
 
@@ -69,7 +69,7 @@ async function genODDReport() {
         const report = await apiPost('/api/skills/report/odd', skillResult.data);
         renderMarkdown(el, report.report_markdown);
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }
 
@@ -85,13 +85,13 @@ async function genLifecycleReport() {
         const report = await apiPost('/api/skills/report/lifecycle', skillResult.data);
         renderMarkdown(el, report.report_markdown);
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }
 
 function renderMarkdown(el, md) {
-    // Simple markdown → HTML conversion
-    let html = md
+    // Escape HTML first, then apply markdown transforms
+    let html = escapeHtml(md)
         .replace(/^### (.*)/gm, '<h3>$1</h3>')
         .replace(/^## (.*)/gm, '<h2>$1</h2>')
         .replace(/^# (.*)/gm, '<h1>$1</h1>')

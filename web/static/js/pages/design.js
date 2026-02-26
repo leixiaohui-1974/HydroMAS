@@ -3,7 +3,7 @@
  * 设计页面 — 敏感性分析与水箱尺寸优化。
  */
 
-import { apiPost, createLineChart, fmt, showLoader } from '../api.js';
+import { apiPost, createLineChart, fmt, showLoader, showError, escapeHtml } from '../api.js';
 
 let chart = null;
 
@@ -114,7 +114,7 @@ async function runSensitivity() {
 
         el.innerHTML = html;
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }
 
@@ -137,6 +137,6 @@ async function runSizing() {
             <div class="result-block">${JSON.stringify(result, null, 2)}</div>
         `;
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }

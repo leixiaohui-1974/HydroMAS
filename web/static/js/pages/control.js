@@ -3,7 +3,7 @@
  * 控制页面 — PID/MPC 控制设计。
  */
 
-import { apiPost, apiGet, createLineChart, fmt, showLoader } from '../api.js';
+import { apiPost, apiGet, createLineChart, fmt, showLoader, showError, safeMax, escapeHtml } from '../api.js';
 
 let chart = null;
 
@@ -70,7 +70,7 @@ async function runControl() {
 
         showMetrics(resultsEl, data);
     } catch (err) {
-        resultsEl.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(resultsEl, err);
     }
 }
 
@@ -98,13 +98,13 @@ async function compareControllers() {
                 <thead><tr><th>指标</th><th>PID</th><th>MPC</th></tr></thead>
                 <tbody>
                     <tr><td>最终水位 (m)</td><td>${fmt(pid.water_level[pid.water_level.length-1])}</td><td>${fmt(mpc.water_level[mpc.water_level.length-1])}</td></tr>
-                    <tr><td>最大水位 (m)</td><td>${fmt(Math.max(...pid.water_level))}</td><td>${fmt(Math.max(...mpc.water_level))}</td></tr>
+                    <tr><td>最大水位 (m)</td><td>${fmt(safeMax(pid.water_level))}</td><td>${fmt(safeMax(mpc.water_level))}</td></tr>
                     <tr><td>求解器</td><td>${pid.metadata?.solver||'N/A'}</td><td>${mpc.metadata?.solver||'N/A'}</td></tr>
                 </tbody>
             </table>
         `;
     } catch (err) {
-        resultsEl.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(resultsEl, err);
     }
 }
 
@@ -144,7 +144,7 @@ function showMetrics(el, data) {
     el.innerHTML = `
         <div class="card-grid card-grid-4">
             <div class="stat-card"><div class="stat-label">最终水位</div><div class="stat-value primary">${fmt(wl[wl.length-1], 3)}</div></div>
-            <div class="stat-card"><div class="stat-label">最大水位</div><div class="stat-value info">${fmt(Math.max(...wl), 3)}</div></div>
+            <div class="stat-card"><div class="stat-label">最大水位</div><div class="stat-value info">${fmt(safeMax(wl), 3)}</div></div>
             <div class="stat-card"><div class="stat-label">控制器</div><div class="stat-value" style="font-size:1rem">${data.metadata?.solver||'N/A'}</div></div>
             <div class="stat-card"><div class="stat-label">数据点</div><div class="stat-value">${wl.length}</div></div>
         </div>

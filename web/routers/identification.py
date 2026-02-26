@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter
 
 from web.models import IdentificationRequest, ARXRequest
@@ -12,11 +14,12 @@ router = APIRouter()
 
 
 @router.post("/run")
-async def identify_parameters(req: IdentificationRequest):
+async def identify_parameters_endpoint(req: IdentificationRequest):
     """Run system identification. / 运行系统辨识。"""
     from mcp_servers.identification_server import identify_parameters
 
-    result = identify_parameters(
+    result = await asyncio.to_thread(
+        identify_parameters,
         observed_h=req.observed_h,
         observed_q_out=req.observed_q_out,
         model_type=req.model_type,
@@ -26,9 +29,15 @@ async def identify_parameters(req: IdentificationRequest):
 
 
 @router.post("/arx")
-async def identify_arx(req: ARXRequest):
-    """Run ARX model identification. / 运行 ARX 模型辨识。"""
-    from core.identification import identify_arx
+async def identify_arx_endpoint(req: ARXRequest):
+    """Run ARX model identification via MCP server. / 通过 MCP 服务器运行 ARX 辨识。"""
+    from mcp_servers.identification_server import identify_parameters
 
-    result = identify_arx(y=req.y, u=req.u, na=req.na, nb=req.nb)
+    result = await asyncio.to_thread(
+        identify_parameters,
+        observed_h=req.y,
+        observed_q_out=req.u,
+        model_type="ARX",
+        arx_config={"na": req.na, "nb": req.nb, "u": req.u},
+    )
     return result

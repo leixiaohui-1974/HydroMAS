@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter
 
 from web.models import EvaluationRequest, WNALRequest
@@ -16,7 +18,8 @@ async def eval_performance(req: EvaluationRequest):
     """Evaluate prediction/control performance. / 评价性能。"""
     from mcp_servers.evaluation_server import evaluate_performance
 
-    result = evaluate_performance(
+    result = await asyncio.to_thread(
+        evaluate_performance,
         observed=req.observed,
         predicted=req.predicted,
         metrics=req.metrics,
@@ -31,5 +34,8 @@ async def wnal_assess(req: WNALRequest):
     """Assess Water Network Autonomy Level. / 评估水网自主运行等级。"""
     from mcp_servers.evaluation_server import assess_wnal
 
-    result = assess_wnal(system_capabilities=req.capabilities)
+    result = await asyncio.to_thread(
+        assess_wnal,
+        system_capabilities=req.capabilities,
+    )
     return result

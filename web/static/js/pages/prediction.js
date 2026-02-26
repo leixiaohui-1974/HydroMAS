@@ -3,7 +3,7 @@
  * 预测页面 — 预报接口。
  */
 
-import { apiPost, apiGet, createLineChart, fmt, showLoader } from '../api.js';
+import { apiPost, apiGet, createLineChart, fmt, showLoader, showError, parseFloatList } from '../api.js';
 
 let chart = null;
 
@@ -69,7 +69,7 @@ async function runPrediction() {
 
     try {
         const rawData = document.getElementById('pred-data').value.trim();
-        const historical = rawData.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        const historical = parseFloatList(rawData);
 
         const result = await apiPost('/api/prediction/run', {
             historical_data: historical,
@@ -99,6 +99,6 @@ async function runPrediction() {
             </div>
         `;
     } catch (err) {
-        resultsEl.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(resultsEl, err);
     }
 }

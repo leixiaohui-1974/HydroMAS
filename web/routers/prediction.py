@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter
 
 from web.models import PredictionRequest
@@ -16,7 +18,8 @@ async def run_prediction(req: PredictionRequest):
     """Run prediction model. / 运行预测模型。"""
     from mcp_servers.prediction_server import predict_future
 
-    result = predict_future(
+    result = await asyncio.to_thread(
+        predict_future,
         historical_data=req.historical_data,
         horizon=req.horizon,
         model=req.model,

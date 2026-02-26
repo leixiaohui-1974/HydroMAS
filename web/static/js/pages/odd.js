@@ -3,7 +3,7 @@
  * ODD 监测页面 — 安全边界监控。
  */
 
-import { apiPost, apiGet, fmt, showLoader } from '../api.js';
+import { apiPost, apiGet, fmt, showLoader, showError, escapeHtml } from '../api.js';
 
 export async function render(container) {
     container.innerHTML = `
@@ -80,7 +80,7 @@ async function checkODD() {
                 <tbody>`;
             for (const d of result.dimension_results) {
                 html += `<tr>
-                    <td>${d.dimension}</td>
+                    <td>${escapeHtml(d.dimension)}</td>
                     <td>${d.value !== undefined ? fmt(d.value, 3) : '—'}</td>
                     <td>${d.min !== undefined ? fmt(d.min,2) + ' ~ ' + fmt(d.max,2) : '—'}</td>
                     <td><span class="zone-badge ${zoneClass[d.zone] || ''}">${d.zone}</span></td>
@@ -91,13 +91,13 @@ async function checkODD() {
 
         if (result.violations && result.violations.length > 0) {
             html += `<div class="alert alert-danger" style="margin-top:0.75rem">
-                <strong>违规:</strong> ${result.violations.map(v => v.dimension || v).join(', ')}
+                <strong>违规:</strong> ${escapeHtml(result.violations.map(v => v.dimension || v).join(', '))}
             </div>`;
         }
 
         resultEl.innerHTML = html;
     } catch (err) {
-        resultEl.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(resultEl, err);
     }
 }
 
@@ -111,10 +111,10 @@ async function loadSpecs() {
                 <tbody>
                     ${specs.dimensions.map(d => `
                         <tr>
-                            <td>${d.name}</td>
+                            <td>${escapeHtml(d.name)}</td>
                             <td>${fmt(d.min_value, 2)}</td>
                             <td>${fmt(d.max_value, 2)}</td>
-                            <td>${d.unit}</td>
+                            <td>${escapeHtml(d.unit)}</td>
                             <td>${fmt(d.warning_margin || 0.1, 2)}</td>
                         </tr>
                     `).join('')}

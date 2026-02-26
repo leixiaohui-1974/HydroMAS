@@ -3,7 +3,7 @@
  * 四预系统页面 — 预报→预警→预演→预案。
  */
 
-import { apiPost, createLineChart, fmt, showLoader } from '../api.js';
+import { apiPost, createLineChart, fmt, showLoader, showError, parseFloatList, escapeHtml } from '../api.js';
 
 export async function render(container) {
     container.innerHTML = `
@@ -63,7 +63,7 @@ async function runFourPred() {
 
     try {
         const rawData = document.getElementById('fp-data').value.trim();
-        const waterData = rawData.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        const waterData = parseFloatList(rawData);
 
         const result = await apiPost('/api/skills/four-prediction', {
             water_level_data: waterData,
@@ -104,6 +104,6 @@ async function runFourPred() {
 
         resultsEl.innerHTML = html;
     } catch (err) {
-        resultsEl.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(resultsEl, err);
     }
 }

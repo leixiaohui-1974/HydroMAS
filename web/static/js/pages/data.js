@@ -3,7 +3,7 @@
  * 数据管理页面 — 数据清洗与辨识。
  */
 
-import { apiPost, fmt, showLoader } from '../api.js';
+import { apiPost, fmt, showLoader, showError, parseFloatList } from '../api.js';
 
 export async function render(container) {
     container.innerHTML = `
@@ -19,7 +19,7 @@ export async function render(container) {
                         <div class="form-group">
                             <label>检测方法</label>
                             <select id="out-method" class="form-control">
-                                <option value="zscore">Z-Score</option>
+                                <option value="3sigma">3-Sigma (Z-Score)</option>
                                 <option value="iqr">IQR</option>
                                 <option value="mad">MAD</option>
                             </select>
@@ -91,7 +91,7 @@ async function runOutlier() {
     showLoader(el);
 
     try {
-        const data = document.getElementById('out-data').value.split(',').map(s => parseFloat(s.trim()));
+        const data = parseFloatList(document.getElementById('out-data').value);
         const result = await apiPost('/api/dataclean/outliers', {
             data,
             method: document.getElementById('out-method').value,
@@ -107,7 +107,7 @@ async function runOutlier() {
             <p><strong>边界:</strong> [${fmt(result.bounds?.lower, 3)}, ${fmt(result.bounds?.upper, 3)}]</p>
         `;
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }
 
@@ -134,6 +134,6 @@ async function runARX() {
             <p><strong>b 系数:</strong> ${result.b_coefficients.map(v => fmt(v, 6)).join(', ')}</p>
         `;
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }

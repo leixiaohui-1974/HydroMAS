@@ -3,14 +3,18 @@
  * 智能助手聊天面板逻辑。
  */
 
-import { apiPost, apiGet } from './api.js';
+import { apiPost, apiGet, escapeHtml } from './api.js';
 
 let currentRole = 'admin';
+let chatBound = false;
 
 export function initAssistant(role) {
     currentRole = role;
     loadQuickActions(role);
-    bindChatEvents();
+    if (!chatBound) {
+        bindChatEvents();
+        chatBound = true;
+    }
 }
 
 async function loadQuickActions(role) {
@@ -18,7 +22,7 @@ async function loadQuickActions(role) {
     try {
         const data = await apiGet(`/api/assistant/quick-actions/${role}`);
         container.innerHTML = data.actions.map(a =>
-            `<button class="quick-action-btn" data-msg="${a.message}">${a.label}</button>`
+            `<button class="quick-action-btn" data-msg="${escapeHtml(a.message)}">${escapeHtml(a.label)}</button>`
         ).join('');
         container.querySelectorAll('.quick-action-btn').forEach(btn => {
             btn.addEventListener('click', () => sendMessage(btn.dataset.msg));
@@ -79,7 +83,7 @@ async function sendMessage(text) {
 
         let html = '';
         if (intent.route_type && intent.target) {
-            html += `<div class="intent-tag">${intent.route_type}: ${intent.display_name || intent.target}</div>`;
+            html += `<div class="intent-tag">${escapeHtml(intent.route_type)}: ${escapeHtml(intent.display_name || intent.target)}</div>`;
         }
 
         if (result.status === 'completed' && result.data) {
@@ -89,7 +93,7 @@ async function sendMessage(text) {
                 html += `<p style="color:var(--text-muted);font-size:0.75rem;margin-top:0.3rem">执行时间: ${result.execution_time.toFixed(2)}s</p>`;
             }
         } else if (result.status === 'delegated') {
-            html += `<p>${result.message || '正在处理复杂请求...'}</p>`;
+            html += `<p>${escapeHtml(result.message || '正在处理复杂请求...')}</p>`;
         } else if (result.error) {
             html += `<p style="color:var(--danger)">错误: ${escapeHtml(result.error)}</p>`;
         } else {
@@ -107,10 +111,4 @@ async function sendMessage(text) {
     }
 
     messages.scrollTop = messages.scrollHeight;
-}
-
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

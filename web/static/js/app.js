@@ -72,7 +72,7 @@ let currentPage = null;
 // ---------- Simple inline page renderers for modules without dedicated files ----------
 
 async function renderScheduling(container) {
-    const { apiPost, showLoader, fmt } = await import('./api.js');
+    const { apiPost, showLoader, fmt, escapeHtml: esc, parseFloatList } = await import('./api.js');
     container.innerHTML = `
         <div class="card">
             <div class="card-header"><h3>调度优化 / Schedule Optimization</h3></div>
@@ -100,21 +100,21 @@ async function renderScheduling(container) {
         const el = document.getElementById('sched-result');
         showLoader(el);
         try {
-            const demand = document.getElementById('sched-demand').value.split(',').map(s => parseFloat(s.trim()));
+            const demand = parseFloatList(document.getElementById('sched-demand').value);
             const result = await apiPost('/api/scheduling/run', {
                 demand_forecast: demand,
                 supply_capacity: +document.getElementById('sched-cap').value,
                 method: document.getElementById('sched-method').value,
             });
-            el.innerHTML = `<div class="result-block">${JSON.stringify(result, null, 2)}</div>`;
+            el.innerHTML = `<div class="result-block">${esc(JSON.stringify(result, null, 2))}</div>`;
         } catch (err) {
-            el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+            el.innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`;
         }
     });
 }
 
 async function renderIdentification(container) {
-    const { apiPost, showLoader, fmt } = await import('./api.js');
+    const { apiPost, showLoader, fmt, escapeHtml: esc } = await import('./api.js');
     container.innerHTML = `
         <div class="card">
             <div class="card-header"><h3>系统参数辨识 / System Identification</h3></div>
@@ -144,10 +144,10 @@ async function renderIdentification(container) {
                     <div class="stat-card"><div class="stat-label">Cd</div><div class="stat-value info">${fmt(result.estimated_params?.cd, 3)}</div></div>
                     <div class="stat-card"><div class="stat-label">拟合误差</div><div class="stat-value">${fmt(result.fit_error, 6)}</div></div>
                 </div>
-                <div class="result-block">${JSON.stringify(result, null, 2)}</div>
+                <div class="result-block">${esc(JSON.stringify(result, null, 2))}</div>
             `;
         } catch (err) {
-            el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+            el.innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`;
         }
     });
 }
@@ -232,7 +232,8 @@ function navigateTo(page) {
     const content = document.getElementById('page-content');
     content.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
     item.render(content).catch(err => {
-        content.innerHTML = `<div class="alert alert-danger">页面加载失败: ${err.message}</div>`;
+        const { escapeHtml: esc } = await import('./api.js');
+        content.innerHTML = `<div class="alert alert-danger">页面加载失败: ${esc(err.message)}</div>`;
     });
 }
 

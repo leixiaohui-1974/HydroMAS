@@ -7,11 +7,15 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from web.routers import (
     simulation,
@@ -27,6 +31,8 @@ from web.routers import (
     assistant,
 )
 
+logger = logging.getLogger(__name__)
+
 _BASE_DIR = Path(__file__).parent
 
 app = FastAPI(
@@ -34,6 +40,57 @@ app = FastAPI(
     description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform",
     version="0.1.0",
 )
+
+
+# ---------- Security Headers Middleware / 安全头中间件 ----------
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers to all responses."""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; "
+            "font-src 'self'"
+        )
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+# CORS — allow same-origin by default; configurable for deployment
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Restrict in production
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
+
+
+# ---------- Global Exception Handler / 全局异常处理 ----------
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    """Convert ValueError from core/MCP layer to 400 response."""
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    """Catch-all handler — log details, return generic message."""
+    logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error. Please check server logs."},
+    )
+
 
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory=_BASE_DIR / "static"), name="static")

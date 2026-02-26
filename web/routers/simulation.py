@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter
 
 from web.models import SimulationRequest
@@ -16,7 +18,8 @@ async def run_simulation(req: SimulationRequest):
     """Run tank simulation. / 运行水箱仿真。"""
     from mcp_servers.simulation_server import simulate_tank
 
-    result = simulate_tank(
+    result = await asyncio.to_thread(
+        simulate_tank,
         duration=req.duration,
         dt=req.dt,
         initial_h=req.initial_h,

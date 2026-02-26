@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter
 
 from web.models import ControlRequest
@@ -16,7 +18,8 @@ async def run_control(req: ControlRequest):
     """Run closed-loop control simulation. / 运行闭环控制仿真。"""
     from mcp_servers.control_server import run_controller
 
-    result = run_controller(
+    result = await asyncio.to_thread(
+        run_controller,
         setpoint=req.setpoint,
         controller_type=req.controller_type,
         simulation_config={

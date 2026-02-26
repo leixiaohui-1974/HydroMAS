@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from fastapi import APIRouter
@@ -53,14 +54,14 @@ async def chat(msg: AssistantMessage):
     orch = OrchestratorAgent()
 
     # Classify intent
-    intent = orch.classify_intent(msg.message)
+    intent = await asyncio.to_thread(orch.classify_intent, msg.message)
 
     # Execute
     try:
         result = await orch.handle_request(msg.message, msg.params or {})
-    except Exception as e:
+    except Exception:
         logger.exception("Assistant error")
-        result = {"status": "error", "error": str(e)}
+        result = {"status": "error", "error": "An internal error occurred. Please try again."}
 
     return {
         "intent": intent,

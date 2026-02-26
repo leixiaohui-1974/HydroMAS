@@ -26,6 +26,30 @@ export async function apiGet(url) {
 }
 
 /**
+ * Escape HTML special characters to prevent XSS.
+ */
+export function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+}
+
+/**
+ * Show an error message in an element (XSS-safe).
+ */
+export function showError(el, err) {
+    el.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message || String(err))}</div>`;
+}
+
+/**
+ * Parse a comma-separated string into an array of floats, filtering NaN.
+ */
+export function parseFloatList(str) {
+    return str.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+}
+
+/**
  * Show a loading spinner inside an element.
  */
 export function showLoader(el) {
@@ -39,6 +63,17 @@ export function fmt(n, digits = 4) {
     if (n === null || n === undefined) return 'N/A';
     if (typeof n === 'number') return n.toFixed(digits);
     return String(n);
+}
+
+/**
+ * Safe array max (avoids stack overflow with spread on large arrays).
+ */
+export function safeMax(arr) {
+    let max = -Infinity;
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] > max) max = arr[i];
+    }
+    return max;
 }
 
 /**

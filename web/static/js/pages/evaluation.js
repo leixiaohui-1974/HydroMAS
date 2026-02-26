@@ -3,7 +3,7 @@
  * 评价页面 — 性能指标与 WNAL。
  */
 
-import { apiPost, fmt, showLoader } from '../api.js';
+import { apiPost, fmt, showLoader, showError, parseFloatList, escapeHtml } from '../api.js';
 
 export async function render(container) {
     container.innerHTML = `
@@ -69,8 +69,8 @@ async function runEval() {
     showLoader(el);
 
     try {
-        const obs = document.getElementById('eval-obs').value.split(',').map(s => parseFloat(s.trim()));
-        const pred = document.getElementById('eval-pred').value.split(',').map(s => parseFloat(s.trim()));
+        const obs = parseFloatList(document.getElementById('eval-obs').value);
+        const pred = parseFloatList(document.getElementById('eval-pred').value);
 
         const result = await apiPost('/api/evaluation/performance', {
             observed: obs, predicted: pred,
@@ -86,7 +86,7 @@ async function runEval() {
         html += '</tbody></table>';
         el.innerHTML = html;
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }
 
@@ -113,16 +113,16 @@ async function runWNAL() {
             <div class="card-grid card-grid-3" style="margin-bottom:1rem">
                 <div class="stat-card"><div class="stat-label">自主等级</div><div class="stat-value ${levelColors[result.level] || 'primary'}">${result.level}</div></div>
                 <div class="stat-card"><div class="stat-label">综合得分</div><div class="stat-value info">${fmt(result.score, 1)}</div></div>
-                <div class="stat-card"><div class="stat-label">等级描述</div><div class="stat-value" style="font-size:0.8rem">${result.level_description}</div></div>
+                <div class="stat-card"><div class="stat-label">等级描述</div><div class="stat-value" style="font-size:0.8rem">${escapeHtml(result.level_description)}</div></div>
             </div>
             ${result.recommendations && result.recommendations.length > 0 ? `
                 <div class="alert alert-info">
                     <strong>升级建议:</strong>
-                    <ul style="margin:0.3rem 0 0 1.2rem">${result.recommendations.map(r => `<li>${r}</li>`).join('')}</ul>
+                    <ul style="margin:0.3rem 0 0 1.2rem">${result.recommendations.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul>
                 </div>
             ` : ''}
         `;
     } catch (err) {
-        el.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        showError(el, err);
     }
 }
