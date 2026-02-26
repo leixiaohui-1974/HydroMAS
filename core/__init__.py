@@ -20,6 +20,7 @@ from core.config import (
     get_default_pid_params,
     get_default_mpc_params,
     get_default_simulation_params,
+    load_sample_timeseries,
 )
 
 __all__ = [
@@ -29,4 +30,5 @@ __all__ = [
     "get_default_pid_params",
     "get_default_mpc_params",
     "get_default_simulation_params",
+    "load_sample_timeseries",
 ]

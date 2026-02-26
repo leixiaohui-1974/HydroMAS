@@ -1,12 +1,13 @@
 """Configuration loader for HydroOS data files.
-配置加载器 — 从 data/ 目录加载 JSON 配置。
+配置加载器 — 从 data/ 目录加载 JSON/CSV 配置和数据。
 
-Loads tank_config.json and odd_specs.json, providing typed access
-to default parameters used across the platform.
+Loads tank_config.json, odd_specs.json, and sample_timeseries.csv,
+providing typed access to default parameters used across the platform.
 """
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 from typing import Any
@@ -88,3 +89,25 @@ def get_default_simulation_params() -> dict:
     """
     config = load_tank_config()
     return config["simulation_defaults"]
+
+
+def load_sample_timeseries() -> dict[str, list[float]]:
+    """Load sample time series data from data/sample_timeseries.csv.
+    从 data/sample_timeseries.csv 加载样本时序数据。
+
+    Returns:
+        Dict with keys: time, inflow, water_level, water_level_observed.
+        Each value is a list of floats.
+    """
+    path = _DATA_DIR / "sample_timeseries.csv"
+    if not path.exists():
+        raise FileNotFoundError(f"Sample data file not found: {path}")
+
+    columns: dict[str, list[float]] = {}
+    with open(path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            for key, value in row.items():
+                columns.setdefault(key, []).append(float(value))
+
+    return columns
