@@ -7,6 +7,7 @@ providing typed access to default parameters used across the platform.
 
 from __future__ import annotations
 
+import copy
 import csv
 import functools
 import json
@@ -28,26 +29,38 @@ def _load_json(filename: str) -> dict:
 
 
 @functools.lru_cache(maxsize=1)
+def _load_tank_config_cached() -> dict[str, Any]:
+    return _load_json("tank_config.json")
+
+
 def load_tank_config() -> dict[str, Any]:
     """Load default tank configuration from data/tank_config.json.
     从 data/tank_config.json 加载默认水箱配置。
+
+    Returns a deep copy so callers cannot corrupt the cached data.
 
     Returns:
         Dict with keys: tank_params, simulation_defaults, control_defaults,
         supply_capacity, target_level, description.
     """
-    return _load_json("tank_config.json")
+    return copy.deepcopy(_load_tank_config_cached())
 
 
 @functools.lru_cache(maxsize=1)
+def _load_odd_specs_cached() -> dict[str, Any]:
+    return _load_json("odd_specs.json")
+
+
 def load_odd_specs() -> dict[str, Any]:
     """Load ODD specification from data/odd_specs.json.
     从 data/odd_specs.json 加载 ODD 规格。
 
+    Returns a deep copy so callers cannot corrupt the cached data.
+
     Returns:
         Dict with keys: dimensions (list of dim specs), description.
     """
-    return _load_json("odd_specs.json")
+    return copy.deepcopy(_load_odd_specs_cached())
 
 
 def get_default_tank_params() -> dict:
@@ -95,14 +108,7 @@ def get_default_simulation_params() -> dict:
 
 
 @functools.lru_cache(maxsize=1)
-def load_sample_timeseries() -> dict[str, list[float]]:
-    """Load sample time series data from data/sample_timeseries.csv.
-    从 data/sample_timeseries.csv 加载样本时序数据。
-
-    Returns:
-        Dict with keys: time, inflow, water_level, water_level_observed.
-        Each value is a list of floats.
-    """
+def _load_sample_timeseries_cached() -> dict[str, list[float]]:
     path = _DATA_DIR / "sample_timeseries.csv"
     if not path.exists():
         raise FileNotFoundError(f"Sample data file not found: {path}")
@@ -115,3 +121,16 @@ def load_sample_timeseries() -> dict[str, list[float]]:
                 columns.setdefault(key, []).append(float(value))
 
     return columns
+
+
+def load_sample_timeseries() -> dict[str, list[float]]:
+    """Load sample time series data from data/sample_timeseries.csv.
+    从 data/sample_timeseries.csv 加载样本时序数据。
+
+    Returns a deep copy so callers cannot corrupt the cached data.
+
+    Returns:
+        Dict with keys: time, inflow, water_level, water_level_observed.
+        Each value is a list of floats.
+    """
+    return copy.deepcopy(_load_sample_timeseries_cached())

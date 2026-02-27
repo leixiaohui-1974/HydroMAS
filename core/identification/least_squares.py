@@ -64,7 +64,7 @@ def identify_tank_params(
     q_fitted = cd_fit * a_fit * h_safe_sqrt
     ss_res = np.sum((q_fitted - q_obs) ** 2)
     ss_tot = np.sum((q_obs - np.mean(q_obs)) ** 2)
-    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
+    r_squared = 1.0 - ss_res / ss_tot if not np.isclose(ss_tot, 0.0) else 0.0
 
     return {
         "cd": float(cd_fit),

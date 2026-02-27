@@ -62,9 +62,9 @@ def nse(observed: list[float], predicted: list[float]) -> float:
     p = np.array(predicted)
     ss_res = np.sum((o - p) ** 2)
     ss_tot = np.sum((o - np.mean(o)) ** 2)
-    if ss_tot == 0:
+    if np.isclose(ss_tot, 0.0):
         # All observed values identical: perfect match → 1.0, else large negative
-        return 1.0 if ss_res == 0 else -1e6
+        return 1.0 if np.isclose(ss_res, 0.0) else -1e6
     return float(1.0 - ss_res / ss_tot)
 
 
@@ -106,7 +106,7 @@ def settling_time(
     """
     if tolerance <= 0:
         raise ValueError(f"tolerance must be positive, got {tolerance}")
-    band = abs(setpoint * tolerance) if setpoint != 0 else tolerance
+    band = abs(setpoint * tolerance) if not np.isclose(setpoint, 0.0) else tolerance
     t = np.array(time_series)
     v = np.array(value_series)
 

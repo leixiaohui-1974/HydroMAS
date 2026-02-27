@@ -49,6 +49,8 @@ class ODDSpec:
 
     def add_dimension(self, name: str, min_val: float, max_val: float, unit: str, **kwargs) -> None:
         """Add a dimension to the ODD. / 添加 ODD 维度。"""
+        if name in self._dim_index:
+            raise ValueError(f"Duplicate ODD dimension name: '{name}'")
         dim = DimensionSpec(name=name, min_value=min_val, max_value=max_val, unit=unit, **kwargs)
         self.dimensions.append(dim)
         self._dim_index[name] = dim

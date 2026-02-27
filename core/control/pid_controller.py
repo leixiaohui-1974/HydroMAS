@@ -90,7 +90,7 @@ class PIDController:
         clamped = max(self.params.output_min, min(self.params.output_max, output))
 
         # Anti-windup: back-calculate integral if output is saturated
-        if self.params.anti_windup and clamped != output:
+        if self.params.anti_windup and not math.isclose(clamped, output):
             self._integral -= error * dt  # undo the integral accumulation
 
         self._history.append({

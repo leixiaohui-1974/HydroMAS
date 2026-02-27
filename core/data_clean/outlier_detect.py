@@ -27,7 +27,7 @@ def detect_3sigma(data: list[float], threshold: float = 3.0) -> dict:
     mean = np.nanmean(arr)
     std = np.nanstd(arr)
 
-    if std == 0:
+    if np.isclose(std, 0.0):
         return {
             "outlier_indices": [],
             "mask": [False] * len(data),
@@ -113,10 +113,10 @@ def detect_mad(data: list[float], threshold: float = 3.5) -> dict:
         median = np.nanmedian(arr)
         mad = np.nanmedian(np.abs(arr - median))
 
-    if mad == 0:
+    if np.isclose(mad, 0.0):
         # When MAD is 0 (>50% identical values), fall back to mean absolute deviation
         mad = np.nanmean(np.abs(arr - median))
-        if mad == 0:
+        if np.isclose(mad, 0.0):
             # All values truly identical — no outliers
             return {
                 "outlier_indices": [],

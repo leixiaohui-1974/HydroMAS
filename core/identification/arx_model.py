@@ -70,7 +70,7 @@ def identify_arx(
     y_pred = phi @ theta
     ss_res = np.sum((y_target - y_pred) ** 2)
     ss_tot = np.sum((y_target - np.mean(y_target)) ** 2)
-    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
+    r_squared = 1.0 - ss_res / ss_tot if not np.isclose(ss_tot, 0.0) else 0.0
     rmse = float(np.sqrt(np.mean((y_target - y_pred) ** 2)))
 
     return {

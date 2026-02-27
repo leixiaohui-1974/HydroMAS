@@ -65,9 +65,9 @@ def sensitivity_oat(
         # Sensitivity index: (output_range / param_range) / base_output (normalized)
         output_range = float(np.max(valid) - np.min(valid))
         param_range = p_max - p_min
-        if base_output != 0 and param_range != 0:
+        if not np.isclose(base_output, 0.0) and not np.isclose(param_range, 0.0):
             sensitivity = (output_range / param_range) / abs(base_output)
-        elif param_range != 0:
+        elif not np.isclose(param_range, 0.0):
             sensitivity = output_range / param_range
         else:
             sensitivity = output_range
