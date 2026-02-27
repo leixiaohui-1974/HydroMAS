@@ -59,7 +59,10 @@ class ControlRequest(BaseModel):
 # ---------- Prediction / 预测 ----------
 
 class PredictionRequest(BaseModel):
-    historical_data: list[float] = Field(..., min_length=2, max_length=100000, description="历史时序数据")
+    historical_data: list[float] = Field(
+        ..., min_length=2, max_length=100000,
+        description="历史时序数据",
+    )
     horizon: int = Field(60, gt=0, le=10000, description="预测步数")
     model: Literal["linear", "polynomial"] = Field("linear", description="预测模型")
     lookback: int | None = Field(None, gt=0, description="回看窗口")
@@ -69,11 +72,19 @@ class PredictionRequest(BaseModel):
 # ---------- Scheduling / 调度 ----------
 
 class SchedulingRequest(BaseModel):
-    demand_forecast: list[float] = Field(..., min_length=1, max_length=100000, description="需求预测序列")
+    demand_forecast: list[float] = Field(
+        ..., min_length=1, max_length=100000,
+        description="需求预测序列",
+    )
     supply_capacity: float | None = Field(None, gt=0, le=1e6, description="供水能力上限")
     method: Literal["lp", "rule"] = Field("lp", description="优化方法")
-    constraints: dict | None = Field(None, max_length=20, description="附加约束 {min_level, max_level, ...}")
-    objective: Literal["minimize_cost", "maximize_supply"] = Field("minimize_cost", description="优化目标")
+    constraints: dict | None = Field(
+        None, max_length=20,
+        description="附加约束 {min_level, max_level, ...}",
+    )
+    objective: Literal["minimize_cost", "maximize_supply"] = Field(
+        "minimize_cost", description="优化目标",
+    )
 
 
 # ---------- Evaluation / 评价 ----------
@@ -111,7 +122,10 @@ class ODDCheckRequest(BaseModel):
 
 
 class ODDSeriesRequest(BaseModel):
-    states: list[dict[str, float]] = Field(..., min_length=1, max_length=10000, description="状态序列")
+    states: list[dict[str, float]] = Field(
+        ..., min_length=1, max_length=10000,
+        description="状态序列",
+    )
     times: list[float] | None = Field(None, max_length=10000, description="时间戳序列")
     odd_config: dict | None = Field(None, max_length=100, description="自定义 ODD 配置")
 
@@ -160,7 +174,10 @@ class OutlierDetectRequest(BaseModel):
 
 
 class InterpolateRequest(BaseModel):
-    data: list[float | None] = Field(..., min_length=2, max_length=100000, description="含缺失值的数据")
+    data: list[float | None] = Field(
+        ..., min_length=2, max_length=100000,
+        description="含缺失值的数据",
+    )
     method: Literal["linear", "spline", "median"] = Field("linear", description="插值方法")
 
 
@@ -168,7 +185,10 @@ class InterpolateRequest(BaseModel):
 
 class IdentificationRequest(BaseModel):
     observed_h: list[float] = Field(..., min_length=3, max_length=100000, description="观测水位")
-    observed_q_out: list[float] = Field(..., min_length=3, max_length=100000, description="观测出流量")
+    observed_q_out: list[float] = Field(
+        ..., min_length=3, max_length=100000,
+        description="观测出流量",
+    )
     model_type: Literal["nonlinear", "ARX"] = Field("nonlinear", description="模型类型")
     initial_guess: dict | None = Field(None, max_length=20, description="初始猜测")
 
@@ -205,7 +225,10 @@ class SkillRequest(BaseModel):
 
 
 class FourPredRequest(BaseModel):
-    water_level_data: list[float] = Field(..., min_length=2, max_length=100000, description="水位数据")
+    water_level_data: list[float] = Field(
+        ..., min_length=2, max_length=100000,
+        description="水位数据",
+    )
     inflow_data: list[float] | None = Field(None, max_length=100000, description="入流量数据")
     risk_threshold: float = Field(0.7, ge=0.0, le=1.0, description="风险阈值")
 
@@ -214,6 +237,49 @@ class FourPredRequest(BaseModel):
 
 class AssistantMessage(BaseModel):
     message: str = Field(..., min_length=1, max_length=10000, description="用户消息")
-    role: Literal["operator", "engineer", "analyst", "admin"] = Field("admin", description="用户角色")
+    role: Literal["operator", "engineer", "analyst", "admin"] = Field(
+        "admin", description="用户角色",
+    )
     params: dict = Field(default_factory=dict, max_length=50, description="附加参数")
     history: list[dict] = Field(default_factory=list, max_length=100, description="对话历史")
+
+
+# ---------- Water Balance / 水平衡 ----------
+
+class WaterBalanceRequest(BaseModel):
+    nodes_data: list[dict] = Field(..., min_length=1, max_length=100, description="水平衡节点数据")
+    edges_data: list[list[str]] = Field(
+        ..., min_length=1, max_length=200,
+        description="水平衡边数据",
+    )
+
+
+class LeakDetectionRequest(BaseModel):
+    graph_nodes: list[dict] = Field(..., min_length=2, max_length=500, description="管网节点")
+    graph_edges: list[dict] = Field(..., min_length=1, max_length=1000, description="管网边")
+    threshold: float = Field(0.95, ge=0.0, le=1.0, description="检测阈值")
+
+
+class EvaporationRequest(BaseModel):
+    tower_params: dict = Field(..., description="冷却塔参数")
+    weather: dict = Field(..., description="气象数据")
+
+
+class ReuseRequest(BaseModel):
+    source_quality: dict = Field(..., description="回用水源水质")
+    target_requirements: list[dict] = Field(..., min_length=1, description="目标车间需求")
+
+
+class GlobalDispatchRequest(BaseModel):
+    demand_forecast: dict = Field(..., description="需求预测")
+    supply_config: dict = Field(..., description="供水配置")
+    reuse_config: dict | None = Field(None, description="回用配置")
+    method: Literal["lp", "rl"] = Field("lp", description="优化方法")
+
+
+class DailyReportRequest(BaseModel):
+    date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$", description="报告日期")
+    include_sections: list[str] = Field(
+        default=["balance", "anomaly", "kpi", "evaporation", "reuse"],
+        description="包含章节"
+    )

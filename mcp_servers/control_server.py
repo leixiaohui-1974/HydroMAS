@@ -77,7 +77,10 @@ def run_controller(
         return {"control_output": u, "error": setpoint - state["h"]}
     elif controller_type.upper() == "MPC":
         from core.control.mpc_controller import MPCController
-        _mpc_keys = {"horizon", "q_weight", "r_weight", "u_min", "u_max", "h_min", "h_max", "tank_area", "dt"}
+        _mpc_keys = {
+            "horizon", "q_weight", "r_weight", "u_min", "u_max",
+            "h_min", "h_max", "tank_area", "dt",
+        }
         filtered = {k: v for k, v in (params or {}).items() if k in _mpc_keys}
         mpc = MPCController(**filtered)
         u = mpc.compute(state["h"], setpoint, state.get("q_out", 0.005))

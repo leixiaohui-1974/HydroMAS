@@ -1,7 +1,8 @@
 """Tests for compute.distributed_optim module."""
 
 import pytest
-from compute.distributed_optim import parallel_sensitivity, parallel_evaluate
+
+from compute.distributed_optim import parallel_evaluate, parallel_sensitivity
 
 
 class TestParallelSensitivity:

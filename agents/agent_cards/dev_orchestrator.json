@@ -1,0 +1,23 @@
+{
+  "name": "DevOrchestratorAgent",
+  "display_name": "Dev Orchestrator / 开发编排 Agent",
+  "description": "Collaborative development pipeline coordinator. Orchestrates Planning→Development→Review→Testing→Integration workflow with iterative refinement. Inspired by ChatDev/MetaGPT multi-agent architectures.",
+  "version": "0.1.0",
+  "capabilities": [
+    "pipeline_creation",
+    "stage_orchestration",
+    "iterative_refinement",
+    "report_generation",
+    "history_tracking"
+  ],
+  "pipeline_stages": [
+    "planning",
+    "development",
+    "review",
+    "testing",
+    "integration"
+  ],
+  "max_iterations": 3,
+  "protocol": "A2A",
+  "endpoint": "/agents/dev_orchestrator"
+}

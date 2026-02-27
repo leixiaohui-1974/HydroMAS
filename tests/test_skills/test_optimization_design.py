@@ -1,6 +1,7 @@
 """Integration tests for OptimizationDesignSkill."""
 
 import pytest
+
 from skills.optimization_design import OptimizationDesignSkill
 
 

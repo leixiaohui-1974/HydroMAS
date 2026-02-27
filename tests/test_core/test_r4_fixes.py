@@ -7,9 +7,7 @@ from __future__ import annotations
 import math
 import warnings
 
-import numpy as np
 import pytest
-
 
 # ---------- C1: predict_linear/polynomial lookback truncation ----------
 
@@ -114,7 +112,7 @@ class TestRoundStepCount:
 
     def test_simulation_covers_full_duration(self):
         from core.simulation import run_simulation
-        result = run_simulation(duration=10, dt=3.0)
+        _result = run_simulation(duration=10, dt=3.0)  # noqa: F841
         # round(10/3) = 3, final time = 9.0
         # int(10/3) = 3 too — but for 10/7:
         result2 = run_simulation(duration=10, dt=7.0)

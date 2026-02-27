@@ -2,10 +2,8 @@
 R3 评审修复测试。
 """
 
-import copy
-import pytest
 import numpy as np
-
+import pytest
 
 # ---------- CRITICAL: DoS step limit ----------
 
@@ -59,7 +57,7 @@ class TestPredictARXHistory:
         assert len(preds) == 10
         # With u_history, the first prediction should use historical u values
         # and should differ from prediction without u_history
-        preds_no_hist = predict_arx(model, y_hist, u_future)
+        _preds_no_hist = predict_arx(model, y_hist, u_future)  # noqa: F841
         # They may differ since u_history provides context for the delay
         assert isinstance(preds[0], float)
 
@@ -269,6 +267,7 @@ class TestHSTSHeader:
 
     def test_hsts_present(self):
         from fastapi.testclient import TestClient
+
         from web.app import app
         client = TestClient(app)
         resp = client.get("/api/roles")
@@ -282,6 +281,7 @@ class TestValueErrorTruncation:
 
     def test_long_error_truncated(self):
         from fastapi.testclient import TestClient
+
         from web.app import app
         client = TestClient(app)
         # Trigger a ValueError with a long message via invalid data
@@ -315,6 +315,7 @@ class TestObjectiveLiteral:
 
     def test_invalid_objective_rejected(self):
         from fastapi.testclient import TestClient
+
         from web.app import app
         client = TestClient(app)
         resp = client.post("/api/scheduling/run", json={

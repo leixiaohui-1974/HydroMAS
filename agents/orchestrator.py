@@ -19,7 +19,7 @@ import asyncio
 import logging
 from typing import Any
 
-from skills.base_skill import discover_skills, SkillMetadata
+from skills.base_skill import discover_skills
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,20 @@ TOOL_KEYWORDS = {
     "evaluate_performance": ["评价", "evaluate", "评估", "assess", "指标", "metric"],
     "optimize_design": ["设计", "design", "优化", "sizing", "尺寸"],
 }
+
+TOOL_KEYWORDS.update({
+    "calc_node_balance": ["水平衡", "water balance", "节点平衡", "残差"],
+    "calc_full_plant_balance": ["全厂水平衡", "全厂核算", "full balance"],
+    "detect_leak": ["泄漏检测", "漏水检测", "leak detection", "泄漏"],
+    "localize_leak": ["泄漏定位", "漏点定位", "leak localization"],
+    "predict_evaporation": ["蒸发预测", "蒸发量", "evaporation prediction"],
+    "match_reuse_path": ["回用匹配", "回用路径", "reuse matching"],
+    "optimize_reuse_schedule": ["回用调度", "回用优化", "reuse scheduling"],
+    "optimize_global_dispatch": ["全局调度", "global dispatch", "取水优化"],
+    "simulate_network": ["管网仿真", "管网模拟", "network simulation", "管网"],
+    "evaluate_water_kpi": ["水网KPI", "水网指标", "water KPI"],
+    "check_alumina_odd": ["氧化铝ODD", "厂区安全", "alumina ODD"],
+})
 
 
 class OrchestratorAgent:
@@ -67,6 +81,14 @@ class OrchestratorAgent:
             "plan_skill": "skills.plan_skill.PlanSkill",
             "four_prediction_loop": "skills.four_prediction_loop.FourPredictionLoopSkill",
         }
+
+        skill_classes.update({
+            "leak_diagnosis": "skills.leak_diagnosis.LeakDiagnosisSkill",
+            "evap_optimization": "skills.evap_optimization.EvapOptimizationSkill",
+            "reuse_scheduling": "skills.reuse_scheduling.ReuseSchedulingSkill",
+            "global_dispatch": "skills.global_dispatch.GlobalDispatchSkill",
+            "daily_report": "skills.daily_report.DailyReportSkill",
+        })
 
         import importlib
         for name, class_path in skill_classes.items():

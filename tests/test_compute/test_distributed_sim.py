@@ -1,7 +1,8 @@
 """Tests for compute.distributed_sim module (local execution, no Ray required)."""
 
 import pytest
-from compute.distributed_sim import simulate_single, parameter_sweep, monte_carlo_sim
+
+from compute.distributed_sim import monte_carlo_sim, parameter_sweep, simulate_single
 
 
 class TestSimulateSingle:

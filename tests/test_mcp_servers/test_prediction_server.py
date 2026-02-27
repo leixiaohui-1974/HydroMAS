@@ -1,6 +1,7 @@
 """Integration tests for MCP prediction server."""
 
 import pytest
+
 from mcp_servers.prediction_server import predict_future
 
 

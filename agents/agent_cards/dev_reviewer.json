@@ -1,0 +1,23 @@
+{
+  "name": "DevReviewerAgent",
+  "display_name": "Dev Reviewer / 开发评审 Agent",
+  "description": "Multi-dimensional code review agent. Checks architecture compliance (layer dependencies), safety (credentials, injection, eval), code style (docstrings), and domain correctness (physical bounds).",
+  "version": "0.1.0",
+  "capabilities": [
+    "architecture_review",
+    "safety_review",
+    "style_review",
+    "domain_review",
+    "test_coverage_check",
+    "design_review"
+  ],
+  "review_dimensions": [
+    "architecture",
+    "safety",
+    "style",
+    "domain",
+    "test_coverage"
+  ],
+  "protocol": "A2A",
+  "endpoint": "/agents/dev_reviewer"
+}

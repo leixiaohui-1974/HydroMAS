@@ -1,8 +1,7 @@
 """Tests for core.design module."""
 
-import pytest
+from core.design.sensitivity import sensitivity_morris, sensitivity_oat
 from core.design.sizing import optimize_tank_size
-from core.design.sensitivity import sensitivity_oat, sensitivity_morris
 
 
 class TestSizing:

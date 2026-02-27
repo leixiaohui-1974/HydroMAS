@@ -1,0 +1,15 @@
+{
+  "name": "DevPlannerAgent",
+  "display_name": "Dev Planner / 开发规划 Agent",
+  "description": "Requirement analysis and implementation planning. Analyzes development requests, identifies affected layers/modules, and generates structured task DAGs with test and review stages.",
+  "version": "0.1.0",
+  "capabilities": [
+    "requirement_analysis",
+    "module_identification",
+    "plan_generation",
+    "complexity_estimation",
+    "risk_assessment"
+  ],
+  "protocol": "A2A",
+  "endpoint": "/agents/dev_planner"
+}

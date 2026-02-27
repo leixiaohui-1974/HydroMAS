@@ -1,0 +1,41 @@
+name: global_dispatch
+display_name: "全局调度 / Global Dispatch"
+description: "Optimize plant-wide water intake and distribution through demand prediction, evaporation forecasting, and ODD safety checks. / 通过需求预测、蒸发预报和ODD安全校验优化全厂取水与配水。"
+trigger_phrases:
+  - "全局调度"
+  - "水量优化"
+  - "取水优化"
+  - "global dispatch"
+  - "water optimization"
+input_schema:
+  historical_demand:
+    type: array
+    description: "Historical water demand series / 历史用水需求序列"
+  weather_forecast:
+    type: array
+    description: "Weather forecast data / 气象预报数据"
+  supply_config:
+    type: object
+    description: "Water supply source configuration / 水源供给配置"
+  current_state:
+    type: object
+    description: "Current system state (tank levels, flows) / 当前系统状态"
+output_schema:
+  demand_forecast:
+    type: object
+  evaporation_forecast:
+    type: object
+  dispatch_plan:
+    type: object
+    description: "Optimized dispatch plan / 优化调度方案"
+  odd_check:
+    type: object
+    description: "ODD safety check result / ODD安全校验结果"
+  summary:
+    type: object
+tools_required:
+  - predict_demand
+  - predict_evaporation_hybrid
+  - optimize_global_dispatch
+  - check_alumina_odd
+max_execution_time: 120

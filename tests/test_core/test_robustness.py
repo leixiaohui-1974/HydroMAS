@@ -3,8 +3,6 @@
 """
 
 import pytest
-import numpy as np
-
 
 # ---------- Config Error Paths ----------
 
@@ -476,8 +474,9 @@ class TestCreateMpcActorAnnotation:
     """Verify create_mpc_actor has proper type annotation."""
 
     def test_return_type_annotation_exists(self):
-        from compute.actor_controller import create_mpc_actor
         import inspect
+
+        from compute.actor_controller import create_mpc_actor
         sig = inspect.signature(create_mpc_actor)
         # Should have a return annotation (Any)
         assert sig.return_annotation is not inspect.Parameter.empty

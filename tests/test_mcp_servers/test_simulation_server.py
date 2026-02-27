@@ -1,7 +1,6 @@
 """Integration tests for MCP simulation server."""
 
-import pytest
-from mcp_servers.simulation_server import simulate_tank, simulate_batch
+from mcp_servers.simulation_server import simulate_batch, simulate_tank
 
 
 class TestSimulateTank:

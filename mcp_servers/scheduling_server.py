@@ -61,5 +61,37 @@ def optimize_schedule(
         raise ValueError(f"Unknown method: {method}. Use 'lp' or 'rule'.")
 
 
+@mcp.tool()
+def optimize_global_dispatch(demand_forecast: dict, supply_config: dict,
+                             reuse_config: dict | None = None,
+                             method: str = "lp") -> dict:
+    """Global water dispatch optimization. / 全局水量调度优化。"""
+    # Extract demands and supplies
+    total_demand = sum(demand_forecast.values()) if isinstance(demand_forecast, dict) else 0
+    total_supply = (
+        sum(v.get("capacity", 0) for v in supply_config.values())
+        if isinstance(supply_config, dict) else 0
+    )
+    # Simple LP-based allocation
+    allocation = {}
+    remaining = total_demand
+    for source_id, source in (supply_config.items() if isinstance(supply_config, dict) else []):
+        cap = source.get("capacity", 0)
+        alloc = min(cap, remaining)
+        allocation[source_id] = alloc
+        remaining -= alloc
+    reuse_volume = 0
+    if reuse_config:
+        reuse_volume = reuse_config.get("available_volume", 0)
+        allocation["reuse"] = min(reuse_volume, remaining)
+        remaining -= allocation.get("reuse", 0)
+    return {
+        "total_demand": total_demand, "total_supply": total_supply,
+        "allocation": allocation, "deficit": max(0, remaining),
+        "reuse_volume": reuse_volume, "method": method,
+        "feasible": remaining <= 0,
+    }
+
+
 if __name__ == "__main__":
     mcp.run()

@@ -1,6 +1,7 @@
 """Integration tests for ControlSystemDesignSkill."""
 
 import pytest
+
 from skills.control_system_design import ControlSystemDesignSkill
 
 

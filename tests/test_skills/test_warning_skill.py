@@ -1,6 +1,7 @@
 """Integration tests for WarningSkill (四预: 预警)."""
 
 import pytest
+
 from skills.warning_skill import WarningSkill
 
 

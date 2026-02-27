@@ -1,0 +1,23 @@
+{
+  "name": "DevTesterAgent",
+  "display_name": "Dev Tester / 开发测试 Agent",
+  "description": "Test generation and coverage analysis agent. Generates test suites from module templates, supports scenario-based testing (research/design/operations), and validates test execution results.",
+  "version": "0.1.0",
+  "capabilities": [
+    "test_generation",
+    "scenario_testing",
+    "coverage_analysis",
+    "result_validation"
+  ],
+  "supported_scenarios": [
+    "research",
+    "design",
+    "operations"
+  ],
+  "supported_systems": [
+    "tank",
+    "alumina"
+  ],
+  "protocol": "A2A",
+  "endpoint": "/agents/dev_tester"
+}

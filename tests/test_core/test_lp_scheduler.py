@@ -1,7 +1,8 @@
 """Tests for LP scheduler (with PuLP fallback)."""
 
 import pytest
-from core.scheduling.lp_scheduler import optimize_schedule_lp, _fallback_schedule
+
+from core.scheduling.lp_scheduler import _fallback_schedule, optimize_schedule_lp
 
 
 class TestFallbackSchedule:

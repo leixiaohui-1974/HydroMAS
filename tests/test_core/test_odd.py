@@ -1,13 +1,14 @@
 """Tests for core.odd module."""
 
 import pytest
+
+from core.odd.mrc_handler import determine_mrc_actions, generate_mrc_plan
 from core.odd.odd_definition import (
     DimensionSpec,
     ODDSpec,
     create_tank_odd,
 )
-from core.odd.odd_monitor import classify_value, check_odd, check_odd_series
-from core.odd.mrc_handler import determine_mrc_actions, generate_mrc_plan
+from core.odd.odd_monitor import check_odd, check_odd_series, classify_value
 
 
 class TestODDDefinition:
@@ -67,18 +68,32 @@ class TestODDMonitor:
 
 class TestMRCHandler:
     def test_water_level_upper(self):
-        violations = [{"dimension": "water_level", "bound_violated": "upper", "value": 2.0, "limit": 1.8}]
+        violations = [{
+            "dimension": "water_level",
+            "bound_violated": "upper",
+            "value": 2.0, "limit": 1.8,
+        }]
         actions = determine_mrc_actions(violations)
         assert len(actions) >= 1
         assert any(a["action"] == "close_inlet" for a in actions)
 
     def test_structural_pressure(self):
-        violations = [{"dimension": "structural_pressure", "bound_violated": "upper", "value": 60, "limit": 50}]
+        violations = [{
+            "dimension": "structural_pressure",
+            "bound_violated": "upper",
+            "value": 60, "limit": 50,
+        }]
         actions = determine_mrc_actions(violations)
         assert any(a["action"] == "emergency_stop" for a in actions)
 
     def test_generate_mrc_plan(self):
-        violations = [{"dimension": "water_level", "bound_violated": "upper", "value": 2.0, "limit": 1.8}]
-        plan = generate_mrc_plan(violations, {"water_level": 2.0})
+        violations = [{
+            "dimension": "water_level",
+            "bound_violated": "upper",
+            "value": 2.0, "limit": 1.8,
+        }]
+        plan = generate_mrc_plan(
+            violations, {"water_level": 2.0},
+        )
         assert plan["status"] == "mrc_activated"
         assert len(plan["actions"]) >= 1

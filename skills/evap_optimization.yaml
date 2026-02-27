@@ -1,0 +1,40 @@
+name: evap_optimization
+display_name: "蒸发优化 / Evaporation Optimization"
+description: "Predict and optimize evaporative water losses from cooling towers, calcination, and red mud. / 预测并优化冷却塔、焙烧和赤泥的蒸发水损失。"
+trigger_phrases:
+  - "蒸发优化"
+  - "蒸发量"
+  - "冷却塔优化"
+  - "evaporation"
+  - "cooling tower"
+input_schema:
+  tower_params:
+    type: object
+    description: "Cooling tower parameters / 冷却塔参数"
+  weather:
+    type: object
+    description: "Weather conditions (temperature, humidity, wind) / 气象条件"
+  calc_params:
+    type: object
+    description: "Calcination process parameters / 焙烧工艺参数"
+  mud_params:
+    type: object
+    description: "Red mud storage parameters / 赤泥堆场参数"
+output_schema:
+  tower_evaporation:
+    type: object
+  calcination_evaporation:
+    type: object
+  red_mud_water:
+    type: object
+  total_evap_loss:
+    type: object
+  suggestions:
+    type: array
+    description: "Optimization suggestions with priority / 带优先级的优化建议"
+tools_required:
+  - predict_evaporation
+  - predict_calcination_evap
+  - predict_red_mud_water
+  - predict_total_evap_loss
+max_execution_time: 90

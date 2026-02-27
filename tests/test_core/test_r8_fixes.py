@@ -6,9 +6,7 @@ from __future__ import annotations
 
 import math
 
-import numpy as np
 import pytest
-
 
 # ---------- H1: overshoot near-zero setpoint ----------
 

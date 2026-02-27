@@ -33,7 +33,7 @@ async def run_simulation(req: SimulationRequest):
 @router.get("/defaults")
 async def get_defaults():
     """Get default simulation parameters. / 获取默认仿真参数。"""
-    from core.config import get_default_tank_params, get_default_simulation_params
+    from core.config import get_default_simulation_params, get_default_tank_params
 
     return {
         "tank_params": get_default_tank_params(),

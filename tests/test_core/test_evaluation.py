@@ -1,17 +1,16 @@
 """Tests for core.evaluation module."""
 
 import pytest
-import numpy as np
 
 from core.evaluation.metrics import (
-    rmse,
-    mae,
-    nse,
-    mape,
-    settling_time,
-    overshoot,
-    steady_state_error,
     evaluate_performance,
+    mae,
+    mape,
+    nse,
+    overshoot,
+    rmse,
+    settling_time,
+    steady_state_error,
 )
 from core.evaluation.wnal_assessor import assess_wnal
 
@@ -91,12 +90,26 @@ class TestEvaluatePerformance:
 
 class TestWNALAssessor:
     def test_low_level(self):
-        caps = {k: 10.0 for k in ["sensing", "communication", "modeling", "prediction", "control", "odd_monitoring", "decision_support"]}
+        caps = {
+            k: 10.0
+            for k in [
+                "sensing", "communication", "modeling",
+                "prediction", "control", "odd_monitoring",
+                "decision_support",
+            ]
+        }
         result = assess_wnal(caps)
         assert result["level"] in ("L0", "L1")
 
     def test_high_level(self):
-        caps = {k: 90.0 for k in ["sensing", "communication", "modeling", "prediction", "control", "odd_monitoring", "decision_support"]}
+        caps = {
+            k: 90.0
+            for k in [
+                "sensing", "communication", "modeling",
+                "prediction", "control", "odd_monitoring",
+                "decision_support",
+            ]
+        }
         result = assess_wnal(caps)
         assert result["level"] in ("L4", "L5")
 

@@ -33,6 +33,7 @@ async def run_prediction(req: PredictionRequest):
 async def get_sample_data():
     """Load sample time series data. / 加载示例时序数据。"""
     import math
+
     from core.config import load_sample_timeseries
 
     data = load_sample_timeseries()

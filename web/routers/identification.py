@@ -8,7 +8,7 @@ import asyncio
 
 from fastapi import APIRouter
 
-from web.models import IdentificationRequest, ARXRequest
+from web.models import ARXRequest, IdentificationRequest
 
 router = APIRouter()
 

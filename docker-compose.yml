@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  hydromas:
+    build: .
+    container_name: hydromas-web
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=production
+      - ALLOWED_ORIGINS=http://localhost:8000
+      - TDENGINE_HOST=tdengine
+      - TDENGINE_PORT=6041
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=hydromas2024
+    depends_on:
+      - tdengine
+      - neo4j
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+
+  tdengine:
+    image: tdengine/tdengine:3.2.3.0
+    container_name: hydromas-tdengine
+    ports:
+      - "6030:6030"
+      - "6041:6041"
+    volumes:
+      - tdengine_data:/var/lib/taos
+    restart: unless-stopped
+
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: hydromas-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/hydromas2024
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - neo4j_data:/data
+    restart: unless-stopped
+
+volumes:
+  tdengine_data:
+  neo4j_data:

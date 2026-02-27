@@ -59,9 +59,10 @@ def run_sensitivity(
     Returns:
         Dict with sensitivity indices and ranking.
     """
-    from core.design.sensitivity import sensitivity_oat, sensitivity_morris
-    from core.simulation.simulator import run_simulation
     import numpy as np
+
+    from core.design.sensitivity import sensitivity_morris, sensitivity_oat
+    from core.simulation.simulator import run_simulation
 
     # Validate and convert list ranges to tuple
     for k, v in param_ranges.items():

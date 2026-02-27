@@ -9,7 +9,6 @@ import threading
 
 import pytest
 
-
 # ---------- H-NS3: compute_outflow belt-and-suspenders sqrt safety ----------
 
 class TestComputeOutflowSqrtSafety:

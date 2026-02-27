@@ -1,7 +1,9 @@
 """Integration tests for MCP data cleaning server."""
 
 import math
+
 import pytest
+
 from mcp_servers.dataclean_server import clean_timeseries, detect_outliers
 
 

@@ -1,6 +1,5 @@
 """Tests for orchestrator routing to 四预 Skills."""
 
-import pytest
 from agents.orchestrator import OrchestratorAgent
 
 

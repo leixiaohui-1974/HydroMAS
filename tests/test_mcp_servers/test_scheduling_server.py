@@ -1,6 +1,7 @@
 """Integration tests for MCP scheduling server."""
 
 import pytest
+
 from mcp_servers.scheduling_server import optimize_schedule
 
 

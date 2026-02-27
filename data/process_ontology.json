@@ -1,0 +1,14 @@
+{
+  "entities": {
+    "dissolution": {"cn": "溶出", "inputs": ["ore", "alkali_solution", "steam", "water"], "outputs": ["slurry"], "key_params": ["temperature", "pressure", "alkali_concentration"]},
+    "decomposition": {"cn": "分解", "inputs": ["sodium_aluminate_solution", "seed"], "outputs": ["aluminum_hydroxide", "mother_liquor"], "key_params": ["temperature", "seed_ratio"]},
+    "evaporation": {"cn": "蒸发", "inputs": ["mother_liquor", "steam"], "outputs": ["concentrated_liquor", "condensate"], "key_params": ["evaporation_ratio", "vacuum_degree"]},
+    "calcination": {"cn": "焙烧", "inputs": ["aluminum_hydroxide", "fuel"], "outputs": ["alumina", "flue_gas"], "key_params": ["temperature", "residence_time"]},
+    "red_mud_washing": {"cn": "赤泥洗涤", "inputs": ["red_mud_slurry", "wash_water"], "outputs": ["washed_mud", "wash_liquor"], "key_params": ["wash_ratio", "stages"]}
+  },
+  "fault_modes": {
+    "high_evaporation": {"causes": ["high_ambient_temp", "low_humidity", "high_circulation_flow"], "effects": ["increased_makeup_water", "higher_intake"]},
+    "pipe_leak": {"causes": ["corrosion", "joint_failure", "pressure_surge"], "effects": ["balance_residual_increase", "pressure_drop"]},
+    "reuse_quality_exceed": {"causes": ["process_upset", "insufficient_treatment", "contamination"], "effects": ["reuse_rate_decrease", "fresh_water_increase"]}
+  }
+}

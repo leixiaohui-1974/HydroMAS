@@ -7,10 +7,9 @@ Wraps core.simulation functions as Ray remote tasks for parallel execution.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
+from compute.ray_config import init_ray, is_ray_available
 from core.simulation.simulator import run_simulation
-from compute.ray_config import is_ray_available, init_ray
 
 logger = logging.getLogger(__name__)
 

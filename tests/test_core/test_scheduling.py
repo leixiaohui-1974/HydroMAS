@@ -1,6 +1,5 @@
 """Tests for core.scheduling module."""
 
-import pytest
 from core.scheduling.rule_based import schedule_rule_based
 
 

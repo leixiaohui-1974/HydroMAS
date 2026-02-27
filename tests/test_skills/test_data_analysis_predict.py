@@ -1,6 +1,7 @@
 """Integration tests for DataAnalysisPredictSkill."""
 
 import pytest
+
 from skills.data_analysis_predict import DataAnalysisPredictSkill
 
 

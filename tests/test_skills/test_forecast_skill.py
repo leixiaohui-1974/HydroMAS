@@ -1,6 +1,7 @@
 """Integration tests for ForecastSkill (四预: 预报)."""
 
 import pytest
+
 from skills.forecast_skill import ForecastSkill
 
 

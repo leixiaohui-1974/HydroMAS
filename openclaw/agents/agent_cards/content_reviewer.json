@@ -1,0 +1,24 @@
+{
+  "agent_id": "content_reviewer",
+  "name": "ContentReviewerAgent",
+  "display_name": "内容审查Agent / Content Reviewer",
+  "description": "Multi-dimensional content quality review: structure, style, technical accuracy, compliance.",
+  "capabilities": [
+    "structure_review",
+    "style_review",
+    "technical_review",
+    "compliance_review",
+    "image_config_review",
+    "publish_config_review"
+  ],
+  "input_protocol": {
+    "type": "text_or_config",
+    "format": "markdown_or_json"
+  },
+  "output_protocol": {
+    "type": "ContentReviewResult",
+    "fields": ["passed", "score", "comments", "summary"]
+  },
+  "layer": "L4",
+  "version": "1.0.0"
+}

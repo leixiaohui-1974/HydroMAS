@@ -7,8 +7,8 @@ MVP uses local single-node mode; cluster mode for future expansion.
 
 from __future__ import annotations
 
-import os
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,5 @@
 """Tests for agents.orchestrator module."""
 
-import pytest
 from agents.orchestrator import OrchestratorAgent
 
 

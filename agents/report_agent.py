@@ -112,7 +112,9 @@ class ReportAgent:
 - **Actions**:
 """
             for action in mrc.get("actions", []):
-                report += f"  - [{_escape_md(str(action.get('priority', 'N/A')))}] {_escape_md(str(action.get('description', '')))}\n"
+                priority = _escape_md(str(action.get('priority', 'N/A')))
+                desc = _escape_md(str(action.get('description', '')))
+                report += f"  - [{priority}] {desc}\n"
 
         return report
 
@@ -152,4 +154,98 @@ class ReportAgent:
             elif value is not None:
                 report += f"- **{safe_key}**: {_escape_md(str(value))}\n"
 
+        return report
+
+    def generate_water_balance_report(self, balance_result: dict) -> str:
+        """Generate water balance report in Markdown. / 生成水平衡报告。"""
+        report = f"""# Water Balance Report / 水平衡报告
+
+**Generated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+## Summary / 概要
+
+| Metric | Value |
+|--------|-------|
+| Total Intake | {balance_result.get("total_intake", 0):.1f} m³/d |
+| Total Consumption | {balance_result.get("total_consumption", 0):.1f} m³/d |
+| Total Loss | {balance_result.get("total_loss", 0):.1f} m³/d |
+| Total Evaporation | {balance_result.get("total_evap", 0):.1f} m³/d |
+| Reuse Rate | {balance_result.get("reuse_rate", 0):.1%} |
+| Balance Error | {balance_result.get("balance_error", 0):.4f} |
+
+## Node Residuals / 节点残差
+
+"""
+        residuals = balance_result.get("node_residuals", {})
+        if residuals:
+            report += "| Node | Residual |\n|------|----------|\n"
+            for node_id, residual in residuals.items():
+                report += f"| {_escape_md(str(node_id))} | {residual:.4f} |\n"
+        return report
+
+    def generate_daily_operation_report(self, daily_data: dict) -> str:
+        """Generate daily operation report. / 生成日运营报告。"""
+        date = daily_data.get("date", datetime.now().strftime("%Y-%m-%d"))
+        report = f"""# Daily Operation Report / 日运营报告
+
+**Date**: {_escape_md(str(date))}
+**Generated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+## Water Balance / 水平衡
+
+- Total Intake: {daily_data.get("total_intake", 0):.1f} m³/d
+- Reuse Rate: {daily_data.get("reuse_rate", 0):.1%}
+- Balance Error: {daily_data.get("balance_error", 0):.4f}
+
+## KPI / 关键指标
+
+"""
+        kpi = daily_data.get("kpi", {})
+        for key, value in kpi.items():
+            safe_key = _escape_md(str(key))
+            if isinstance(value, (int, float)):
+                report += f"- **{safe_key}**: {value:.4f}\n"
+            elif value is not None:
+                report += f"- **{safe_key}**: {_escape_md(str(value))}\n"
+
+        anomalies = daily_data.get("anomalies", [])
+        report += "\n## Anomalies / 异常事件\n\n"
+        if anomalies:
+            report += f"Detected {len(anomalies)} anomalies.\n\n"
+            for a in anomalies:
+                node_id = _escape_md(str(a.get('node_id', 'unknown')))
+                severity = _escape_md(str(a.get('severity', 'unknown')))
+                report += f"- **{node_id}**: {severity} severity\n"
+        else:
+            report += "No anomalies detected. / 未检测到异常。\n"
+
+        evap = daily_data.get("evaporation", {})
+        report += "\n## Evaporation / 蒸发损耗\n\n"
+        report += f"- Total Daily Evaporation: {evap.get('total_daily_m3', 0):.1f} m³/d\n"
+        return report
+
+    def generate_leak_diagnosis_report(self, diagnosis_result: dict) -> str:
+        """Generate leak diagnosis report. / 生成泄漏诊断报告。"""
+        diagnosis = diagnosis_result.get("diagnosis", {})
+        report = f"""# Leak Diagnosis Report / 泄漏诊断报告
+
+**Generated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+**Severity**: {_escape_md(str(diagnosis.get("severity", "unknown")))}
+**Leak Detected**: {diagnosis.get("leak_detected", False)}
+
+## Localization / 泄漏定位
+
+"""
+        suspects = diagnosis.get(
+            "top_suspects",
+            diagnosis_result.get("localization", {}).get("suspects", []),
+        )
+        if suspects:
+            report += "| Pipe | Confidence |\n|------|------------|\n"
+            for s in suspects:
+                pipe_id = _escape_md(str(s.get('pipe_id', 'N/A')))
+                confidence = s.get('confidence', 0)
+                report += f"| {pipe_id} | {confidence:.2%} |\n"
+        else:
+            report += "No specific pipe segments identified.\n"
         return report

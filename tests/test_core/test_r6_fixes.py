@@ -7,7 +7,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-
 # ---------- H1: Role path param Literal validation ----------
 
 class TestRolePathValidation:
@@ -15,6 +14,7 @@ class TestRolePathValidation:
 
     def test_invalid_role_rejected(self):
         from fastapi.testclient import TestClient
+
         from web.app import app
         client = TestClient(app)
         resp = client.get("/api/assistant/quick-actions/hacker")
@@ -22,6 +22,7 @@ class TestRolePathValidation:
 
     def test_valid_roles_accepted(self):
         from fastapi.testclient import TestClient
+
         from web.app import app
         client = TestClient(app)
         for role in ("operator", "engineer", "analyst", "admin"):
@@ -144,7 +145,10 @@ class TestLeastSquaresOptimized:
         # Generate synthetic data
         h = np.linspace(0.1, 1.5, 50)
         cd_true, a_true = 0.6, 0.01
-        q = cd_true * a_true * np.sqrt(2 * 9.81 * h) + np.random.default_rng(42).normal(0, 0.0001, 50)
+        q = (
+            cd_true * a_true * np.sqrt(2 * 9.81 * h)
+            + np.random.default_rng(42).normal(0, 0.0001, 50)
+        )
         result = identify_tank_params(h.tolist(), q.tolist())
         assert abs(result["cd"] - cd_true) < 0.1
         assert abs(result["outlet_area"] - a_true) < 0.005

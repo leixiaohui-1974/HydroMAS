@@ -1,0 +1,50 @@
+{
+  "plant_name": "某氧化铝厂",
+  "daily_intake_m3": 10400,
+  "intake_sources": [
+    {"id": "intake_wujiang", "name": "乌江取水", "capacity_m3d": 7800, "type": "river"},
+    {"id": "intake_flood", "name": "防洪沟取水", "capacity_m3d": 2600, "type": "channel"}
+  ],
+  "nodes": [
+    {"id": "water_treatment", "type": "treatment", "name": "净水站"},
+    {"id": "clear_pool", "type": "pool", "name": "清水池", "volume_m3": 6000, "capacity_m3": 8000},
+    {"id": "high_pool", "type": "pool", "name": "高位水池", "volume_m3": 10000, "capacity_m3": 15000},
+    {"id": "ws_dissolution", "type": "workshop", "name": "溶出车间", "demand_m3d": 3800},
+    {"id": "ws_evaporation", "type": "workshop", "name": "蒸发车间", "demand_m3d": 1200},
+    {"id": "ws_decomposition", "type": "workshop", "name": "分解车间", "demand_m3d": 500},
+    {"id": "ws_red_mud", "type": "workshop", "name": "赤泥车间", "demand_m3d": 3270},
+    {"id": "ws_calcination", "type": "workshop", "name": "焙烧车间", "demand_m3d": 800},
+    {"id": "ws_raw_material", "type": "workshop", "name": "原料车间", "demand_m3d": 400},
+    {"id": "ws_auxiliary", "type": "workshop", "name": "辅助车间", "demand_m3d": 430},
+    {"id": "cooling_towers", "type": "evaporation", "name": "冷却塔群"},
+    {"id": "reuse_station", "type": "reuse", "name": "回用水站", "capacity_m3d": 6000},
+    {"id": "wastewater", "type": "wastewater", "name": "废水处理站"}
+  ],
+  "edges": [
+    ["intake_wujiang", "water_treatment"],
+    ["intake_flood", "water_treatment"],
+    ["water_treatment", "clear_pool"],
+    ["clear_pool", "high_pool"],
+    ["high_pool", "ws_dissolution"],
+    ["high_pool", "ws_evaporation"],
+    ["high_pool", "ws_decomposition"],
+    ["high_pool", "ws_red_mud"],
+    ["high_pool", "ws_calcination"],
+    ["high_pool", "ws_raw_material"],
+    ["high_pool", "ws_auxiliary"],
+    ["high_pool", "cooling_towers"],
+    ["ws_dissolution", "reuse_station"],
+    ["ws_evaporation", "reuse_station"],
+    ["ws_decomposition", "reuse_station"],
+    ["reuse_station", "high_pool"],
+    ["ws_red_mud", "wastewater"],
+    ["cooling_towers", "wastewater"]
+  ],
+  "evaporation_sources": {
+    "cooling_towers": {"type": "merkel", "estimated_m3d": 4200},
+    "calcination": {"type": "thermal", "estimated_m3d": 2740},
+    "red_mud_carry": {"type": "material", "estimated_m3d": 2500}
+  },
+  "current_reuse_rate": 0.36,
+  "target_reuse_rate": 0.50
+}

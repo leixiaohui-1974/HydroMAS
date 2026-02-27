@@ -1,6 +1,5 @@
 """Integration tests for MCP ODD server."""
 
-import pytest
 from mcp_servers.odd_server import check_odd, get_mrc_plan
 
 

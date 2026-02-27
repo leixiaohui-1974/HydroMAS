@@ -8,11 +8,9 @@ MVP: simple parallel map over chunks.
 from __future__ import annotations
 
 import logging
-
-import numpy as np
 from typing import Callable
 
-from compute.ray_config import is_ray_available, init_ray
+from compute.ray_config import init_ray, is_ray_available
 
 logger = logging.getLogger(__name__)
 

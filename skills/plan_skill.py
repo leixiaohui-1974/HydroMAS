@@ -62,7 +62,10 @@ class PlanSkill(BaseSkill):
                 key=lambda i: abs((sim_results[i].get("water_level") or [0.0])[-1] - target),
             )
             rehearsal = {
-                "ranking": [{"scheme_index": best_idx, "label": schemes[best_idx].get("label", "")}],
+                "ranking": [{
+                    "scheme_index": best_idx,
+                    "label": schemes[best_idx].get("label", ""),
+                }],
                 "sim_results": sim_results,
                 "schemes": schemes,
             }

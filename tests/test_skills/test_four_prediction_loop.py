@@ -1,6 +1,7 @@
 """Integration tests for FourPredictionLoopSkill (四预闭环)."""
 
 import pytest
+
 from skills.four_prediction_loop import FourPredictionLoopSkill
 
 

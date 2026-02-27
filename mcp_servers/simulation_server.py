@@ -88,13 +88,29 @@ def simulate_batch(
         if "q_in_profile" in params and params["q_in_profile"]:
             for i, row in enumerate(params["q_in_profile"]):
                 if not isinstance(row, (list, tuple)) or len(row) < 2:
-                    raise ValueError(f"scheme q_in_profile row {i} must have [time, value], got {row!r}")
+                    raise ValueError(
+                        f"scheme q_in_profile row {i} must "
+                        f"have [time, value], got {row!r}"
+                    )
             params["q_in_profile"] = [
                 (row[0], row[1]) for row in params["q_in_profile"]
             ]
         param_grid.append(params)
 
     return parameter_sweep(param_grid, use_ray=parallel)
+
+
+@mcp.tool()
+def simulate_network(inp_file: str, duration: float, dt: float = 300.0,
+                     scenarios: list[dict] | None = None) -> dict:
+    """Run network hydraulic simulation via WNTR. / WNTR管网水力仿真。"""
+    if duration <= 0:
+        raise ValueError(f"duration must be positive, got {duration}")
+    from core.simulation.network_model import run_hydraulic_sim
+    result = run_hydraulic_sim(inp_file=inp_file, duration=duration, dt=dt)
+    if scenarios:
+        result["scenarios_applied"] = len(scenarios)
+    return result
 
 
 if __name__ == "__main__":

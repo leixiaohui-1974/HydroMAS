@@ -9,7 +9,6 @@ import math
 import numpy as np
 import pytest
 
-
 # ---------- C1: settling_time clarity ----------
 
 class TestSettlingTimeLogic:
@@ -92,6 +91,7 @@ class TestReportEndpointsBounded:
 
     def test_report_accepts_normal_input(self):
         from fastapi.testclient import TestClient
+
         from web.app import app
         client = TestClient(app)
         resp = client.post("/api/skills/report/control", json={
@@ -136,6 +136,7 @@ class TestPIDHistoryBounded:
 
     def test_history_is_deque(self):
         from collections import deque
+
         from core.control.pid_controller import PIDController
         pid = PIDController()
         assert isinstance(pid._history, deque)
@@ -266,7 +267,7 @@ class TestRehearsalTargetLevel:
     """Verify rehearsal uses correct config key for target_level."""
 
     def test_target_level_from_top_level_config(self):
-        from core.config import load_tank_config, get_default_tank_params
+        from core.config import get_default_tank_params, load_tank_config
         config = load_tank_config()
         tank_params = get_default_tank_params()
         # target_level is at top level, NOT in tank_params
@@ -292,6 +293,7 @@ class TestCSPHeaders:
 
     def test_csp_has_connect_src(self):
         from fastapi.testclient import TestClient
+
         from web.app import app
         client = TestClient(app)
         resp = client.get("/api/roles")
@@ -306,14 +308,14 @@ class TestDAGCycleDetection:
     """Verify TaskPlan.validate_dag() detects cycles."""
 
     def test_no_cycle_passes(self):
-        from agents.planning_agent import TaskPlan, TaskNode
+        from agents.planning_agent import TaskNode, TaskPlan
         plan = TaskPlan()
         plan.add_node(TaskNode("a", "Task A", "tool_a"))
         plan.add_node(TaskNode("b", "Task B", "tool_b", dependencies=["a"]))
         plan.validate_dag()  # should not raise
 
     def test_cycle_detected(self):
-        from agents.planning_agent import TaskPlan, TaskNode
+        from agents.planning_agent import TaskNode, TaskPlan
         plan = TaskPlan()
         plan.add_node(TaskNode("a", "Task A", "tool_a", dependencies=["b"]))
         plan.add_node(TaskNode("b", "Task B", "tool_b", dependencies=["a"]))
@@ -321,7 +323,7 @@ class TestDAGCycleDetection:
             plan.validate_dag()
 
     def test_self_cycle_detected(self):
-        from agents.planning_agent import TaskPlan, TaskNode
+        from agents.planning_agent import TaskNode, TaskPlan
         plan = TaskPlan()
         plan.add_node(TaskNode("a", "Task A", "tool_a", dependencies=["a"]))
         with pytest.raises(ValueError, match="Cycle detected"):

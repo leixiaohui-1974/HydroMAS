@@ -1,6 +1,7 @@
 """Integration tests for MCP control server."""
 
 import pytest
+
 from mcp_servers.control_server import run_controller
 
 
