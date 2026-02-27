@@ -63,6 +63,8 @@ def run_controller(
 
     # Single-step mode
     state = current_state or {"h": 0.5}
+    if "h" not in state:
+        raise ValueError("current_state must contain key 'h' (water level)")
     if controller_type.upper() == "PID":
         from core.control.pid_controller import PIDController, PIDParams
         _pid_keys = {"kp", "ki", "kd", "output_min", "output_max", "anti_windup"}

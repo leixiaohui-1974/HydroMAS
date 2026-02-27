@@ -7,7 +7,11 @@ Includes: RMSE, MAE, NSE (Nash-Sutcliffe Efficiency), MAPE,
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 def rmse(observed: list[float], predicted: list[float]) -> float:
@@ -196,6 +200,7 @@ def evaluate_performance(
         "MAPE": lambda: mape(obs_arr, pred_arr),
     }
 
+    _known = set(metric_map) | {"SETTLING_TIME", "OVERSHOOT", "STEADY_STATE_ERROR"}
     for m in metrics_list:
         m_upper = m.upper()
         if m_upper in metric_map:
@@ -206,5 +211,7 @@ def evaluate_performance(
             results["OVERSHOOT"] = overshoot(predicted, setpoint)
         elif m_upper == "STEADY_STATE_ERROR" and setpoint is not None:
             results["STEADY_STATE_ERROR"] = steady_state_error(predicted, setpoint)
+        elif m_upper not in _known:
+            logger.warning("Unknown metric requested: %s", m)
 
     return results

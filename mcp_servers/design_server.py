@@ -63,7 +63,12 @@ def run_sensitivity(
     from core.simulation.simulator import run_simulation
     import numpy as np
 
-    # Convert list ranges to tuple
+    # Validate and convert list ranges to tuple
+    for k, v in param_ranges.items():
+        if not isinstance(v, (list, tuple)) or len(v) != 2:
+            raise ValueError(
+                f"param_ranges['{k}'] must be [min, max], got {v!r}"
+            )
     ranges = {k: (v[0], v[1]) for k, v in param_ranges.items()}
 
     # Default evaluation: simulate and return final water level

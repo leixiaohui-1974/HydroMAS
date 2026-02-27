@@ -59,7 +59,7 @@ def compute_outflow(h: float, params: TankParams) -> float:
     """
     if h <= 0:
         return 0.0
-    return params.cd * params.outlet_area * math.sqrt(2.0 * GRAVITY * h)
+    return params.cd * params.outlet_area * math.sqrt(2.0 * GRAVITY * max(0.0, h))
 
 
 def tank_ode(h: float, q_in: float, params: TankParams) -> float:

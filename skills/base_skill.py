@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib
 import logging
+import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -90,6 +91,7 @@ _TOOL_MODULE_MAP = {
 }
 
 _resolved_tools: dict[str, Any] = {}
+_resolved_tools_lock = threading.Lock()
 
 
 def _call_tool_dynamic(tool_name: str, params: dict) -> Any:
@@ -99,13 +101,15 @@ def _call_tool_dynamic(tool_name: str, params: dict) -> Any:
     if tool_name not in _TOOL_MODULE_MAP:
         raise ValueError(f"Unknown tool: {tool_name}")
 
-    if tool_name in _resolved_tools:
-        return _resolved_tools[tool_name](**params)
+    with _resolved_tools_lock:
+        if tool_name in _resolved_tools:
+            fn = _resolved_tools[tool_name]
+        else:
+            module_path, fn_name = _TOOL_MODULE_MAP[tool_name]
+            module = importlib.import_module(module_path)
+            fn = getattr(module, fn_name)
+            _resolved_tools[tool_name] = fn
 
-    module_path, fn_name = _TOOL_MODULE_MAP[tool_name]
-    module = importlib.import_module(module_path)
-    fn = getattr(module, fn_name)
-    _resolved_tools[tool_name] = fn
     return fn(**params)
 
 
@@ -154,13 +158,15 @@ class BaseSkill(ABC):
         if tool_name not in _TOOL_MODULE_MAP:
             raise ValueError(f"Unknown tool: {tool_name}")
 
-        if tool_name in _resolved_tools:
-            return _resolved_tools[tool_name](**params)
+        with _resolved_tools_lock:
+            if tool_name in _resolved_tools:
+                fn = _resolved_tools[tool_name]
+            else:
+                module_path, fn_name = _TOOL_MODULE_MAP[tool_name]
+                module = importlib.import_module(module_path)
+                fn = getattr(module, fn_name)
+                _resolved_tools[tool_name] = fn
 
-        module_path, fn_name = _TOOL_MODULE_MAP[tool_name]
-        module = importlib.import_module(module_path)
-        fn = getattr(module, fn_name)
-        _resolved_tools[tool_name] = fn
         return fn(**params)
 
     async def run(self, params: dict) -> SkillResult:

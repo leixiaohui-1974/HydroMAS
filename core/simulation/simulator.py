@@ -199,6 +199,13 @@ def run_simulation(
     if duration <= 0:
         raise ValueError(f"duration must be positive, got {duration}")
 
+    max_steps = 10_000_000
+    if round(duration / dt) > max_steps:
+        raise ValueError(
+            f"Simulation would require {round(duration / dt)} steps "
+            f"(duration={duration}, dt={dt}), exceeding limit of {max_steps}"
+        )
+
     params = TankParams(**(tank_params or {}))
     params.validate()
 
