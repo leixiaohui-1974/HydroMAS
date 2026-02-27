@@ -46,21 +46,18 @@ def identify_arx(
     if n <= max_lag:
         raise ValueError(f"Need at least {max_lag + 1} data points, got {n}")
 
-    # Build regression matrix
+    # Build regression matrix (vectorized)
     n_samples = n - max_lag
     n_params = na + nb
     phi = np.zeros((n_samples, n_params))
-    y_target = np.zeros(n_samples)
+    y_target = y_arr[max_lag:]
 
-    for i in range(n_samples):
-        k = i + max_lag
-        # Autoregressive terms: y(k-1), ..., y(k-na)
-        for j in range(na):
-            phi[i, j] = -y_arr[k - 1 - j]
-        # Exogenous input terms: u(k-nk), ..., u(k-nk-nb+1)
-        for j in range(nb):
-            phi[i, na + j] = u_arr[k - nk - j]
-        y_target[i] = y_arr[k]
+    # Autoregressive terms: y(k-1), ..., y(k-na)
+    for j in range(na):
+        phi[:, j] = -y_arr[max_lag - 1 - j : max_lag - 1 - j + n_samples]
+    # Exogenous input terms: u(k-nk), ..., u(k-nk-nb+1)
+    for j in range(nb):
+        phi[:, na + j] = u_arr[max_lag - nk - j : max_lag - nk - j + n_samples]
 
     # OLS: theta = (Phi^T Phi)^{-1} Phi^T y
     theta, residuals_arr, rank, sv = np.linalg.lstsq(phi, y_target, rcond=None)

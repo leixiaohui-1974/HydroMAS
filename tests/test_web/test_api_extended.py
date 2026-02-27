@@ -87,27 +87,27 @@ class TestSkillsExtendedAPI:
         skill_data = skill_resp.json()
         assert skill_data["success"] is True
 
-        # Then generate report
-        resp = client.post("/api/skills/report/control", json=skill_data["data"])
+        # Then generate report (wrapped in {"results": ...})
+        resp = client.post("/api/skills/report/control", json={"results": skill_data["data"]})
         assert resp.status_code == 200
         data = resp.json()
         assert "report_markdown" in data
         assert len(data["report_markdown"]) > 0
 
     def test_report_odd(self):
-        resp = client.post("/api/skills/report/odd", json={
+        resp = client.post("/api/skills/report/odd", json={"results": {
             "zone": "normal", "violations": [],
             "dimension_results": [{"dimension": "water_level", "zone": "normal"}],
-        })
+        }})
         assert resp.status_code == 200
         data = resp.json()
         assert "report_markdown" in data
 
     def test_report_lifecycle(self):
-        resp = client.post("/api/skills/report/lifecycle", json={
+        resp = client.post("/api/skills/report/lifecycle", json={"results": {
             "simulation": {"status": "ok"},
             "control": {"status": "ok"},
-        })
+        }})
         assert resp.status_code == 200
         data = resp.json()
         assert "report_markdown" in data

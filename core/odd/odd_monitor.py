@@ -111,6 +111,12 @@ def check_odd_series(
     Returns:
         Dict with time-to-breach, worst zone, and per-step results.
     """
+    if time_series is not None and len(time_series) != len(state_series):
+        raise ValueError(
+            f"time_series length ({len(time_series)}) must match "
+            f"state_series length ({len(state_series)})"
+        )
+
     # Pre-resolve odd_spec once to avoid reconstructing per step
     if odd_spec is None:
         from core.odd.odd_definition import create_tank_odd

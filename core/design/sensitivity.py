@@ -45,9 +45,14 @@ def sensitivity_oat(
             out = evaluate_fn(test_params)
             outputs.append(out)
 
-        outputs = np.array(outputs)
+        outputs = np.array(outputs, dtype=float)
+        # Filter NaN values from failed evaluations
+        valid = outputs[~np.isnan(outputs)]
+        if len(valid) == 0:
+            outputs = np.zeros_like(outputs)
+            valid = outputs
         # Sensitivity index: (output_range / param_range) / base_output (normalized)
-        output_range = float(np.max(outputs) - np.min(outputs))
+        output_range = float(np.max(valid) - np.min(valid))
         param_range = p_max - p_min
         if base_output != 0 and param_range != 0:
             sensitivity = (output_range / param_range) / abs(base_output)

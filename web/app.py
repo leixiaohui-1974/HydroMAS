@@ -38,10 +38,15 @@ logger = logging.getLogger(__name__)
 
 _BASE_DIR = Path(__file__).parent
 
+_is_prod = os.environ.get("ENV", "development") == "production"
+
 app = FastAPI(
     title="HydroOS-Agent",
     description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform",
     version="0.1.0",
+    docs_url=None if _is_prod else "/docs",
+    redoc_url=None if _is_prod else "/redoc",
+    openapi_url=None if _is_prod else "/openapi.json",
 )
 
 
@@ -61,10 +66,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "style-src 'self' 'unsafe-inline'; "
             "img-src 'self' data:; "
             "font-src 'self'; "
+            "connect-src 'self'; "
             "object-src 'none'; "
             "base-uri 'self'; "
             "form-action 'self'; "
-            "frame-ancestors 'none'"
+            "frame-ancestors 'none'; "
+            "upgrade-insecure-requests"
         )
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"

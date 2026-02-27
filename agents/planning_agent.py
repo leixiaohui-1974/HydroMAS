@@ -36,6 +36,28 @@ class TaskPlan:
     def add_node(self, node: TaskNode) -> None:
         self.nodes.append(node)
 
+    def validate_dag(self) -> None:
+        """Verify no cycles exist in dependencies. / 验证依赖无环。"""
+        node_ids = {n.id for n in self.nodes}
+        adj: dict[str, list[str]] = {n.id: list(n.dependencies) for n in self.nodes}
+        visited: set[str] = set()
+        in_stack: set[str] = set()
+
+        def _dfs(nid: str) -> None:
+            if nid in in_stack:
+                raise ValueError(f"Cycle detected involving task '{nid}'")
+            if nid in visited:
+                return
+            in_stack.add(nid)
+            for dep in adj.get(nid, []):
+                if dep in node_ids:
+                    _dfs(dep)
+            in_stack.discard(nid)
+            visited.add(nid)
+
+        for n in self.nodes:
+            _dfs(n.id)
+
     def get_ready_tasks(self) -> list[TaskNode]:
         """Get tasks whose dependencies are all completed. / 获取依赖已完成的任务。"""
         completed_ids = {n.id for n in self.nodes if n.status == "completed"}

@@ -9,6 +9,8 @@ import math
 
 from fastapi import APIRouter
 
+from pydantic import BaseModel, Field
+
 from web.models import SkillRequest, FourPredRequest
 from web.deps import get_orchestrator, get_report_agent
 
@@ -96,25 +98,30 @@ async def run_control_design(params: dict | None = None):
     return _serialize_skill_result(result)
 
 
+class _ReportRequest(BaseModel):
+    """Bounded report input — prevents unbounded dict payloads."""
+    results: dict = Field(..., max_length=100)
+
+
 @router.post("/report/control")
-async def generate_control_report(results: dict):
+async def generate_control_report(req: _ReportRequest):
     """Generate control system report. / 生成控制系统报告。"""
     agent = get_report_agent()
-    report_md = await asyncio.to_thread(agent.generate_control_report, results)
+    report_md = await asyncio.to_thread(agent.generate_control_report, req.results)
     return {"report_markdown": report_md}
 
 
 @router.post("/report/odd")
-async def generate_odd_report(results: dict):
+async def generate_odd_report(req: _ReportRequest):
     """Generate ODD assessment report. / 生成 ODD 评估报告。"""
     agent = get_report_agent()
-    report_md = await asyncio.to_thread(agent.generate_odd_report, results)
+    report_md = await asyncio.to_thread(agent.generate_odd_report, req.results)
     return {"report_markdown": report_md}
 
 
 @router.post("/report/lifecycle")
-async def generate_lifecycle_report(results: dict):
+async def generate_lifecycle_report(req: _ReportRequest):
     """Generate lifecycle report. / 生成全生命周期报告。"""
     agent = get_report_agent()
-    report_md = await asyncio.to_thread(agent.generate_lifecycle_report, results)
+    report_md = await asyncio.to_thread(agent.generate_lifecycle_report, req.results)
     return {"report_markdown": report_md}

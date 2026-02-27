@@ -102,16 +102,18 @@ def settling_time(
     t = np.array(time_series)
     v = np.array(value_series)
 
-    # Find last time the value exits the settling band
+    # Find the last index where the value is outside the settling band.
+    # Settling time = time at the first sample AFTER which the value never
+    # leaves the band again (i.e., stays within for all remaining samples).
     outside = np.abs(v - setpoint) > band
     if not np.any(outside):
-        return 0.0
+        return 0.0  # always within band
 
-    last_exit_idx = np.where(outside)[0][-1]
-    if last_exit_idx >= len(t) - 1:
-        return None  # Never settled
+    last_outside_idx = int(np.where(outside)[0][-1])
+    if last_outside_idx >= len(t) - 1:
+        return None  # never settled (last sample is still outside)
 
-    return float(t[last_exit_idx + 1])
+    return float(t[last_outside_idx + 1])
 
 
 def overshoot(value_series: list[float], setpoint: float) -> float:

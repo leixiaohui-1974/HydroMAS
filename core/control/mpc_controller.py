@@ -172,23 +172,22 @@ def run_mpc_control(
     mpc = MPCController(**mpc_kw)
 
     n_steps = round(duration / dt)
-    time_arr = []
-    h_arr = []
-    u_arr = []
-    qout_arr = []
+    time_arr = np.zeros(n_steps + 1)
+    h_arr = np.zeros(n_steps + 1)
+    u_arr = np.zeros(n_steps)
+    qout_arr = np.zeros(n_steps + 1)
 
     h = initial_h
 
     for i in range(n_steps + 1):
-        t = i * dt
-        time_arr.append(t)
-        h_arr.append(h)
+        time_arr[i] = i * dt
+        h_arr[i] = h
         q_out = compute_outflow(h, tank)
-        qout_arr.append(q_out)
+        qout_arr[i] = q_out
 
         if i < n_steps:
             u = mpc.compute(h, setpoint, q_out_estimate=q_out)
-            u_arr.append(u)
+            u_arr[i] = u
 
             # Simulate one step (Euler)
             dhdt = tank_ode(h, u, tank)
@@ -196,10 +195,10 @@ def run_mpc_control(
             h = max(tank.h_min, min(tank.h_max, h))
 
     return {
-        "time": time_arr,
-        "water_level": h_arr,
-        "control_output": u_arr,
-        "outflow": qout_arr,
+        "time": time_arr.tolist(),
+        "water_level": h_arr.tolist(),
+        "control_output": u_arr.tolist(),
+        "outflow": qout_arr.tolist(),
         "setpoint": setpoint,
         "mpc_params": {
             "horizon": mpc.horizon,

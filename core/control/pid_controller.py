@@ -6,6 +6,7 @@ Implements a discrete PID controller with anti-windup and output clamping.
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 
 
@@ -35,7 +36,7 @@ class PIDController:
         self.params = params or PIDParams()
         self._integral: float = 0.0
         self._prev_error: float | None = None
-        self._history: list[dict] = []
+        self._history: deque[dict] = deque(maxlen=10000)
 
     def reset(self) -> None:
         """Reset controller state. / 重置控制器状态。"""
@@ -123,6 +124,7 @@ def run_pid_control(
     Returns:
         Dict with time series of level, control output, error, etc.
     """
+    import numpy as np
     from core.simulation.tank_model import TankParams, tank_ode, compute_outflow
 
     params = PIDParams(**(pid_params or {}))
@@ -132,24 +134,23 @@ def run_pid_control(
     pid = PIDController(params)
     n_steps = round(duration / dt)
 
-    time_arr = []
-    h_arr = []
-    u_arr = []  # control output (inflow)
-    error_arr = []
-    qout_arr = []
+    time_arr = np.zeros(n_steps + 1)
+    h_arr = np.zeros(n_steps + 1)
+    u_arr = np.zeros(n_steps)
+    error_arr = np.zeros(n_steps)
+    qout_arr = np.zeros(n_steps + 1)
 
     h = initial_h
 
     for i in range(n_steps + 1):
-        t = i * dt
-        time_arr.append(t)
-        h_arr.append(h)
-        qout_arr.append(compute_outflow(h, tank))
+        time_arr[i] = i * dt
+        h_arr[i] = h
+        qout_arr[i] = compute_outflow(h, tank)
 
         if i < n_steps:
             u = pid.compute(setpoint, h, dt)
-            u_arr.append(u)
-            error_arr.append(setpoint - h)
+            u_arr[i] = u
+            error_arr[i] = setpoint - h
 
             # Simulate one step (Euler)
             dhdt = tank_ode(h, u, tank)
@@ -157,11 +158,11 @@ def run_pid_control(
             h = max(tank.h_min, min(tank.h_max, h))
 
     return {
-        "time": time_arr,
-        "water_level": h_arr,
-        "control_output": u_arr,
-        "error": error_arr,
-        "outflow": qout_arr,
+        "time": time_arr.tolist(),
+        "water_level": h_arr.tolist(),
+        "control_output": u_arr.tolist(),
+        "error": error_arr.tolist(),
+        "outflow": qout_arr.tolist(),
         "setpoint": setpoint,
         "pid_params": {"kp": params.kp, "ki": params.ki, "kd": params.kd},
         "metadata": {"solver": "Euler", "steps": n_steps, "dt": dt},

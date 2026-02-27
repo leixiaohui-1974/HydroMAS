@@ -64,12 +64,19 @@ def shutdown_ray() -> None:
     _initialized = False
 
 
+_ray_available: bool | None = None
+
+
 def is_ray_available() -> bool:
     """Check if Ray is installed and can be initialized.
     检查 Ray 是否已安装且可初始化。
     """
+    global _ray_available
+    if _ray_available is not None:
+        return _ray_available
     try:
         import ray  # noqa: F401
-        return True
+        _ray_available = True
     except ImportError:
-        return False
+        _ray_available = False
+    return _ray_available
