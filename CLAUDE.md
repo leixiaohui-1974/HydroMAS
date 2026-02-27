@@ -137,9 +137,9 @@ HydroMAS/
 │   ├── process_ontology.py #  Alumina process ontology loader
 │   └── rag_service.py     #  TF-IDF based RAG retrieval service
 ├── web/                  # FastAPI web platform
-│   ├── app.py            #   FastAPI app with 17 routers
+│   ├── app.py            #   FastAPI app with 18 routers
 │   ├── models.py         #   Pydantic models (original + 6 new)
-│   ├── routers/          #   API endpoints (11 original + 6 new)
+│   ├── routers/          #   API endpoints (11 original + 6 new + orchestration)
 │   ├── static/           #   Frontend assets
 │   └── templates/        #   Jinja2 templates
 ├── data/                 # Configuration files
@@ -149,7 +149,7 @@ HydroMAS/
 │   ├── alumina_odd_specs.json #   12-dimension alumina ODD
 │   ├── process_ontology.json  #   Process entities and fault modes
 │   └── sample_timeseries.csv
-├── tests/                # pytest test suite (1287 tests)
+├── tests/                # pytest test suite (1373 tests)
 │   ├── test_core/        #   Core module unit tests
 │   ├── test_compute/     #   Ray compute tests
 │   ├── test_mcp/         #   MCP server tests
@@ -237,7 +237,7 @@ from knowledge import load_ontology, query_ontology, RAGService
 ## Running Tests
 
 ```bash
-pytest                          # All 1287 tests
+pytest                          # All 1373 tests
 pytest tests/test_core/         # Core module tests only
 pytest tests/test_skills/       # Skill workflow tests
 pytest tests/test_agents/       # Agent tests (domain + dev pipeline + multi-agent infra)
