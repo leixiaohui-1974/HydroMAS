@@ -49,7 +49,7 @@ def _mud_params():
 # Mock tool functions
 # ---------------------------------------------------------------------------
 
-def _mock_calc_full_plant_balance(nodes_data, edges_data):
+def _mock_calc_full_plant_balance(**kwargs):
     return {
         "total_input": 100.0,
         "total_output": 90.0,
@@ -64,7 +64,7 @@ def _mock_calc_full_plant_balance(nodes_data, edges_data):
     }
 
 
-def _mock_detect_balance_anomaly(balance_data):
+def _mock_detect_balance_anomaly(**kwargs):
     return {
         "anomalies": [
             {"node": "n1", "description": "Intake residual exceeds threshold"},
@@ -74,7 +74,7 @@ def _mock_detect_balance_anomaly(balance_data):
     }
 
 
-def _mock_evaluate_water_kpi(balance_data):
+def _mock_evaluate_water_kpi(**kwargs):
     return {
         "reuse_rate": 0.40,
         "reuse_rate_target": 0.50,
@@ -86,7 +86,7 @@ def _mock_evaluate_water_kpi(balance_data):
     }
 
 
-def _mock_predict_total_evap_loss(tower_params, weather, calc_params, mud_params):
+def _mock_predict_total_evap_loss(**kwargs):
     return {
         "total_evap_loss": 672.0,
         "total_daily_m3": 672.0,
@@ -211,7 +211,7 @@ class TestDailyReport:
     @pytest.mark.asyncio
     async def test_daily_report_no_anomalies(self):
         """Report shows 'No anomalies' when none are detected."""
-        def mock_no_anomalies(balance_data):
+        def mock_no_anomalies(**kwargs):
             return {"anomalies": [], "classification": {}, "n_anomalies": 0}
 
         skill = _build_skill()

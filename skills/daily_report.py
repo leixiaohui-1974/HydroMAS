@@ -53,7 +53,7 @@ class DailyReportSkill(BaseSkill):
 
         # Step 2: Anomaly detection
         anomaly_result = await self.call_tool("detect_balance_anomaly", {
-            "balance_data": balance_result,
+            "residuals": balance_result.get("node_residuals", {}),
         })
         if isinstance(anomaly_result, dict) and "error" in anomaly_result:
             return SkillResult(
