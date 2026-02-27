@@ -49,9 +49,9 @@ class DataAnalysisPredictSkill(BaseSkill):
 
         # Step 3: Evaluate backtest accuracy
         if "backtest_fitted" in predict_result:
-            n = len(predict_result["backtest_fitted"])
+            n = min(len(predict_result["backtest_fitted"]), len(cleaned_data))
             eval_result = await self.call_tool("evaluate_performance", {
-                "observed": cleaned_data[-n:],
+                "observed": cleaned_data[-n:] if n > 0 else cleaned_data,
                 "predicted": predict_result["backtest_fitted"],
                 "metrics": ["RMSE", "NSE", "MAE"],
             })

@@ -123,6 +123,9 @@ class RehearsalSkill(BaseSkill):
             - efficiency: reward stable final level near target (1.0m)
             - cost: reward lower total inflow (lower level_range proxy)
         """
+        from core.config import load_tank_config
+        target = load_tank_config().get("target_level", 1.0)
+
         scores = []
         for i, ev in enumerate(evaluations):
             # Safety score: 0 if MRC violation, proportional to distance from bounds
@@ -133,8 +136,6 @@ class RehearsalSkill(BaseSkill):
                 safety_score *= max(0, ev["min_level"] / 0.2)
 
             # Efficiency: how close final level is to target
-            from core.config import load_tank_config
-            target = load_tank_config().get("target_level", 1.0)
             efficiency_score = max(0, 1 - abs(ev["final_level"] - target) / target)
 
             # Cost proxy: lower range = more stable = less energy

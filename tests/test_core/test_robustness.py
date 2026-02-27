@@ -516,9 +516,9 @@ class TestNSEEdgeCases:
         assert nse(obs, pred) == 1.0
 
     def test_constant_observed_poor_pred(self):
-        """If observed is constant but pred differs, NSE = -inf."""
+        """If observed is constant but pred differs, NSE = large negative finite value."""
         from core.evaluation.metrics import nse
         obs = [1.0, 1.0, 1.0, 1.0]
         pred = [0.5, 1.5, 0.5, 1.5]
         result = nse(obs, pred)
-        assert result == float("-inf")
+        assert result == -1e6

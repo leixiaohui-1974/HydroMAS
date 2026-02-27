@@ -49,8 +49,17 @@ def sensitivity_oat(
         # Filter NaN values from failed evaluations
         valid = outputs[~np.isnan(outputs)]
         if len(valid) == 0:
-            outputs = np.zeros_like(outputs)
-            valid = outputs
+            # All evaluations returned NaN — cannot compute sensitivity
+            results[param_name] = {
+                "levels": levels.tolist(),
+                "outputs": outputs.tolist(),
+                "sensitivity_index": 0.0,
+                "output_range": 0.0,
+                "base_value": base_params[param_name],
+                "base_output": base_output,
+                "all_nan": True,
+            }
+            continue
         # Sensitivity index: (output_range / param_range) / base_output (normalized)
         output_range = float(np.max(valid) - np.min(valid))
         param_range = p_max - p_min
@@ -103,6 +112,8 @@ def sensitivity_morris(
     """
     if n_levels < 2:
         raise ValueError(f"n_levels must be at least 2, got {n_levels}")
+    if not param_ranges:
+        raise ValueError("param_ranges must not be empty")
 
     rng = np.random.default_rng(seed)
     param_names = list(param_ranges.keys())

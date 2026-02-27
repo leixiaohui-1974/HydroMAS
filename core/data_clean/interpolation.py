@@ -85,6 +85,8 @@ def median_filter(data: list[float], window_size: int = 5) -> dict:
     Returns:
         Dict with filtered data and metadata.
     """
+    if window_size <= 0:
+        raise ValueError(f"window_size must be positive, got {window_size}")
     if window_size % 2 == 0:
         window_size += 1
 

@@ -112,6 +112,10 @@ def predict_polynomial(
     future_x = np.arange(n, n + horizon, dtype=float)
     predictions = poly(future_x)
 
+    # Sanitize overflow: clamp inf/nan to large finite values
+    if np.any(~np.isfinite(predictions)):
+        predictions = np.nan_to_num(predictions, nan=0.0, posinf=1e15, neginf=-1e15)
+
     return {
         "predictions": predictions.tolist(),
         "confidence_upper": (predictions + 2 * residual_std).tolist(),

@@ -58,7 +58,8 @@ def nse(observed: list[float], predicted: list[float]) -> float:
     ss_res = np.sum((o - p) ** 2)
     ss_tot = np.sum((o - np.mean(o)) ** 2)
     if ss_tot == 0:
-        return 1.0 if ss_res == 0 else float("-inf")
+        # All observed values identical: perfect match → 1.0, else large negative
+        return 1.0 if ss_res == 0 else -1e6
     return float(1.0 - ss_res / ss_tot)
 
 
@@ -110,7 +111,7 @@ def settling_time(
         return 0.0  # always within band
 
     last_outside_idx = int(np.where(outside)[0][-1])
-    if last_outside_idx >= len(t) - 1:
+    if last_outside_idx + 1 >= len(t):
         return None  # never settled (last sample is still outside)
 
     return float(t[last_outside_idx + 1])
@@ -128,14 +129,15 @@ def overshoot(value_series: list[float], setpoint: float) -> float:
         Overshoot percentage (%).
     """
     v = np.array(value_series)
-    if setpoint == 0:
+    setpoint_abs = abs(setpoint)
+    if setpoint_abs < 1e-10:
         return 0.0
 
     max_val = np.max(v)
     if max_val <= setpoint:
         return 0.0
 
-    return float((max_val - setpoint) / abs(setpoint) * 100)
+    return float((max_val - setpoint) / setpoint_abs * 100)
 
 
 def steady_state_error(value_series: list[float], setpoint: float, n_tail: int = 10) -> float:
