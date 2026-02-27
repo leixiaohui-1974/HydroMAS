@@ -283,3 +283,23 @@ class DailyReportRequest(BaseModel):
         default=["balance", "anomaly", "kpi", "evaporation", "reuse"],
         description="包含章节"
     )
+
+
+# ---------- Orchestration / 多智能体编排 ----------
+
+class AgentMessageRequest(BaseModel):
+    action: str = Field(..., min_length=1, max_length=200, description="动作名称")
+    params: dict = Field(default_factory=dict, description="动作参数")
+
+
+class ExecutionTaskRequest(BaseModel):
+    task_id: str = Field(..., min_length=1, max_length=100, description="任务 ID")
+    agent_id: str = Field(..., min_length=1, max_length=100, description="Agent ID")
+    action: str = Field(..., min_length=1, max_length=200, description="动作名称")
+    params: dict = Field(default_factory=dict, description="任务参数")
+    dependencies: list[str] = Field(default_factory=list, description="依赖任务 ID 列表")
+
+
+class ExecutionPlanRequest(BaseModel):
+    objective: str = Field(..., min_length=1, max_length=500, description="执行目标")
+    tasks: list[ExecutionTaskRequest] = Field(..., min_length=1, max_length=50, description="任务列表")

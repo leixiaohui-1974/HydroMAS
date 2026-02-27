@@ -30,6 +30,7 @@ from web.routers import (
     identification,
     leak_detection,
     odd,
+    orchestration,
     prediction,
     report,
     reuse,
@@ -152,6 +153,10 @@ app.include_router(evaporation.router, prefix="/api/evaporation", tags=["Evapora
 app.include_router(reuse.router, prefix="/api/reuse", tags=["Reuse / 回用优化"])
 app.include_router(dispatch.router, prefix="/api/dispatch", tags=["Dispatch / 调度优化"])
 app.include_router(report.router, prefix="/api/report", tags=["Report / 运营报告"])
+app.include_router(
+    orchestration.router, prefix="/api/orchestration",
+    tags=["Orchestration / 多智能体编排"],
+)
 
 
 # ---------- User Roles / 用户角色 ----------
