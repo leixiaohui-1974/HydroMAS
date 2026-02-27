@@ -12,6 +12,8 @@ import time
 import uuid
 from dataclasses import dataclass, field
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
 from openclaw.agents.content_planner import ContentPlannerAgent
 from openclaw.agents.content_publisher import ContentPublisherAgent
 from openclaw.agents.content_reviewer import ContentReviewerAgent
@@ -53,7 +55,7 @@ class PipelineResult:
         }
 
 
-class ContentOrchestratorAgent:
+class ContentOrchestratorAgent(BaseAgent):
     """Content Orchestrator — runs the full content production pipeline.
     内容编排Agent — 运行完整内容生产流水线。
 
@@ -63,11 +65,49 @@ class ContentOrchestratorAgent:
     - ContentPublisherAgent: multi-channel publishing
     """
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.planner = ContentPlannerAgent()
         self.reviewer = ContentReviewerAgent()
         self.publisher = ContentPublisherAgent()
         self._max_review_iterations = 3
+
+    def get_capabilities(self) -> list[str]:
+        return [
+            "full_pipeline",
+            "plan_only",
+            "review_only",
+            "multi_channel_publish",
+            "iterative_refinement",
+        ]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "run_full_pipeline")
+        try:
+            if action == "run_full_pipeline":
+                result = self.run_full_pipeline(
+                    requirement=message.content.get("requirement", ""),
+                    content=message.content.get("content", ""),
+                    article_config=message.content.get("article_config"),
+                    image_config=message.content.get("image_config"),
+                    publish_config=message.content.get("publish_config"),
+                    video_config=message.content.get("video_config"),
+                    channels=message.content.get("channels"),
+                )
+                return message.reply({"result": result})
+            elif action == "plan_only":
+                result = self.plan_only(message.content.get("requirement", ""))
+                return message.reply({"result": result})
+            elif action == "review_only":
+                result = self.review_only(
+                    message.content.get("content", ""),
+                    message.content.get("config"),
+                )
+                return message.reply({"result": result})
+            else:
+                return message.error_reply(f"Unknown action: {action}")
+        except Exception as exc:
+            return message.error_reply(str(exc))
 
     def run_full_pipeline(
         self,

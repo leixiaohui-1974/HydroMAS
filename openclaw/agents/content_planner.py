@@ -14,6 +14,9 @@ import re
 import uuid
 from dataclasses import dataclass, field
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 
 @dataclass
 class ContentRequirement:
@@ -87,10 +90,40 @@ _CHANNEL_KEYWORDS = {
 }
 
 
-class ContentPlannerAgent:
+class ContentPlannerAgent(BaseAgent):
     """Content Planner Agent — analyses requirements and creates plans.
     内容规划Agent — 分析需求并创建计划。
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_capabilities(self) -> list[str]:
+        return [
+            "requirement_analysis",
+            "content_type_detection",
+            "audience_targeting",
+            "outline_generation",
+            "image_planning",
+            "channel_selection",
+        ]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "plan")
+        try:
+            if action == "analyse_requirement":
+                result = self.analyse_requirement(message.content.get("text", ""))
+                return message.reply({"result": result.to_dict()})
+            elif action == "generate_plan":
+                req_data = message.content.get("requirement", {})
+                req = ContentRequirement(**req_data)
+                result = self.generate_plan(req)
+                return message.reply({"result": result.to_dict()})
+            else:  # default: plan
+                result = self.plan(message.content.get("text", ""))
+                return message.reply({"result": result})
+        except Exception as exc:
+            return message.error_reply(str(exc))
 
     def analyse_requirement(self, text: str) -> ContentRequirement:
         """Analyse a free-text content requirement.

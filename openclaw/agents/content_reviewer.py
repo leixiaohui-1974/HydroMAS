@@ -13,6 +13,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 
 @dataclass
 class ReviewComment:
@@ -69,10 +72,43 @@ _SENSITIVE_PATTERNS = [
 ]
 
 
-class ContentReviewerAgent:
+class ContentReviewerAgent(BaseAgent):
     """Content Reviewer Agent — multi-dimensional content review.
     内容审查Agent — 多维度内容审查。
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_capabilities(self) -> list[str]:
+        return [
+            "structure_review",
+            "style_review",
+            "technical_review",
+            "compliance_review",
+            "image_config_review",
+            "publish_config_review",
+        ]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "review_article")
+        try:
+            if action == "review_article":
+                result = self.review_article(
+                    message.content.get("content", ""),
+                    message.content.get("config"),
+                )
+                return message.reply({"result": result.to_dict()})
+            elif action == "review_image_config":
+                result = self.review_image_config(message.content.get("config", {}))
+                return message.reply({"result": result.to_dict()})
+            elif action == "review_publish_config":
+                result = self.review_publish_config(message.content.get("config", {}))
+                return message.reply({"result": result.to_dict()})
+            else:
+                return message.error_reply(f"Unknown action: {action}")
+        except Exception as exc:
+            return message.error_reply(str(exc))
 
     def review_article(
         self,
