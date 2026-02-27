@@ -32,6 +32,8 @@ def sensitivity_oat(
     Returns:
         Dict with sensitivity indices and detailed sweep results.
     """
+    if n_levels < 2:
+        raise ValueError(f"n_levels must be at least 2, got {n_levels}")
     base_output = evaluate_fn(base_params)
     results = {}
 

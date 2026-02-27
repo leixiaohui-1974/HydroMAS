@@ -59,6 +59,13 @@ class PIDController:
         if dt <= 0:
             raise ValueError(f"dt must be positive, got {dt}")
 
+        import math
+        if not (math.isfinite(setpoint) and math.isfinite(measured)):
+            raise ValueError(
+                f"setpoint and measured must be finite, got "
+                f"setpoint={setpoint}, measured={measured}"
+            )
+
         error = setpoint - measured
 
         # Proportional term

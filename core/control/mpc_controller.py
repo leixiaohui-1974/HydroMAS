@@ -101,6 +101,12 @@ class MPCController:
             Optimal control input for the current step (m³/s).
         """
         # Warm-start from shifted previous solution
+        import math
+        if not (math.isfinite(current_h) and math.isfinite(setpoint)):
+            raise ValueError(
+                f"current_h and setpoint must be finite, got "
+                f"current_h={current_h}, setpoint={setpoint}"
+            )
         if self._prev_solution is not None:
             u0 = np.roll(self._prev_solution, -1)
             u0[-1] = u0[-2] if len(u0) > 1 else (self.u_min + self.u_max) / 2

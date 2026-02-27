@@ -15,6 +15,7 @@ Routing priority:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -183,7 +184,6 @@ class OrchestratorAgent:
 
     async def _execute_tool(self, tool_name: str, params: dict) -> dict:
         """Execute a single MCP Tool. / 执行单个 MCP 工具。"""
-        import asyncio
         from skills.base_skill import _call_tool_dynamic
 
         try:

@@ -8,6 +8,7 @@ they can only select which Skill to invoke and what parameters to pass.
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 import logging
 import threading
@@ -142,8 +143,6 @@ class BaseSkill(ABC):
         Returns:
             Tool result.
         """
-        import asyncio
-
         if tool_name in self._tool_registry:
             fn = self._tool_registry[tool_name]
             return await asyncio.to_thread(fn, **params)

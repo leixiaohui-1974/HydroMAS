@@ -40,6 +40,8 @@ def optimize_schedule_lp(
     """
     if not demand_forecast:
         raise ValueError("demand_forecast cannot be empty")
+    if any(d < 0 for d in demand_forecast):
+        raise ValueError("All demand values must be non-negative")
     if supply_capacity <= 0:
         raise ValueError(f"supply_capacity must be positive, got {supply_capacity}")
     if initial_level < min_level or initial_level > max_level:
@@ -51,6 +53,10 @@ def optimize_schedule_lp(
     try:
         import pulp
     except ImportError:
+        import logging
+        logging.getLogger(__name__).warning(
+            "PuLP not available, using rule-based fallback scheduler"
+        )
         return _fallback_schedule(demand_forecast, supply_capacity)
 
     if n_periods is None:

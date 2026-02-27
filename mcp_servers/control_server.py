@@ -34,6 +34,9 @@ def run_controller(
     Returns:
         Dict with control output or full simulation results.
     """
+    import math
+    if not math.isfinite(setpoint):
+        raise ValueError(f"setpoint must be a finite number, got {setpoint}")
     if controller_type.upper() not in ("PID", "MPC"):
         raise ValueError(f"Unknown controller_type: {controller_type}. Use 'PID' or 'MPC'.")
 

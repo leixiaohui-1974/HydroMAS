@@ -29,6 +29,8 @@ def predict_linear(
 
     if horizon <= 0:
         raise ValueError(f"horizon must be positive, got {horizon}")
+    if np.any(~np.isfinite(data)):
+        raise ValueError("historical_data contains NaN or inf values")
 
     if lookback is not None and lookback < len(data):
         data = data[-lookback:]

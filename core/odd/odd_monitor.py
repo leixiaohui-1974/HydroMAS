@@ -28,6 +28,9 @@ def classify_value(value: float, dim: DimensionSpec) -> Zone:
     Returns:
         Zone classification.
     """
+    import math
+    if not math.isfinite(value):
+        return "mrc"
     if value < dim.min_value or value > dim.max_value:
         return "mrc"
     if value < dim.warning_lower or value > dim.warning_upper:
