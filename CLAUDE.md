@@ -15,10 +15,12 @@ Includes **OpenClaw content pipeline** for multi-agent content production:
 ## Architecture (五层架构)
 
 ```
-L4  Agents      — 15 Agents
+L4  Agents      — 15 Agents (all extend BaseAgent with unified lifecycle)
                    Domain:  Orchestrator, Planning, Analysis, Report, Safety, Handuo LLM, RL Dispatch (7)
                    DevOps:  DevPlanner, DevReviewer, DevTester, DevOrchestrator (4)
                    Content: ContentPlanner, ContentReviewer, ContentPublisher, ContentOrchestrator (4)
+                   Infrastructure: BaseAgent, AgentMessage, MessageBus, AgentRegistry,
+                                   AgentContext, MultiAgentExecutor
 L3  Skills      — 17 Skills (四预 + leak diagnosis + evap optimization + reuse + dispatch
                              + daily report + collaborative_dev + content_pipeline)
 L2  MCP Servers — 13 FastMCP servers (9 original + water_balance + evaporation + leak_detection + reuse)
@@ -96,7 +98,12 @@ HydroMAS/
 │   ├── daily_report.py        # Balance→Anomaly→KPI→Evap→Report
 │   └── collaborative_dev.py   # Multi-agent dev: Plan→Review→Test→Integrate
 ├── agents/               # L4: Multi-agent orchestration (Domain + DevOps)
-│   ├── orchestrator.py   #   Main entry point, 20 tool keywords, 17 skills
+│   ├── base_agent.py    #   BaseAgent ABC, AgentCard, AgentStatus (NEW)
+│   ├── message.py       #   AgentMessage, MessageType, MessageBus (NEW)
+│   ├── registry.py      #   AgentRegistry — discovery by capability/type (NEW)
+│   ├── context.py       #   AgentContext — shared blackboard + trace (NEW)
+│   ├── executor.py      #   MultiAgentExecutor — DAG-based execution (NEW)
+│   ├── orchestrator.py   #   Main entry point, 4-level routing, collaborative workflow
 │   ├── planning_agent.py #   Task decomposition, DAG planning
 │   ├── analysis_agent.py #   Flexible data analysis + water balance/evap/reuse analysis
 │   ├── report_agent.py   #   Markdown reports + water balance/daily/leak reports
@@ -142,7 +149,7 @@ HydroMAS/
 │   ├── alumina_odd_specs.json #   12-dimension alumina ODD
 │   ├── process_ontology.json  #   Process entities and fault modes
 │   └── sample_timeseries.csv
-├── tests/                # pytest test suite (1257 tests)
+├── tests/                # pytest test suite (1287 tests)
 │   ├── test_core/        #   Core module unit tests
 │   ├── test_compute/     #   Ray compute tests
 │   ├── test_mcp/         #   MCP server tests
@@ -167,6 +174,7 @@ HydroMAS/
 - **Water balance**: `R = Q_in - Q_out - Q_loss - Q_evap - dV/dt` (residual ≈ 0 when balanced)
 - **Merkel evaporation**: `E = Q × Cp × ΔT / L_v × K_evap`
 - **Leak detection**: Graph Autoencoder (GAT) + acoustic fusion for pipe segment localization
+- **Multi-agent infrastructure**: BaseAgent → AgentMessage/MessageBus → AgentRegistry → AgentContext → MultiAgentExecutor
 - **Multi-agent DevOps**: DevPlanner (requirement→DAG) → DevReviewer (code review) → DevTester (test gen) → DevOrchestrator (pipeline)
 - **Content pipeline**: ContentPlanner → ContentReviewer → ContentPublisher → ContentOrchestrator (writing→review→publish)
 - **Scenario testing**: Research (写作+建模+管理=科研), Design (MBD设计), Operations (运维) × Tank/Alumina = 6 scenarios
@@ -193,6 +201,12 @@ from core.detection import network_to_dict_graph, detect_leak, AcousticEvent
 from skills import LeakDiagnosisSkill, EvapOptimizationSkill, GlobalDispatchSkill
 from skills import ReuseSchedulingSkill, DailyReportSkill
 from skills.collaborative_dev import CollaborativeDevSkill
+
+# Multi-agent infrastructure
+from agents import BaseAgent, AgentCard, AgentStatus
+from agents import AgentMessage, MessageType, MessageBus
+from agents import AgentRegistry, AgentContext
+from agents import MultiAgentExecutor, ExecutionPlan, ExecutionTask
 
 # Domain agents
 from agents import OrchestratorAgent, HanduoAgent, RLDispatchAgent
@@ -223,10 +237,10 @@ from knowledge import load_ontology, query_ontology, RAGService
 ## Running Tests
 
 ```bash
-pytest                          # All 1257 tests
+pytest                          # All 1287 tests
 pytest tests/test_core/         # Core module tests only
 pytest tests/test_skills/       # Skill workflow tests
-pytest tests/test_agents/       # Agent tests (domain + dev pipeline)
+pytest tests/test_agents/       # Agent tests (domain + dev pipeline + multi-agent infra)
 pytest tests/test_web/          # Web API tests
 pytest tests/test_scenarios/    # E2E scenario tests (R1/D1/O1 + R2/D2/O2)
 pytest tests/test_integrations/ # Feishu integration tests
