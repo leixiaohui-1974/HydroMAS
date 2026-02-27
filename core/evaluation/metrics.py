@@ -178,12 +178,16 @@ def evaluate_performance(
     if metrics_list is None:
         metrics_list = ["RMSE", "MAE", "NSE"]
 
+    # Convert once, reuse across all metrics to avoid redundant np.array() calls
+    obs_arr = np.asarray(observed, dtype=float)
+    pred_arr = np.asarray(predicted, dtype=float)
+
     results = {}
     metric_map = {
-        "RMSE": lambda: rmse(observed, predicted),
-        "MAE": lambda: mae(observed, predicted),
-        "NSE": lambda: nse(observed, predicted),
-        "MAPE": lambda: mape(observed, predicted),
+        "RMSE": lambda: rmse(obs_arr, pred_arr),
+        "MAE": lambda: mae(obs_arr, pred_arr),
+        "NSE": lambda: nse(obs_arr, pred_arr),
+        "MAPE": lambda: mape(obs_arr, pred_arr),
     }
 
     for m in metrics_list:

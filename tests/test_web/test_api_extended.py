@@ -278,9 +278,14 @@ class TestSecurityHeaders:
 # ---------- Quick Actions Edge Cases ----------
 
 class TestQuickActionsEdge:
-    def test_unknown_role_fallback(self):
-        """Unknown role should fallback to admin quick actions."""
+    def test_unknown_role_rejected(self):
+        """Unknown role should be rejected with 422 (Literal validation)."""
         resp = client.get("/api/assistant/quick-actions/nonexistent")
+        assert resp.status_code == 422
+
+    def test_valid_role_returns_actions(self):
+        """Valid role should return quick actions."""
+        resp = client.get("/api/assistant/quick-actions/operator")
         assert resp.status_code == 200
         data = resp.json()
         assert len(data["actions"]) > 0

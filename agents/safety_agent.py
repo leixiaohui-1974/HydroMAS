@@ -38,10 +38,19 @@ class SafetyAgent:
         """
         from mcp_servers.odd_server import check_odd
 
-        result = check_odd(
-            current_state=state,
-            odd_config=self.odd_config,
-        )
+        try:
+            result = check_odd(
+                current_state=state,
+                odd_config=self.odd_config,
+            )
+        except Exception as e:
+            logger.error("ODD check failed: %s", e)
+            return {
+                "zone": "unknown",
+                "violations": [],
+                "error": str(e),
+                "n_checked": 0,
+            }
 
         if result["violations"]:
             self._violation_log.append({
@@ -67,15 +76,20 @@ class SafetyAgent:
 
         if result["zone"] == "mrc":
             from mcp_servers.odd_server import get_mrc_plan
-            mrc_plan = get_mrc_plan(
-                violations=result["violations"],
-                current_state=current_state,
-            )
+            try:
+                mrc_plan = get_mrc_plan(
+                    violations=result["violations"],
+                    current_state=current_state,
+                )
+                actions = mrc_plan.get("actions", [])
+            except Exception as e:
+                logger.error("MRC plan generation failed: %s", e)
+                actions = []
             return {
                 "safe": False,
                 "zone": "mrc",
                 "message": "System is outside ODD. MRC actions required. / 系统已超出ODD。需要MRC动作。",
-                "recommended_actions": mrc_plan.get("actions", []),
+                "recommended_actions": actions,
                 "proposed_action_blocked": True,
             }
 

@@ -180,16 +180,10 @@ class OrchestratorAgent:
     async def _execute_tool(self, tool_name: str, params: dict) -> dict:
         """Execute a single MCP Tool. / 执行单个 MCP 工具。"""
         import asyncio
-        from skills.base_skill import BaseSkill
+        from skills.base_skill import _call_tool_dynamic
 
-        # Use BaseSkill's dynamic tool calling via thread to avoid blocking event loop
-        class _ToolCaller(BaseSkill):
-            async def execute(self, p):
-                pass
-
-        caller = _ToolCaller()
         try:
-            result = await asyncio.to_thread(caller._call_tool_dynamic, tool_name, params)
+            result = await asyncio.to_thread(_call_tool_dynamic, tool_name, params)
             return {"status": "completed", "tool": tool_name, "data": result}
         except Exception as e:
             return {"status": "failed", "tool": tool_name, "error": str(e)}

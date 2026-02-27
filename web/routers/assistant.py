@@ -6,10 +6,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
+from typing import Literal
 
 from fastapi import APIRouter
 
 from web.models import AssistantMessage
+
+_RoleType = Literal["operator", "engineer", "analyst", "admin"]
 from web.deps import get_orchestrator
 
 logger = logging.getLogger(__name__)
@@ -52,12 +56,15 @@ async def chat(msg: AssistantMessage):
     """
     orch = get_orchestrator()
 
+    # Sanitize control characters from user input
+    sanitized = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f]', '', msg.message)
+
     # Classify intent
-    intent = await asyncio.to_thread(orch.classify_intent, msg.message)
+    intent = await asyncio.to_thread(orch.classify_intent, sanitized)
 
     # Execute
     try:
-        result = await orch.handle_request(msg.message, msg.params or {})
+        result = await orch.handle_request(sanitized, msg.params or {})
     except Exception:
         logger.exception("Assistant error")
         result = {"status": "error", "error": "An internal error occurred. Please try again."}
@@ -70,7 +77,7 @@ async def chat(msg: AssistantMessage):
 
 
 @router.get("/quick-actions/{role}")
-async def get_quick_actions(role: str):
+async def get_quick_actions(role: _RoleType):
     """Get quick action buttons for a role. / 获取角色的快捷操作。"""
     actions = QUICK_ACTIONS.get(role, QUICK_ACTIONS["admin"])
     return {"actions": actions}

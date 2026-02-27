@@ -51,15 +51,17 @@ def identify_tank_params(
     lower = [cd_bounds[0], a_bounds[0]]
     upper = [cd_bounds[1], a_bounds[1]]
 
+    # Pre-compute safe sqrt term outside residuals (called ~100x by optimizer)
+    h_safe_sqrt = np.sqrt(2.0 * GRAVITY * np.maximum(h_arr, 0.0))
+
     def residuals(x: np.ndarray) -> np.ndarray:
         cd, a = x
-        q_model = cd * a * np.sqrt(2.0 * GRAVITY * np.maximum(h_arr, 0.0))
-        return q_model - q_obs
+        return cd * a * h_safe_sqrt - q_obs
 
     result = scipy_least_squares(residuals, x0, bounds=(lower, upper), method="trf")
 
     cd_fit, a_fit = result.x
-    q_fitted = cd_fit * a_fit * np.sqrt(2.0 * GRAVITY * np.maximum(h_arr, 0.0))
+    q_fitted = cd_fit * a_fit * h_safe_sqrt
     ss_res = np.sum((q_fitted - q_obs) ** 2)
     ss_tot = np.sum((q_obs - np.mean(q_obs)) ** 2)
     r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0

@@ -91,17 +91,15 @@ def monte_carlo_sim(
     import numpy as np
     rng = np.random.default_rng(seed)
 
+    # Build param grid efficiently — only copy mutable parts
+    base_tank = base_params.get("tank_params", {}) or {}
     param_grid = []
     for _ in range(n_samples):
-        params = dict(base_params)
-        tank_params = dict(params.get("tank_params", {}) or {})
-
+        tank_params = dict(base_tank)
         for param_name, (mean, std) in vary_params.items():
             value = float(rng.normal(mean, std))
             # Clamp to positive — physical tank params must be > 0
             tank_params[param_name] = max(1e-9, value)
-
-        params["tank_params"] = tank_params
-        param_grid.append(params)
+        param_grid.append({**base_params, "tank_params": tank_params})
 
     return parameter_sweep(param_grid, use_ray=use_ray)

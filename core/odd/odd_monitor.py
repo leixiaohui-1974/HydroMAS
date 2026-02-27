@@ -111,6 +111,14 @@ def check_odd_series(
     Returns:
         Dict with time-to-breach, worst zone, and per-step results.
     """
+    if not state_series:
+        return {
+            "worst_zone": "normal",
+            "time_to_breach": None,
+            "n_steps": 0,
+            "step_results": [],
+        }
+
     if time_series is not None and len(time_series) != len(state_series):
         raise ValueError(
             f"time_series length ({len(time_series)}) must match "

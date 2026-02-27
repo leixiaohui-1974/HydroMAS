@@ -13,6 +13,13 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
+def _escape_md(text: str) -> str:
+    """Escape markdown special characters in user-derived data."""
+    if not isinstance(text, str):
+        return str(text)
+    return text.replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
+
+
 class ReportAgent:
     """Report generation agent.
     报告生成 Agent。
@@ -46,12 +53,13 @@ class ReportAgent:
 |--------|-------|
 """
         for key, value in metrics.items():
+            safe_key = _escape_md(str(key))
             if isinstance(value, (int, float)):
-                report += f"| {key} | {value:.4f} |\n"
+                report += f"| {safe_key} | {value:.4f} |\n"
             elif value is not None:
-                report += f"| {key} | {value} |\n"
+                report += f"| {safe_key} | {_escape_md(str(value))} |\n"
             else:
-                report += f"| {key} | N/A |\n"
+                report += f"| {safe_key} | N/A |\n"
 
         water_levels = ctrl.get("water_level", [])
         final_level = f"{water_levels[-1]:.4f}" if water_levels else "N/A"

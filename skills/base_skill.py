@@ -92,6 +92,23 @@ _TOOL_MODULE_MAP = {
 _resolved_tools: dict[str, Any] = {}
 
 
+def _call_tool_dynamic(tool_name: str, params: dict) -> Any:
+    """Module-level tool caller — dynamically import and call an MCP tool.
+    模块级工具调用器 — 动态导入并调用 MCP 工具。
+    """
+    if tool_name not in _TOOL_MODULE_MAP:
+        raise ValueError(f"Unknown tool: {tool_name}")
+
+    if tool_name in _resolved_tools:
+        return _resolved_tools[tool_name](**params)
+
+    module_path, fn_name = _TOOL_MODULE_MAP[tool_name]
+    module = importlib.import_module(module_path)
+    fn = getattr(module, fn_name)
+    _resolved_tools[tool_name] = fn
+    return fn(**params)
+
+
 class BaseSkill(ABC):
     """Abstract base class for all Skills.
     所有 Skill 的抽象基类。

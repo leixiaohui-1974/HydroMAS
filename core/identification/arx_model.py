@@ -110,7 +110,11 @@ def predict_arx(
     nb = model["nb"]
     nk = model["nk"]
 
-    y_buf = list(y_history)
+    if len(y_history) < na:
+        raise ValueError(
+            f"y_history length ({len(y_history)}) must be >= na ({na})"
+        )
+
     # Warn if u_history not provided but nk > 0 (first nk predictions miss exogenous input)
     if u_history is None and nk > 0:
         import warnings
@@ -119,24 +123,33 @@ def predict_arx(
             f"will have incomplete exogenous input contribution",
             stacklevel=2,
         )
+
+    # Pre-allocate y buffer with history + space for predictions
+    n_pred = len(u_future)
+    n_hist = len(y_history)
+    y_buf = np.zeros(n_hist + n_pred)
+    y_buf[:n_hist] = y_history
+
     # Build combined u buffer: historical u followed by future u
-    u_buf = list(u_history or [])
-    u_offset = len(u_buf)  # index in u_buf where u_future[0] starts
-    u_buf.extend(u_future)
-    predictions = []
+    u_hist = u_history or []
+    u_buf = np.concatenate([np.array(u_hist, dtype=float), np.array(u_future, dtype=float)])
+    u_offset = len(u_hist)
 
-    for k in range(len(u_future)):
+    a_arr = np.array(a, dtype=float)
+    b_arr = np.array(b, dtype=float)
+    u_len = len(u_buf)
+
+    for k in range(n_pred):
         y_k = 0.0
+        buf_pos = n_hist + k
         for j in range(na):
-            idx = len(y_buf) - 1 - j
+            idx = buf_pos - 1 - j
             if idx >= 0:
-                y_k -= a[j] * y_buf[idx]
+                y_k -= a_arr[j] * y_buf[idx]
         for j in range(nb):
-            # u(k - nk - j) relative to u_future start
             u_idx = u_offset + k - nk - j
-            if 0 <= u_idx < len(u_buf):
-                y_k += b[j] * u_buf[u_idx]
-        y_buf.append(y_k)
-        predictions.append(y_k)
+            if 0 <= u_idx < u_len:
+                y_k += b_arr[j] * u_buf[u_idx]
+        y_buf[buf_pos] = y_k
 
-    return predictions
+    return y_buf[n_hist:].tolist()

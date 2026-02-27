@@ -6,8 +6,6 @@ Uses PuLP to solve LP/MILP problems for optimal water scheduling.
 
 from __future__ import annotations
 
-import numpy as np
-
 
 def optimize_schedule_lp(
     demand_forecast: list[float],
@@ -91,10 +89,11 @@ def optimize_schedule_lp(
     prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
     if prob.status != pulp.constants.LpStatusOptimal:
+        status_name = pulp.LpStatus.get(prob.status, "unknown")
         return {
-            "status": "infeasible",
+            "status": "infeasible" if prob.status == -1 else "solver_error",
             "schedule": [],
-            "message": "No feasible schedule found",
+            "message": f"No feasible schedule found (solver: {status_name})",
         }
 
     schedule = [float(v.varValue) if v.varValue is not None else 0.0 for v in q_in]
