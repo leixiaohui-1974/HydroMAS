@@ -15,6 +15,51 @@ from compute.ray_config import is_ray_available, init_ray
 logger = logging.getLogger(__name__)
 
 
+class MPCActorAdapter:
+    """Provide local-like API on top of a Ray actor handle.
+
+    Unknown attributes are proxied to the underlying actor handle so callers
+    can still access native ``.remote`` APIs when needed.
+    """
+
+    def __init__(self, actor_handle: Any):
+        self._actor = actor_handle
+
+
+    @property
+    def actor_handle(self) -> Any:
+        """Expose raw Ray actor handle for advanced usage."""
+        return self._actor
+
+    def __getattr__(self, item: str) -> Any:
+        """Proxy unknown attributes to the underlying actor handle."""
+        return getattr(self._actor, item)
+
+    def compute(self, current_h: float, setpoint: float, q_out_estimate: float = 0.005) -> float:
+        """Run one MPC step and return control action."""
+        import ray
+
+        return ray.get(
+            self._actor.step.remote(
+                current_h=current_h,
+                setpoint=setpoint,
+                q_out_estimate=q_out_estimate,
+            )
+        )
+
+    def get_history(self):
+        """Return internal actor history."""
+        import ray
+
+        return ray.get(self._actor.get_history.remote())
+
+    def reset(self):
+        """Reset actor state."""
+        import ray
+
+        ray.get(self._actor.reset.remote())
+
+
 def create_mpc_actor(
     horizon: int = 10,
     tank_area: float = 1.0,
@@ -31,7 +76,7 @@ def create_mpc_actor(
         **mpc_kwargs: Additional MPC parameters.
 
     Returns:
-        Actor handle (Ray) or local MPCController instance.
+        MPCActorAdapter (Ray-backed) or local MPCController instance.
     """
     if is_ray_available():
         try:
@@ -59,7 +104,8 @@ def create_mpc_actor(
                     self.controller.reset()
                     self.state_history = []
 
-            return MPCControllerActor.remote(horizon, tank_area, dt, **mpc_kwargs)
+            actor_handle = MPCControllerActor.remote(horizon, tank_area, dt, **mpc_kwargs)
+            return MPCActorAdapter(actor_handle)
         except Exception as e:
             logger.warning(f"Ray MPC actor creation failed, falling back to local: {e}")
 

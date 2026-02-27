@@ -522,3 +522,68 @@ class TestNSEEdgeCases:
         pred = [0.5, 1.5, 0.5, 1.5]
         result = nse(obs, pred)
         assert result == -1e6
+
+
+# ---------- MPCActorAdapter Compatibility ----------
+
+class TestMPCActorAdapterCompatibility:
+    """Ensure adapter preserves both sync and raw-handle usage."""
+
+    def test_proxies_unknown_attributes(self):
+        from compute.actor_controller import MPCActorAdapter
+
+        class _RemoteCall:
+            def __init__(self, value):
+                self.value = value
+
+        class _Method:
+            def __init__(self, fn):
+                self._fn = fn
+
+            def remote(self, *args, **kwargs):
+                return _RemoteCall(self._fn(*args, **kwargs))
+
+        class _FakeActor:
+            def __init__(self):
+                self.step = _Method(lambda **_: 0.12)
+                self.get_history = _Method(lambda: [{"h": 1.0, "action": 0.12}])
+                self.reset = _Method(lambda: None)
+                self.custom_attr = "raw-handle"
+
+        class _FakeRay:
+            @staticmethod
+            def get(obj):
+                return obj.value
+
+        actor = _FakeActor()
+        adapter = MPCActorAdapter(actor)
+
+        import sys
+        old = sys.modules.get("ray")
+        sys.modules["ray"] = _FakeRay
+        try:
+            assert adapter.compute(current_h=1.0, setpoint=1.2) == 0.12
+            assert adapter.get_history()[0]["action"] == 0.12
+            adapter.reset()
+            assert adapter.custom_attr == "raw-handle"
+            assert adapter.actor_handle is actor
+        finally:
+            if old is None:
+                del sys.modules["ray"]
+            else:
+                sys.modules["ray"] = old
+
+
+# ---------- Sizing Output Consistency ----------
+
+class TestSizingCostConsistency:
+    """Returned cost should match returned dimensions."""
+
+    def test_cost_matches_dimensions_after_guard_adjustment(self):
+        from core.design.sizing import optimize_tank_size
+
+        result = optimize_tank_size(safety_factor=2.0, cost_per_m2=1000.0, cost_per_m_height=500.0)
+        expected_cost = 1000.0 * result["optimal_area"] + 500.0 * result["optimal_height"]
+
+        assert result["volume"] >= result["required_volume"] - 1e-9
+        assert abs(result["cost"] - expected_cost) < 1e-9
