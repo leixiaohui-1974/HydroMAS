@@ -217,3 +217,41 @@ class AssistantMessage(BaseModel):
     role: Literal["operator", "engineer", "analyst", "admin"] = Field("admin", description="用户角色")
     params: dict = Field(default_factory=dict, max_length=50, description="附加参数")
     history: list[dict] = Field(default_factory=list, max_length=100, description="对话历史")
+
+
+# ---------- Water Balance / 水平衡 ----------
+
+class WaterBalanceRequest(BaseModel):
+    nodes_data: list[dict] = Field(..., min_length=1, max_length=100, description="水平衡节点数据")
+    edges_data: list[list[str]] = Field(..., min_length=1, max_length=200, description="水平衡边数据")
+
+
+class LeakDetectionRequest(BaseModel):
+    graph_nodes: list[dict] = Field(..., min_length=2, max_length=500, description="管网节点")
+    graph_edges: list[dict] = Field(..., min_length=1, max_length=1000, description="管网边")
+    threshold: float = Field(0.95, ge=0.0, le=1.0, description="检测阈值")
+
+
+class EvaporationRequest(BaseModel):
+    tower_params: dict = Field(..., description="冷却塔参数")
+    weather: dict = Field(..., description="气象数据")
+
+
+class ReuseRequest(BaseModel):
+    source_quality: dict = Field(..., description="回用水源水质")
+    target_requirements: list[dict] = Field(..., min_length=1, description="目标车间需求")
+
+
+class GlobalDispatchRequest(BaseModel):
+    demand_forecast: dict = Field(..., description="需求预测")
+    supply_config: dict = Field(..., description="供水配置")
+    reuse_config: dict | None = Field(None, description="回用配置")
+    method: Literal["lp", "rl"] = Field("lp", description="优化方法")
+
+
+class DailyReportRequest(BaseModel):
+    date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$", description="报告日期")
+    include_sections: list[str] = Field(
+        default=["balance", "anomaly", "kpi", "evaporation", "reuse"],
+        description="包含章节"
+    )

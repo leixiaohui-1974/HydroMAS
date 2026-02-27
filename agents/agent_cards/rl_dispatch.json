@@ -1,0 +1,16 @@
+{
+  "name": "RLDispatchAgent",
+  "display_name": "RL Dispatch Agent / 强化学习调度 Agent",
+  "description": "Reinforcement learning agent for optimal water intake scheduling based on digital twin simulation. Uses PPO policy when torch/stable-baselines3 are available; otherwise provides a deterministic rule-based baseline that minimises electricity and water costs.",
+  "version": "0.1.0",
+  "capabilities": [
+    "dispatch_optimization",
+    "rule_based_baseline",
+    "rl_training",
+    "policy_evaluation",
+    "gym_environment"
+  ],
+  "rl_backends": ["torch", "stable-baselines3", "gymnasium"],
+  "protocol": "A2A",
+  "endpoint": "/agents/rl_dispatch"
+}

@@ -144,6 +144,43 @@ class SafetyAgent:
 
         return result
 
+    def check_alumina_state(self, state: dict) -> dict:
+        """Check alumina plant state against 12-dim ODD. / 检查氧化铝厂12维ODD。"""
+        from mcp_servers.odd_server import check_alumina_odd
+        try:
+            result = check_alumina_odd(current_state=state, odd_config=self.odd_config)
+        except Exception as e:
+            logger.error("Alumina ODD check failed: %s", e, exc_info=True)
+            return {"zone": "error", "violations": [], "error": str(e)}
+        if result.get("violations"):
+            self._violation_log.append({"state": state, "violations": result["violations"], "zone": result["zone"], "type": "alumina_odd"})
+        return result
+
+    def monitor_pressure_safety(self, pressures: dict[str, float]) -> dict:
+        """Monitor pipe pressure for safety. / 管网压力安全监测。"""
+        violations = []
+        for pipe_id, pressure in pressures.items():
+            if pressure < 0.1:
+                violations.append({"pipe_id": pipe_id, "pressure": pressure, "issue": "low_pressure", "severity": "high"})
+            elif pressure > 0.8:
+                violations.append({"pipe_id": pipe_id, "pressure": pressure, "issue": "high_pressure", "severity": "high"})
+            elif pressure < 0.15 or pressure > 0.6:
+                violations.append({"pipe_id": pipe_id, "pressure": pressure, "issue": "pressure_warning", "severity": "medium"})
+        return {"safe": len(violations) == 0, "violations": violations, "n_checked": len(pressures)}
+
+    def check_reuse_water_quality(self, quality: dict) -> dict:
+        """Check if reuse water quality meets workshop requirements. / 检查回用水质是否达标。"""
+        limits = {"cod": 50, "ph_min": 6.5, "ph_max": 9.0, "turbidity": 10}
+        violations = []
+        if quality.get("cod", 0) > limits["cod"]:
+            violations.append({"param": "cod", "value": quality["cod"], "limit": limits["cod"], "severity": "high"})
+        ph = quality.get("ph", 7.0)
+        if ph < limits["ph_min"] or ph > limits["ph_max"]:
+            violations.append({"param": "ph", "value": ph, "limit": [limits["ph_min"], limits["ph_max"]], "severity": "high"})
+        if quality.get("turbidity", 0) > limits["turbidity"]:
+            violations.append({"param": "turbidity", "value": quality["turbidity"], "limit": limits["turbidity"], "severity": "medium"})
+        return {"quality_ok": len(violations) == 0, "violations": violations, "quality": quality}
+
     def get_violation_log(self) -> list[dict]:
         """Return accumulated violation log. / 返回累积的越界日志。"""
         return list(self._violation_log)

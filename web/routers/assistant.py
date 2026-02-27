@@ -27,12 +27,18 @@ QUICK_ACTIONS = {
         {"label": "运行四预系统", "message": "运行四预闭环分析", "icon": "alert-triangle"},
         {"label": "查看控制状态", "message": "查看当前控制器状态", "icon": "sliders"},
         {"label": "生成运营报告", "message": "生成当前系统运营报告", "icon": "file-text"},
+        {"label": "水平衡核算", "message": "执行全厂水平衡核算", "icon": "droplet"},
+        {"label": "泄漏检测", "message": "执行管网泄漏检测", "icon": "alert-circle"},
+        {"label": "日运营报告", "message": "生成今日运营报告", "icon": "file-text"},
     ],
     "engineer": [
         {"label": "运行仿真", "message": "运行水箱仿真模拟", "icon": "play"},
         {"label": "对比 PID/MPC", "message": "比较 PID 和 MPC 控制器", "icon": "git-branch"},
         {"label": "敏感性分析", "message": "运行参数敏感性分析", "icon": "trending-up"},
         {"label": "系统辨识", "message": "运行系统参数辨识", "icon": "crosshair"},
+        {"label": "蒸发预测", "message": "预测今日冷却塔蒸发量", "icon": "cloud"},
+        {"label": "回用优化", "message": "优化回用水调度方案", "icon": "refresh-cw"},
+        {"label": "全局调度", "message": "运行全局水量调度优化", "icon": "settings"},
     ],
     "analyst": [
         {"label": "智能预测", "message": "对水位数据进行预测分析", "icon": "trending-up"},

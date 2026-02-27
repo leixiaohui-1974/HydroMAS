@@ -1,0 +1,17 @@
+{
+  "name": "HanduoAgent",
+  "display_name": "Handuo Water Network LLM Agent / 瀚铎水网大模型 Agent",
+  "description": "Domain-specific AI assistant for alumina refinery water network management. Provides RAG-based Q&A, anomaly causal reasoning, and insight generation using process ontology knowledge base. Falls back to template mode when no LLM backend is available.",
+  "version": "0.1.0",
+  "capabilities": [
+    "rag_query",
+    "anomaly_diagnosis",
+    "insight_generation",
+    "knowledge_retrieval",
+    "template_fallback"
+  ],
+  "knowledge_base": "data/process_ontology.json",
+  "llm_backends": ["vllm", "langchain"],
+  "protocol": "A2A",
+  "endpoint": "/agents/handuo"
+}

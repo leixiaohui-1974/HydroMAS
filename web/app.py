@@ -32,6 +32,12 @@ from web.routers import (
     identification,
     skills,
     assistant,
+    water_balance,
+    leak_detection,
+    evaporation,
+    reuse,
+    dispatch,
+    report,
 )
 
 logger = logging.getLogger(__name__)
@@ -132,6 +138,12 @@ app.include_router(dataclean.router, prefix="/api/dataclean", tags=["DataClean /
 app.include_router(identification.router, prefix="/api/identification", tags=["Identification / 系统辨识"])
 app.include_router(skills.router, prefix="/api/skills", tags=["Skills / 技能工作流"])
 app.include_router(assistant.router, prefix="/api/assistant", tags=["Assistant / 智能助手"])
+app.include_router(water_balance.router, prefix="/api/water-balance", tags=["Water Balance / 水平衡"])
+app.include_router(leak_detection.router, prefix="/api/leak-detection", tags=["Leak Detection / 泄漏检测"])
+app.include_router(evaporation.router, prefix="/api/evaporation", tags=["Evaporation / 蒸发预测"])
+app.include_router(reuse.router, prefix="/api/reuse", tags=["Reuse / 回用优化"])
+app.include_router(dispatch.router, prefix="/api/dispatch", tags=["Dispatch / 调度优化"])
+app.include_router(report.router, prefix="/api/report", tags=["Report / 运营报告"])
 
 
 # ---------- User Roles / 用户角色 ----------

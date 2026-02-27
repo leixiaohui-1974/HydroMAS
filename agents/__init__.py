@@ -10,6 +10,8 @@ from agents.planning_agent import TaskNode, TaskPlan, PlanningAgent
 from agents.analysis_agent import AnalysisAgent
 from agents.report_agent import ReportAgent
 from agents.safety_agent import SafetyAgent
+from agents.handuo_agent import HanduoAgent
+from agents.rl_dispatch_agent import DispatchState, DispatchAction, RLDispatchAgent
 
 __all__ = [
     "OrchestratorAgent",
@@ -20,4 +22,8 @@ __all__ = [
     "AnalysisAgent",
     "ReportAgent",
     "SafetyAgent",
+    "HanduoAgent",
+    "DispatchState",
+    "DispatchAction",
+    "RLDispatchAgent",
 ]
