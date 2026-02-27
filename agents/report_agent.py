@@ -44,8 +44,8 @@ class ReportAgent:
         report = f"""# Control System Design Report / 控制系统设计报告
 
 **Generated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-**Controller Type**: {ctrl_type}
-**Setpoint**: {ctrl.get("setpoint", "N/A")} m
+**Controller Type**: {_escape_md(str(ctrl_type))}
+**Setpoint**: {_escape_md(str(ctrl.get("setpoint", "N/A")))} m
 
 ## Performance Metrics / 性能指标
 
@@ -64,11 +64,12 @@ class ReportAgent:
         water_levels = ctrl.get("water_level", [])
         final_level = f"{water_levels[-1]:.4f}" if water_levels else "N/A"
 
+        metadata = ctrl.get("metadata", {})
         report += f"""
 ## Simulation Summary / 仿真概要
 
-- Duration: {ctrl.get("metadata", {}).get("steps", 0) * ctrl.get("metadata", {}).get("dt", 1)} s
-- Solver: {ctrl.get("metadata", {}).get("solver", "N/A")}
+- Duration: {metadata.get("steps", 0) * metadata.get("dt", 1)} s
+- Solver: {_escape_md(str(metadata.get("solver", "N/A")))}
 - Final water level: {final_level} m
 """
         return report
@@ -92,14 +93,14 @@ class ReportAgent:
 
 ## Current Status / 当前状态
 
-- **Zone**: {status.get("zone", "unknown")}
+- **Zone**: {_escape_md(str(status.get("zone", "unknown")))}
 - **Violations**: {status.get("n_violations", 0)}
 
 ## Boundary Scan Results / 边界扫描结果
 
 - Scenarios tested: {summary.get("scenarios_tested", 0)}
 - Scenarios with violations: {summary.get("scenarios_with_violations", 0)}
-- **Safety Rating**: {summary.get("safety_rating", "unknown")}
+- **Safety Rating**: {_escape_md(str(summary.get("safety_rating", "unknown")))}
 """
 
         if results.get("mrc_plan"):
@@ -107,11 +108,11 @@ class ReportAgent:
             report += f"""
 ## MRC Plan / 最小风险条件计划
 
-- **Severity**: {mrc.get("severity", "N/A")}
+- **Severity**: {_escape_md(str(mrc.get("severity", "N/A")))}
 - **Actions**:
 """
             for action in mrc.get("actions", []):
-                report += f"  - [{action.get('priority', 'N/A')}] {action.get('description', '')}\n"
+                report += f"  - [{_escape_md(str(action.get('priority', 'N/A')))}] {_escape_md(str(action.get('description', '')))}\n"
 
         return report
 
@@ -136,18 +137,19 @@ class ReportAgent:
 
 | Parameter | Value |
 |-----------|-------|
-| Tank Area | {summary.get("tank_area", "N/A")} m² |
-| Controller | {summary.get("controller", "N/A")} |
-| Setpoint | {summary.get("setpoint", "N/A")} m |
-| ODD Zone | {summary.get("odd_zone", "N/A")} |
+| Tank Area | {_escape_md(str(summary.get("tank_area", "N/A")))} m² |
+| Controller | {_escape_md(str(summary.get("controller", "N/A")))} |
+| Setpoint | {_escape_md(str(summary.get("setpoint", "N/A")))} m |
+| ODD Zone | {_escape_md(str(summary.get("odd_zone", "N/A")))} |
 
 ## Performance Evaluation / 性能评价
 
 """
         for key, value in evaluation.items():
+            safe_key = _escape_md(str(key))
             if isinstance(value, (int, float)):
-                report += f"- **{key}**: {value:.4f}\n"
+                report += f"- **{safe_key}**: {value:.4f}\n"
             elif value is not None:
-                report += f"- **{key}**: {value}\n"
+                report += f"- **{safe_key}**: {_escape_md(str(value))}\n"
 
         return report

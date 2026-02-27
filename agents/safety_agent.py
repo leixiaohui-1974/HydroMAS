@@ -76,6 +76,7 @@ class SafetyAgent:
 
         if result["zone"] == "mrc":
             from mcp_servers.odd_server import get_mrc_plan
+            mrc_error = None
             try:
                 mrc_plan = get_mrc_plan(
                     violations=result["violations"],
@@ -85,13 +86,17 @@ class SafetyAgent:
             except Exception as e:
                 logger.error("MRC plan generation failed: %s", e)
                 actions = []
-            return {
+                mrc_error = str(e)
+            resp = {
                 "safe": False,
                 "zone": "mrc",
                 "message": "System is outside ODD. MRC actions required. / 系统已超出ODD。需要MRC动作。",
                 "recommended_actions": actions,
                 "proposed_action_blocked": True,
             }
+            if mrc_error:
+                resp["mrc_error"] = mrc_error
+            return resp
 
         if result["zone"] == "extended":
             return {

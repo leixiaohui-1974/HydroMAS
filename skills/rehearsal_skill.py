@@ -74,17 +74,19 @@ class RehearsalSkill(BaseSkill):
                     "level_range": 0.0, "odd_zone": "unknown", "odd_violations": 0,
                 })
                 continue
+            max_lev = max(levels)
+            min_lev = min(levels)
             # Check for ODD violations
             odd_check = await self.call_tool("check_odd", {
-                "current_state": {"water_level": max(levels)},
+                "current_state": {"water_level": max_lev},
             })
             n_violations = 1 if odd_check.get("zone") == "mrc" else 0
 
             eval_item = {
-                "max_level": max(levels),
-                "min_level": min(levels),
+                "max_level": max_lev,
+                "min_level": min_lev,
                 "final_level": levels[-1],
-                "level_range": max(levels) - min(levels),
+                "level_range": max_lev - min_lev,
                 "odd_zone": odd_check.get("zone", "unknown"),
                 "odd_violations": n_violations,
             }

@@ -101,7 +101,7 @@ class WarningSkill(BaseSkill):
             success=True,
             data={
                 "warning_level": warning_level,
-                "violations": odd_result.get("step_results", []),
+                "violations": odd_result.get("violations", odd_result.get("step_results", [])),
                 "worst_zone": odd_result.get("worst_zone", "normal"),
                 "time_to_breach": odd_result.get("time_to_breach"),
                 "recommended_action": _RECOMMENDED_ACTIONS.get(warning_level, ""),

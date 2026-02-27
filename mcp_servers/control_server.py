@@ -65,12 +65,16 @@ def run_controller(
     state = current_state or {"h": 0.5}
     if controller_type.upper() == "PID":
         from core.control.pid_controller import PIDController, PIDParams
-        pid = PIDController(PIDParams(**(params or {})))
+        _pid_keys = {"kp", "ki", "kd", "output_min", "output_max", "anti_windup"}
+        filtered = {k: v for k, v in (params or {}).items() if k in _pid_keys}
+        pid = PIDController(PIDParams(**filtered))
         u = pid.compute(setpoint, state["h"])
         return {"control_output": u, "error": setpoint - state["h"]}
     elif controller_type.upper() == "MPC":
         from core.control.mpc_controller import MPCController
-        mpc = MPCController(**(params or {}))
+        _mpc_keys = {"horizon", "q_weight", "r_weight", "u_min", "u_max", "h_min", "h_max", "tank_area", "dt"}
+        filtered = {k: v for k, v in (params or {}).items() if k in _mpc_keys}
+        mpc = MPCController(**filtered)
         u = mpc.compute(state["h"], setpoint, state.get("q_out", 0.005))
         return {"control_output": u, "error": setpoint - state["h"]}
 

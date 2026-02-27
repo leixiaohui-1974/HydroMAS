@@ -53,7 +53,7 @@ def schedule_rule_based(
         }
 
     if current_level < target_level - 0.2:
-        rate = min(supply_capacity * 0.8, supply_capacity)
+        rate = supply_capacity * 0.8
         return {
             "inflow_rate": rate,
             "rule": "increase_supply",

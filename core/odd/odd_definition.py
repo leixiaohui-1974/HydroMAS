@@ -23,16 +23,19 @@ class DimensionSpec:
     warning_margin: float = 0.1  # fraction for extended zone / 扩展域裕度（比例）
 
     @property
+    def range_val(self) -> float:
+        """Range of this dimension. / 维度范围。"""
+        return self.max_value - self.min_value
+
+    @property
     def warning_lower(self) -> float:
         """Lower warning threshold. / 下限预警阈值。"""
-        range_val = self.max_value - self.min_value
-        return self.min_value + self.warning_margin * range_val
+        return self.min_value + self.warning_margin * self.range_val
 
     @property
     def warning_upper(self) -> float:
         """Upper warning threshold. / 上限预警阈值。"""
-        range_val = self.max_value - self.min_value
-        return self.max_value - self.warning_margin * range_val
+        return self.max_value - self.warning_margin * self.range_val
 
 
 @dataclass
@@ -42,17 +45,17 @@ class ODDSpec:
     """
 
     dimensions: list[DimensionSpec] = field(default_factory=list)
+    _dim_index: dict[str, DimensionSpec] = field(default_factory=dict, repr=False)
 
     def add_dimension(self, name: str, min_val: float, max_val: float, unit: str, **kwargs) -> None:
         """Add a dimension to the ODD. / 添加 ODD 维度。"""
-        self.dimensions.append(DimensionSpec(name=name, min_value=min_val, max_value=max_val, unit=unit, **kwargs))
+        dim = DimensionSpec(name=name, min_value=min_val, max_value=max_val, unit=unit, **kwargs)
+        self.dimensions.append(dim)
+        self._dim_index[name] = dim
 
     def get_dimension(self, name: str) -> DimensionSpec | None:
-        """Get dimension by name. / 按名称获取维度。"""
-        for d in self.dimensions:
-            if d.name == name:
-                return d
-        return None
+        """Get dimension by name (O(1) lookup). / 按名称获取维度。"""
+        return self._dim_index.get(name)
 
     def to_dict(self) -> dict:
         """Serialize to dict. / 序列化为字典。"""
