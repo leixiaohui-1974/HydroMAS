@@ -1,0 +1,47 @@
+name: leak_diagnosis
+display_name: "泄漏诊断 / Leak Diagnosis"
+description: "Detect and localize leaks through water balance, anomaly detection, GNN analysis, and acoustic fusion. / 通过水量平衡、异常检测、GNN分析和声学融合检测定位泄漏。"
+trigger_phrases:
+  - "泄漏检测"
+  - "漏水"
+  - "水量异常"
+  - "leak detection"
+  - "water loss"
+input_schema:
+  nodes_data:
+    type: array
+    description: "Network node data with flow measurements / 网络节点数据（含流量）"
+  edges_data:
+    type: array
+    description: "Network edge connectivity / 网络边连接关系"
+  graph_nodes:
+    type: array
+    description: "Graph node features for GNN / GNN图节点特征"
+  graph_edges:
+    type: array
+    description: "Graph edge features for GNN / GNN图边特征"
+  acoustic_data:
+    type: array
+    description: "Optional acoustic sensor data for fusion / 可选声学传感器数据"
+    optional: true
+output_schema:
+  diagnosis:
+    type: object
+    description: "Unified diagnosis summary with severity and candidates / 统一诊断摘要"
+  balance:
+    type: object
+  anomalies:
+    type: object
+  leak_detection:
+    type: object
+  localization:
+    type: object
+  acoustic_fusion:
+    type: object
+tools_required:
+  - calc_full_plant_balance
+  - detect_balance_anomaly
+  - detect_leak
+  - localize_leak
+  - fuse_leak_evidence
+max_execution_time: 120

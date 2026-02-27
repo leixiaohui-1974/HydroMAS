@@ -62,5 +62,26 @@ def assess_wnal(
     return _assess(system_capabilities)
 
 
+@mcp.tool()
+def evaluate_water_kpi(balance_data: dict, target_config: dict | None = None) -> dict:
+    """Evaluate water network KPI. / 评价水网KPI。"""
+    targets = target_config or {}
+    reuse_rate = balance_data.get("reuse_rate", 0)
+    leak_rate = balance_data.get("leak_rate", 0)
+    total_intake = balance_data.get("total_intake", 0)
+    alumina_output = balance_data.get("alumina_output_td", 1)  # avoid div by zero
+    water_per_ton = total_intake / max(alumina_output, 0.001)
+    pump_eff = balance_data.get("pump_efficiency", 0)
+    return {
+        "reuse_rate": reuse_rate,
+        "reuse_rate_target": targets.get("target_reuse_rate", 0.50),
+        "leak_rate": leak_rate,
+        "water_per_ton_alumina": water_per_ton,
+        "pump_efficiency": pump_eff,
+        "balance_error": balance_data.get("balance_error", 0),
+        "kpi_score": min(100, max(0, reuse_rate * 40 + (1 - leak_rate) * 30 + pump_eff * 30)),
+    }
+
+
 if __name__ == "__main__":
     mcp.run()

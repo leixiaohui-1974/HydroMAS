@@ -97,5 +97,18 @@ def simulate_batch(
     return parameter_sweep(param_grid, use_ray=parallel)
 
 
+@mcp.tool()
+def simulate_network(inp_file: str, duration: float, dt: float = 300.0,
+                     scenarios: list[dict] | None = None) -> dict:
+    """Run network hydraulic simulation via WNTR. / WNTR管网水力仿真。"""
+    if duration <= 0:
+        raise ValueError(f"duration must be positive, got {duration}")
+    from core.simulation.network_model import run_hydraulic_sim
+    result = run_hydraulic_sim(inp_file=inp_file, duration=duration, dt=dt)
+    if scenarios:
+        result["scenarios_applied"] = len(scenarios)
+    return result
+
+
 if __name__ == "__main__":
     mcp.run()

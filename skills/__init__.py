@@ -16,6 +16,11 @@ from skills.odd_assessment import ODDAssessmentSkill
 from skills.control_system_design import ControlSystemDesignSkill
 from skills.optimization_design import OptimizationDesignSkill
 from skills.full_lifecycle import FullLifecycleSkill
+from skills.leak_diagnosis import LeakDiagnosisSkill
+from skills.evap_optimization import EvapOptimizationSkill
+from skills.reuse_scheduling import ReuseSchedulingSkill
+from skills.global_dispatch import GlobalDispatchSkill
+from skills.daily_report import DailyReportSkill
 
 __all__ = [
     "BaseSkill",
@@ -32,4 +37,9 @@ __all__ = [
     "ControlSystemDesignSkill",
     "OptimizationDesignSkill",
     "FullLifecycleSkill",
+    "LeakDiagnosisSkill",
+    "EvapOptimizationSkill",
+    "ReuseSchedulingSkill",
+    "GlobalDispatchSkill",
+    "DailyReportSkill",
 ]

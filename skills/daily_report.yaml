@@ -1,0 +1,54 @@
+name: daily_report
+display_name: "日报 / Daily Report"
+description: "Generate a daily Markdown operation report aggregating water balance, anomalies, KPIs, and evaporation data. / 生成汇总水量平衡、异常、KPI和蒸发数据的每日Markdown运营报告。"
+trigger_phrases:
+  - "日报"
+  - "运营报告"
+  - "daily report"
+  - "operation report"
+input_schema:
+  nodes_data:
+    type: array
+    description: "Network node data with flow measurements / 网络节点数据"
+  edges_data:
+    type: array
+    description: "Network edge connectivity / 网络边连接关系"
+  balance_data:
+    type: object
+    description: "Pre-computed balance data (optional) / 预计算平衡数据（可选）"
+  tower_params:
+    type: object
+    description: "Cooling tower parameters / 冷却塔参数"
+  weather:
+    type: object
+    description: "Weather conditions / 气象条件"
+  calc_params:
+    type: object
+    description: "Calcination process parameters / 焙烧工艺参数"
+  mud_params:
+    type: object
+    description: "Red mud storage parameters / 赤泥堆场参数"
+  date:
+    type: string
+    default: "today"
+    description: "Report date (YYYY-MM-DD) / 报告日期"
+output_schema:
+  report_markdown:
+    type: string
+    description: "Generated Markdown report / 生成的Markdown报告"
+  date:
+    type: string
+  balance:
+    type: object
+  anomalies:
+    type: object
+  kpi:
+    type: object
+  evaporation:
+    type: object
+tools_required:
+  - calc_full_plant_balance
+  - detect_balance_anomaly
+  - evaluate_water_kpi
+  - predict_total_evap_loss
+max_execution_time: 120

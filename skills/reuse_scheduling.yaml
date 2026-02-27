@@ -1,0 +1,44 @@
+name: reuse_scheduling
+display_name: "回用调度 / Reuse Scheduling"
+description: "Optimize water reuse paths and scheduling based on quality matching and benefit evaluation. / 基于水质匹配和效益评估优化水回用路径与调度。"
+trigger_phrases:
+  - "回用调度"
+  - "回用优化"
+  - "回用率"
+  - "reuse"
+  - "recycled water"
+input_schema:
+  source_quality:
+    type: object
+    description: "Source water quality parameters / 源水水质参数"
+  target_requirements:
+    type: array
+    description: "Target water quality requirements / 目标水质要求"
+  sources:
+    type: array
+    description: "Available water sources / 可用水源列表"
+  demands:
+    type: array
+    description: "Water demand points / 用水需求点"
+  current_reuse_rate:
+    type: number
+    default: 0.0
+    description: "Current reuse rate (0-1) / 当前回用率"
+output_schema:
+  matching:
+    type: object
+    description: "Quality matching results / 水质匹配结果"
+  schedule:
+    type: object
+    description: "Optimized reuse schedule / 优化回用调度"
+  benefit:
+    type: object
+    description: "Economic/environmental benefit evaluation / 经济环境效益评估"
+  improvement:
+    type: object
+    description: "Improvement summary / 改进摘要"
+tools_required:
+  - match_reuse_path
+  - optimize_reuse_schedule
+  - evaluate_reuse_benefit
+max_execution_time: 90
