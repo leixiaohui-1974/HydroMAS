@@ -6,6 +6,10 @@ Tools, and sub-Agents based on user intent.
 """
 
 from agents.analysis_agent import AnalysisAgent
+from agents.dev_orchestrator import DevOrchestratorAgent
+from agents.dev_planner import DevPlannerAgent
+from agents.dev_reviewer import DevReviewerAgent
+from agents.dev_tester import DevTesterAgent
 from agents.handuo_agent import HanduoAgent
 from agents.orchestrator import TOOL_KEYWORDS, OrchestratorAgent
 from agents.planning_agent import PlanningAgent, TaskNode, TaskPlan
@@ -26,4 +30,8 @@ __all__ = [
     "DispatchState",
     "DispatchAction",
     "RLDispatchAgent",
+    "DevPlannerAgent",
+    "DevReviewerAgent",
+    "DevTesterAgent",
+    "DevOrchestratorAgent",
 ]
