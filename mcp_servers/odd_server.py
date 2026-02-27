@@ -35,7 +35,8 @@ def check_odd(
         Dict with zone classification, violations, and details.
     """
     from core.odd.odd_definition import ODDSpec, create_tank_odd
-    from core.odd.odd_monitor import check_odd as _check, check_odd_series
+    from core.odd.odd_monitor import check_odd as _check
+    from core.odd.odd_monitor import check_odd_series
 
     odd_spec = ODDSpec.from_dict(odd_config) if odd_config else create_tank_odd()
 
@@ -91,13 +92,28 @@ def check_alumina_odd(current_state: dict, odd_config: dict | None = None) -> di
         extended_max = max_val + (max_val - min_val) * margin
         if value < min_val or value > max_val:
             if value < extended_min or value > extended_max:
-                violations.append({"dimension": name, "value": value, "zone": "mrc", "bounds": [min_val, max_val]})
+                violations.append({
+                    "dimension": name, "value": value,
+                    "zone": "mrc", "bounds": [min_val, max_val],
+                })
                 zone = "mrc"
             else:
-                violations.append({"dimension": name, "value": value, "zone": "extended", "bounds": [min_val, max_val]})
+                violations.append({
+                    "dimension": name, "value": value,
+                    "zone": "extended",
+                    "bounds": [min_val, max_val],
+                })
                 if zone != "mrc":
                     zone = "extended"
-    return {"zone": zone, "violations": violations, "n_checked": len([d for d in dimensions if d["name"] in current_state]), "n_violations": len(violations)}
+    n_checked = len(
+        [d for d in dimensions if d["name"] in current_state]
+    )
+    return {
+        "zone": zone,
+        "violations": violations,
+        "n_checked": n_checked,
+        "n_violations": len(violations),
+    }
 
 
 if __name__ == "__main__":

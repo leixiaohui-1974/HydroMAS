@@ -1,7 +1,6 @@
 """Edge-case tests for input validation and error handling across core modules."""
 
 import pytest
-import numpy as np
 
 
 class TestSimulationValidation:

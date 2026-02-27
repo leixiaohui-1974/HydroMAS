@@ -11,8 +11,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from core.odd.odd_definition import ODDSpec, DimensionSpec
-
+from core.odd.odd_definition import DimensionSpec, ODDSpec
 
 Zone = Literal["normal", "extended", "mrc"]
 

@@ -9,6 +9,7 @@ import pytest
 
 try:
     from fastapi.testclient import TestClient
+
     from web.app import app
     _HAS_FASTAPI = True
 except ImportError:

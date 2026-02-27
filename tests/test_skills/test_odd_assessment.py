@@ -1,6 +1,7 @@
 """Integration tests for ODDAssessmentSkill."""
 
 import pytest
+
 from skills.odd_assessment import ODDAssessmentSkill
 
 

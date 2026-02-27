@@ -1,9 +1,8 @@
 """Integration tests for ReuseSchedulingSkill (回用调度)."""
 
 import pytest
-from skills.reuse_scheduling import ReuseSchedulingSkill
-from skills.base_skill import SkillResult
 
+from skills.reuse_scheduling import ReuseSchedulingSkill
 
 # ---------------------------------------------------------------------------
 # Sample data helpers
@@ -40,8 +39,22 @@ def _demands():
 def _mock_match_reuse_path(source_quality, target_requirements):
     return {
         "matched_paths": [
-            {"workshop_id": "ws_cooling", "demand_m3d": 200.0, "quality_margin": {"cod_margin": 20.0, "turbidity_margin": 5.0}},
-            {"workshop_id": "ws_washing", "demand_m3d": 150.0, "quality_margin": {"cod_margin": 50.0, "turbidity_margin": 15.0}},
+            {
+                "workshop_id": "ws_cooling",
+                "demand_m3d": 200.0,
+                "quality_margin": {
+                    "cod_margin": 20.0,
+                    "turbidity_margin": 5.0,
+                },
+            },
+            {
+                "workshop_id": "ws_washing",
+                "demand_m3d": 150.0,
+                "quality_margin": {
+                    "cod_margin": 50.0,
+                    "turbidity_margin": 15.0,
+                },
+            },
         ],
         "unmatched": [],
         "n_matched": 2,
@@ -55,8 +68,16 @@ def _mock_match_reuse_path(source_quality, target_requirements):
             {"source_id": "src_reclaim", "capacity_m3d": 300.0, "cod": 30.0, "turbidity": 5.0},
         ],
         "matched_demands": [
-            {"workshop_id": "ws_cooling", "demand_m3d": 200.0, "max_cod": 50.0, "max_turbidity": 10.0},
-            {"workshop_id": "ws_washing", "demand_m3d": 150.0, "max_cod": 80.0, "max_turbidity": 20.0},
+            {
+                "workshop_id": "ws_cooling",
+                "demand_m3d": 200.0,
+                "max_cod": 50.0, "max_turbidity": 10.0,
+            },
+            {
+                "workshop_id": "ws_washing",
+                "demand_m3d": 150.0,
+                "max_cod": 80.0, "max_turbidity": 20.0,
+            },
         ],
     }
 

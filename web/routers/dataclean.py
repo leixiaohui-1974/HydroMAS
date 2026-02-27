@@ -8,7 +8,7 @@ import asyncio
 
 from fastapi import APIRouter
 
-from web.models import OutlierDetectRequest, InterpolateRequest
+from web.models import InterpolateRequest, OutlierDetectRequest
 
 router = APIRouter()
 

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -146,14 +145,19 @@ plt.show()
 
     async def analyze_water_balance(self, balance_data: dict, period: str = "daily") -> dict:
         """Analyze water balance for anomaly patterns. / 水平衡异常模式分析。"""
-        from mcp_servers.water_balance_server import calc_full_plant_balance, detect_balance_anomaly
         import asyncio
+
+        from mcp_servers.water_balance_server import calc_full_plant_balance, detect_balance_anomaly
 
         nodes_data = balance_data.get("nodes_data", [])
         edges_data = balance_data.get("edges_data", [])
 
         if nodes_data and edges_data:
-            balance = await asyncio.to_thread(calc_full_plant_balance, nodes_data=nodes_data, edges_data=edges_data)
+            balance = await asyncio.to_thread(
+                calc_full_plant_balance,
+                nodes_data=nodes_data,
+                edges_data=edges_data,
+            )
         else:
             balance = balance_data
 
@@ -169,7 +173,11 @@ plt.show()
             "n_anomalies": len(anomalies.get("anomalies", [])),
         }
 
-    async def analyze_evaporation_trend(self, historical_evap: list[dict], weather_history: list[dict]) -> dict:
+    async def analyze_evaporation_trend(
+        self,
+        historical_evap: list[dict],
+        weather_history: list[dict],
+    ) -> dict:
         """Analyze evaporation trends and correlations. / 蒸发趋势与相关性分析。"""
         evap_values = [e.get("evap_rate_m3h", e.get("value", 0)) for e in historical_evap]
         temp_values = [w.get("t_db", w.get("temperature", 25)) for w in weather_history]
@@ -189,7 +197,12 @@ plt.show()
         std_t = (sum((t - avg_temp)**2 for t in temp_values) / n) ** 0.5
         correlation = cov / (std_e * std_t) if std_e > 0 and std_t > 0 else 0
 
-        trend = "increasing" if evap_values[-1] > evap_values[0] else "decreasing" if evap_values[-1] < evap_values[0] else "stable"
+        if evap_values[-1] > evap_values[0]:
+            trend = "increasing"
+        elif evap_values[-1] < evap_values[0]:
+            trend = "decreasing"
+        else:
+            trend = "stable"
 
         return {
             "trend": trend,
@@ -201,8 +214,9 @@ plt.show()
 
     async def compare_reuse_strategies(self, strategies: list[dict]) -> dict:
         """Compare multiple reuse optimization strategies. / 对比多种回用策略。"""
-        from mcp_servers.reuse_server import evaluate_reuse_benefit
         import asyncio
+
+        from mcp_servers.reuse_server import evaluate_reuse_benefit
 
         results = []
         for i, strategy in enumerate(strategies):
@@ -212,10 +226,18 @@ plt.show()
                 optimized_reuse=strategy.get("optimized_reuse", {}),
                 water_price=strategy.get("water_price", 4.0),
             )
-            results.append({"strategy_index": i, "name": strategy.get("name", f"Strategy_{i}"), "benefit": benefit})
+            results.append({
+                "strategy_index": i,
+                "name": strategy.get("name", f"Strategy_{i}"),
+                "benefit": benefit,
+            })
 
         results.sort(key=lambda r: r["benefit"].get("annual_cost_saving_cny", 0), reverse=True)
         for rank, r in enumerate(results):
             r["rank"] = rank + 1
 
-        return {"strategies": results, "best": results[0]["name"] if results else None, "n_strategies": len(strategies)}
+        return {
+            "strategies": results,
+            "best": results[0]["name"] if results else None,
+            "n_strategies": len(strategies),
+        }

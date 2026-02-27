@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from compute.ray_config import is_ray_available, init_ray
+from compute.ray_config import init_ray, is_ray_available
 
 logger = logging.getLogger(__name__)
 

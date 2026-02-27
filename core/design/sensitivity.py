@@ -8,8 +8,9 @@ Methods:
 
 from __future__ import annotations
 
-import numpy as np
 from typing import Callable
+
+import numpy as np
 
 
 def sensitivity_oat(

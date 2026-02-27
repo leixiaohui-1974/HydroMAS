@@ -2,9 +2,8 @@
 覆盖率补充测试 — 补齐遗漏的功能测试。
 """
 
-import pytest
 import numpy as np
-
+import pytest
 
 # ---------- LSTM Predictor Stub ----------
 
@@ -13,15 +12,17 @@ class TestLSTMPredictor:
 
     def test_lstm_without_torch(self):
         """LSTM should raise ValueError when torch is not installed."""
-        from core.prediction.lstm_predictor import predict_lstm
         import pytest
+
+        from core.prediction.lstm_predictor import predict_lstm
         with pytest.raises(ValueError, match="torch not installed"):
             predict_lstm([1.0, 2.0, 3.0], horizon=5)
 
     def test_lstm_import_via_package(self):
         """LSTM should be importable from package __init__ and raise on missing torch."""
-        from core.prediction import predict_lstm
         import pytest
+
+        from core.prediction import predict_lstm
         with pytest.raises(ValueError, match="torch not installed"):
             predict_lstm([1.0, 2.0, 3.0], horizon=5)
 
@@ -75,15 +76,16 @@ class TestODDDefinitionExtended:
 
     def test_odd_from_json_file(self):
         """ODDSpec.from_json should load from data/odd_specs.json."""
-        from core.odd.odd_definition import ODDSpec
         from pathlib import Path
+
+        from core.odd.odd_definition import ODDSpec
         path = Path(__file__).resolve().parent.parent.parent / "data" / "odd_specs.json"
         odd = ODDSpec.from_json(path)
         assert len(odd.dimensions) == 6
 
     def test_odd_to_dict_round_trip(self):
         """to_dict → from_dict should round-trip correctly."""
-        from core.odd.odd_definition import create_tank_odd, ODDSpec
+        from core.odd.odd_definition import ODDSpec, create_tank_odd
         odd = create_tank_odd()
         d = odd.to_dict()
         odd2 = ODDSpec.from_dict(d)
@@ -96,7 +98,10 @@ class TestODDDefinitionExtended:
     def test_dimension_warning_thresholds(self):
         """Warning thresholds should be computed correctly."""
         from core.odd.odd_definition import DimensionSpec
-        dim = DimensionSpec(name="test", min_value=0.0, max_value=10.0, unit="m", warning_margin=0.1)
+        dim = DimensionSpec(
+            name="test", min_value=0.0, max_value=10.0,
+            unit="m", warning_margin=0.1,
+        )
         assert dim.warning_lower == pytest.approx(1.0)  # 0 + 0.1 * 10
         assert dim.warning_upper == pytest.approx(9.0)  # 10 - 0.1 * 10
 
@@ -114,45 +119,45 @@ class TestODDMonitorExtended:
 
     def test_classify_normal(self):
         """Value in the middle of the range is normal."""
-        from core.odd.odd_monitor import classify_value
         from core.odd.odd_definition import DimensionSpec
+        from core.odd.odd_monitor import classify_value
         dim = DimensionSpec("wl", 0.0, 2.0, "m", warning_margin=0.1)
         assert classify_value(1.0, dim) == "normal"
 
     def test_classify_extended_lower(self):
         """Value in lower warning margin is extended."""
-        from core.odd.odd_monitor import classify_value
         from core.odd.odd_definition import DimensionSpec
+        from core.odd.odd_monitor import classify_value
         dim = DimensionSpec("wl", 0.0, 2.0, "m", warning_margin=0.1)
         # warning_lower = 0.0 + 0.1 * 2.0 = 0.2
         assert classify_value(0.1, dim) == "extended"
 
     def test_classify_extended_upper(self):
         """Value in upper warning margin is extended."""
-        from core.odd.odd_monitor import classify_value
         from core.odd.odd_definition import DimensionSpec
+        from core.odd.odd_monitor import classify_value
         dim = DimensionSpec("wl", 0.0, 2.0, "m", warning_margin=0.1)
         # warning_upper = 2.0 - 0.1 * 2.0 = 1.8
         assert classify_value(1.9, dim) == "extended"
 
     def test_classify_mrc_below(self):
         """Value below min is MRC."""
-        from core.odd.odd_monitor import classify_value
         from core.odd.odd_definition import DimensionSpec
+        from core.odd.odd_monitor import classify_value
         dim = DimensionSpec("wl", 0.1, 1.8, "m")
         assert classify_value(0.05, dim) == "mrc"
 
     def test_classify_mrc_above(self):
         """Value above max is MRC."""
-        from core.odd.odd_monitor import classify_value
         from core.odd.odd_definition import DimensionSpec
+        from core.odd.odd_monitor import classify_value
         dim = DimensionSpec("wl", 0.1, 1.8, "m")
         assert classify_value(2.0, dim) == "mrc"
 
     def test_check_odd_multi_dimension(self):
         """Check ODD with multiple dimensions, some normal, some violated."""
-        from core.odd.odd_monitor import check_odd
         from core.odd.odd_definition import create_tank_odd
+        from core.odd.odd_monitor import check_odd
         odd = create_tank_odd()
         result = check_odd({
             "water_level": 1.0,     # normal
@@ -177,8 +182,8 @@ class TestODDMonitorExtended:
 
     def test_check_odd_missing_dimensions_ignored(self):
         """Dimensions not in state dict should be skipped."""
-        from core.odd.odd_monitor import check_odd
         from core.odd.odd_definition import create_tank_odd
+        from core.odd.odd_monitor import check_odd
         odd = create_tank_odd()
         result = check_odd({"water_level": 1.0}, odd)
         assert result["n_checked"] == 1  # Only water_level checked
@@ -193,7 +198,11 @@ class TestMRCHandler:
     def test_water_level_upper_violation(self):
         """Upper water level violation triggers close_inlet and open_drain."""
         from core.odd.mrc_handler import determine_mrc_actions
-        violations = [{"dimension": "water_level", "bound_violated": "upper", "value": 2.0, "limit": 1.8}]
+        violations = [{
+            "dimension": "water_level",
+            "bound_violated": "upper",
+            "value": 2.0, "limit": 1.8,
+        }]
         actions = determine_mrc_actions(violations)
         action_types = [a["action"] for a in actions]
         assert "close_inlet" in action_types
@@ -202,14 +211,22 @@ class TestMRCHandler:
     def test_water_level_lower_violation(self):
         """Lower water level violation triggers increase_inflow (emergency fill)."""
         from core.odd.mrc_handler import determine_mrc_actions
-        violations = [{"dimension": "water_level", "bound_violated": "lower", "value": 0.05, "limit": 0.1}]
+        violations = [{
+            "dimension": "water_level",
+            "bound_violated": "lower",
+            "value": 0.05, "limit": 0.1,
+        }]
         actions = determine_mrc_actions(violations)
         assert actions[0]["action"] == "increase_inflow"
 
     def test_structural_pressure_violation(self):
         """Structural pressure triggers emergency_stop with highest priority."""
         from core.odd.mrc_handler import determine_mrc_actions
-        violations = [{"dimension": "structural_pressure", "bound_violated": "upper", "value": 60, "limit": 50}]
+        violations = [{
+            "dimension": "structural_pressure",
+            "bound_violated": "upper",
+            "value": 60, "limit": 50,
+        }]
         actions = determine_mrc_actions(violations)
         assert actions[0]["action"] == "emergency_stop"
         assert actions[0]["priority"] == 0
@@ -217,14 +234,22 @@ class TestMRCHandler:
     def test_unknown_dimension_gets_alert(self):
         """Unknown dimension gets generic alert."""
         from core.odd.mrc_handler import determine_mrc_actions
-        violations = [{"dimension": "temperature", "bound_violated": "upper", "value": 45, "limit": 40}]
+        violations = [{
+            "dimension": "temperature",
+            "bound_violated": "upper",
+            "value": 45, "limit": 40,
+        }]
         actions = determine_mrc_actions(violations)
         assert actions[0]["action"] == "alert"
 
     def test_generate_mrc_plan(self):
         """Generate MRC plan includes all required fields."""
         from core.odd.mrc_handler import generate_mrc_plan
-        violations = [{"dimension": "water_level", "bound_violated": "upper", "value": 2.0, "limit": 1.8}]
+        violations = [{
+            "dimension": "water_level",
+            "bound_violated": "upper",
+            "value": 2.0, "limit": 1.8,
+        }]
         state = {"water_level": 2.0}
         plan = generate_mrc_plan(violations, state)
         assert plan["status"] == "mrc_activated"
@@ -235,8 +260,14 @@ class TestMRCHandler:
     def test_mrc_plan_critical_severity(self):
         """Structural pressure violation → critical severity."""
         from core.odd.mrc_handler import generate_mrc_plan
-        violations = [{"dimension": "structural_pressure", "bound_violated": "upper", "value": 60, "limit": 50}]
-        plan = generate_mrc_plan(violations, {"structural_pressure": 60})
+        violations = [{
+            "dimension": "structural_pressure",
+            "bound_violated": "upper",
+            "value": 60, "limit": 50,
+        }]
+        plan = generate_mrc_plan(
+            violations, {"structural_pressure": 60},
+        )
         assert plan["severity"] == "critical"
 
 
@@ -409,7 +440,10 @@ class TestReportAgentExtended:
         from agents.report_agent import ReportAgent
         agent = ReportAgent()
         results = {
-            "summary": {"tank_area": 2.0, "controller": "MPC", "setpoint": 1.0, "odd_zone": "normal"},
+            "summary": {
+                "tank_area": 2.0, "controller": "MPC",
+                "setpoint": 1.0, "odd_zone": "normal",
+            },
             "evaluation": {"RMSE": 0.1, "settling_time": None},
         }
         report = agent.generate_lifecycle_report(results)

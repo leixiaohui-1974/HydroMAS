@@ -3,10 +3,11 @@ core.process_coupling 模块测试。
 """
 
 import pytest
+
 from core.process_coupling.alumina_process import (
     ProcessState,
-    calc_dissolution_water,
     calc_decomposition_water,
+    calc_dissolution_water,
     calc_evaporation_makeup,
     calc_total_process_demand,
 )

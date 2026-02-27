@@ -3,14 +3,16 @@ core.simulation 模块测试。
 """
 
 import math
+
 import pytest
-from core.simulation.tank_model import TankParams, compute_outflow, tank_ode, GRAVITY
+
 from core.simulation.simulator import (
+    _interpolate_inflow,
     run_simulation,
     simulate_euler,
     simulate_rk4,
-    _interpolate_inflow,
 )
+from core.simulation.tank_model import GRAVITY, TankParams, compute_outflow, tank_ode
 
 
 class TestTankParams:

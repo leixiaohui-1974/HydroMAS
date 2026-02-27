@@ -2,9 +2,8 @@
 最终覆盖率测试 — 补齐所有层的遗漏。
 """
 
-import pytest
 import numpy as np
-
+import pytest
 
 # ---------- CSV Data Loader ----------
 
@@ -79,6 +78,7 @@ class TestPredictionServerLSTM:
 
     def test_lstm_model_via_server(self):
         import pytest
+
         from mcp_servers.prediction_server import predict_future
         with pytest.raises(ValueError, match="torch not installed"):
             predict_future(

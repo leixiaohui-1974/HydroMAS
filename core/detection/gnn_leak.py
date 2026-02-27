@@ -10,7 +10,6 @@ torch / torch_geometric are not available.
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
 
 
 def build_gat_model(
@@ -172,6 +171,7 @@ def detect_leak(
 
     if use_gnn:
         import torch
+
         from core.detection.graph_builder import network_to_pyg_graph
 
         # Rebuild nodes/edges lists from dict-graph

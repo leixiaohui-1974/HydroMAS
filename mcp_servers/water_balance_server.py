@@ -159,7 +159,7 @@ def detect_balance_anomaly(
     if threshold < 0:
         raise ValueError(f"threshold must be non-negative, got {threshold}")
 
-    from core.water_balance import detect_anomaly, classify_anomaly
+    from core.water_balance import classify_anomaly, detect_anomaly
 
     anomalies = detect_anomaly(residuals, threshold=threshold)
     classification = classify_anomaly(anomalies)

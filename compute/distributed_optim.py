@@ -5,10 +5,9 @@
 from __future__ import annotations
 
 import logging
-
 from typing import Callable
 
-from compute.ray_config import is_ray_available, init_ray
+from compute.ray_config import init_ray, is_ray_available
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +32,19 @@ def parallel_sensitivity(
     Returns:
         Sensitivity analysis results.
     """
-    from core.design.sensitivity import sensitivity_oat, sensitivity_morris
+    from core.design.sensitivity import sensitivity_morris, sensitivity_oat
 
     if method == "OAT":
         base_params = kwargs.get("base_params", {})
         if not base_params:
             base_params = {k: (lo + hi) / 2 for k, (lo, hi) in param_ranges.items()}
-        return sensitivity_oat(base_params, param_ranges, evaluate_fn, **{k: v for k, v in kwargs.items() if k != "base_params"})
+        filtered_kwargs = {
+            k: v for k, v in kwargs.items() if k != "base_params"
+        }
+        return sensitivity_oat(
+            base_params, param_ranges, evaluate_fn,
+            **filtered_kwargs,
+        )
     elif method == "Morris":
         return sensitivity_morris(param_ranges, evaluate_fn, **kwargs)
     else:

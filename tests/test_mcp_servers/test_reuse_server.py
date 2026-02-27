@@ -1,12 +1,12 @@
 """Integration tests for MCP reuse water server."""
 
 import pytest
+
 from mcp_servers.reuse_server import (
+    evaluate_reuse_benefit,
     match_reuse_path,
     optimize_reuse_schedule,
-    evaluate_reuse_benefit,
 )
-
 
 # ---------------------------------------------------------------------------
 # Shared test data helpers

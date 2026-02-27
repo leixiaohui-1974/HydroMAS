@@ -250,7 +250,10 @@ class RLDispatchAgent:
 
             def __init__(self) -> None:
                 super().__init__()
-                obs_dim = agent_ref.n_tanks + agent_ref.n_tanks + 4  # levels + demands + price + hour + temp + humidity
+                # levels + demands + price + hour + temp + humidity
+                obs_dim = (
+                    agent_ref.n_tanks + agent_ref.n_tanks + 4
+                )
                 act_dim = agent_ref.n_sources + agent_ref.n_pumps
                 self.observation_space = gym.spaces.Box(
                     low=-1.0, high=1.0, shape=(obs_dim,), dtype=np.float32,
@@ -277,9 +280,19 @@ class RLDispatchAgent:
             def step(self, action: Any) -> tuple:
                 self._step_count += 1
                 # Decode action
-                intake_flows = [float(action[i]) * agent_ref.max_intake for i in range(agent_ref.n_sources)]
-                pump_states = [bool(action[agent_ref.n_sources + i] > 0.5) for i in range(agent_ref.n_pumps)]
-                da = DispatchAction(intake_flows=intake_flows, pump_states=pump_states, valve_positions=[])
+                intake_flows = [
+                    float(action[i]) * agent_ref.max_intake
+                    for i in range(agent_ref.n_sources)
+                ]
+                pump_states = [
+                    bool(action[agent_ref.n_sources + i] > 0.5)
+                    for i in range(agent_ref.n_pumps)
+                ]
+                da = DispatchAction(
+                    intake_flows=intake_flows,
+                    pump_states=pump_states,
+                    valve_positions=[],
+                )
 
                 # Simple reward: negative cost + penalty for constraint violations
                 cost = agent_ref._estimate_cost(self._state, da)  # type: ignore[arg-type]
@@ -330,9 +343,9 @@ class RLDispatchAgent:
     def _try_load_rl(self, model_path: str | None) -> None:
         """Try to load RL dependencies and optionally a saved model."""
         try:
-            import torch  # noqa: F401
-            import stable_baselines3  # noqa: F401
             import gymnasium  # noqa: F401
+            import stable_baselines3  # noqa: F401
+            import torch  # noqa: F401
             self._has_rl = True
             logger.info("RL dependencies available (torch, stable-baselines3, gymnasium)")
         except ImportError:

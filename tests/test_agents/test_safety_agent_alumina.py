@@ -5,7 +5,6 @@ Tests cover check_alumina_state (normal and violation zones),
 monitor_pressure_safety, and check_reuse_water_quality.
 """
 
-import pytest
 from agents.safety_agent import SafetyAgent
 
 

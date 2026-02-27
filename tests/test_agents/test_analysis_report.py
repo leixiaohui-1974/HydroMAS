@@ -1,6 +1,7 @@
 """Tests for AnalysisAgent and ReportAgent."""
 
 import pytest
+
 from agents.analysis_agent import AnalysisAgent
 from agents.report_agent import ReportAgent
 

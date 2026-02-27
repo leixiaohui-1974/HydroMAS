@@ -1,9 +1,10 @@
 """Integration tests for MCP water balance server."""
 
 import pytest
+
 from mcp_servers.water_balance_server import (
-    calc_node_balance,
     calc_full_plant_balance,
+    calc_node_balance,
     detect_balance_anomaly,
 )
 

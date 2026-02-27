@@ -3,10 +3,10 @@ core.detection 模块测试。
 """
 
 import pytest
-from core.detection.graph_builder import network_to_dict_graph, network_to_pyg_graph
-from core.detection.gnn_leak import build_gat_model, detect_leak, localize_leak
-from core.detection.acoustic_fusion import AcousticEvent, fuse_acoustic_hydraulic
 
+from core.detection.acoustic_fusion import AcousticEvent, fuse_acoustic_hydraulic
+from core.detection.gnn_leak import build_gat_model, detect_leak, localize_leak
+from core.detection.graph_builder import network_to_dict_graph, network_to_pyg_graph
 
 # ---------------------------------------------------------------------------
 # Shared fixtures

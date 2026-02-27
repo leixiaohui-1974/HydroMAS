@@ -9,6 +9,7 @@ import pytest
 
 try:
     from fastapi.testclient import TestClient
+
     from web.app import app
     _HAS_FASTAPI = True
 except ImportError:
@@ -30,7 +31,11 @@ class TestWaterBalanceRouter:
         payload = {
             "nodes_data": [
                 {"node_id": "intake", "node_type": "intake", "q_in": 0.05, "q_out": 0.05},
-                {"node_id": "pool_A", "node_type": "pool", "q_in": 0.05, "q_out": 0.04, "q_evap": 0.005, "q_loss": 0.005},
+                {
+                    "node_id": "pool_A", "node_type": "pool",
+                    "q_in": 0.05, "q_out": 0.04,
+                    "q_evap": 0.005, "q_loss": 0.005,
+                },
             ],
             "edges_data": [["intake", "pool_A"]],
         }

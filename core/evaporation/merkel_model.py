@@ -18,7 +18,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-
 # Physical constants
 CP_WATER: float = 4.186       # kJ/(kg·℃), specific heat capacity of water
 WATER_DENSITY: float = 1000.0  # kg/m³

@@ -1,9 +1,8 @@
 """Integration tests for EvapOptimizationSkill (蒸发优化)."""
 
 import pytest
-from skills.evap_optimization import EvapOptimizationSkill
-from skills.base_skill import SkillResult
 
+from skills.evap_optimization import EvapOptimizationSkill
 
 # ---------------------------------------------------------------------------
 # Sample data helpers
@@ -123,7 +122,11 @@ class TestEvapOptimization:
         skill = _build_skill()
         result = await skill.run({})
         assert not result.success
-        assert "tower_params" in result.error or "calc_params" in result.error or "mud_params" in result.error
+        assert (
+            "tower_params" in result.error
+            or "calc_params" in result.error
+            or "mud_params" in result.error
+        )
 
     @pytest.mark.asyncio
     async def test_evap_optimization_steps(self):

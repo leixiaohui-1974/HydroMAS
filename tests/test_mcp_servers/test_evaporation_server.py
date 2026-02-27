@@ -1,9 +1,10 @@
 """Integration tests for MCP evaporation server."""
 
 import pytest
+
 from mcp_servers.evaporation_server import (
-    predict_evaporation,
     predict_calcination_evap,
+    predict_evaporation,
     predict_red_mud_water,
     predict_total_evap_loss,
 )

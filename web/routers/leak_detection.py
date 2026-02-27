@@ -13,7 +13,8 @@ router = APIRouter()
 @router.post("/detect")
 async def detect_leak(req: LeakDetectionRequest):
     """Detect leaks in pipe network. / 检测管网泄漏。"""
-    from mcp_servers.leak_detection_server import build_network_graph, detect_leak as _detect
+    from mcp_servers.leak_detection_server import build_network_graph
+    from mcp_servers.leak_detection_server import detect_leak as _detect
 
     graph_data = await asyncio.to_thread(
         build_network_graph,

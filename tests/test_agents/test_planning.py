@@ -1,7 +1,6 @@
 """Tests for agents.planning_agent module."""
 
-import pytest
-from agents.planning_agent import PlanningAgent, TaskPlan, TaskNode
+from agents.planning_agent import PlanningAgent, TaskNode, TaskPlan
 
 
 class TestPlanningAgent:

@@ -2,14 +2,13 @@
 配置加载器测试。
 """
 
-import pytest
 from core.config import (
-    load_tank_config,
-    load_odd_specs,
-    get_default_tank_params,
-    get_default_pid_params,
     get_default_mpc_params,
+    get_default_pid_params,
     get_default_simulation_params,
+    get_default_tank_params,
+    load_odd_specs,
+    load_tank_config,
 )
 
 

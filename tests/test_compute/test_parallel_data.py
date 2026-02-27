@@ -1,6 +1,5 @@
 """Tests for compute.parallel_data module."""
 
-import pytest
 from compute.parallel_data import chunk_timeseries, parallel_clean
 
 

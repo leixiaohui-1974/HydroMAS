@@ -112,7 +112,9 @@ class ReportAgent:
 - **Actions**:
 """
             for action in mrc.get("actions", []):
-                report += f"  - [{_escape_md(str(action.get('priority', 'N/A')))}] {_escape_md(str(action.get('description', '')))}\n"
+                priority = _escape_md(str(action.get('priority', 'N/A')))
+                desc = _escape_md(str(action.get('description', '')))
+                report += f"  - [{priority}] {desc}\n"
 
         return report
 
@@ -207,16 +209,18 @@ class ReportAgent:
                 report += f"- **{safe_key}**: {_escape_md(str(value))}\n"
 
         anomalies = daily_data.get("anomalies", [])
-        report += f"\n## Anomalies / 异常事件\n\n"
+        report += "\n## Anomalies / 异常事件\n\n"
         if anomalies:
             report += f"Detected {len(anomalies)} anomalies.\n\n"
             for a in anomalies:
-                report += f"- **{_escape_md(str(a.get('node_id', 'unknown')))}**: {_escape_md(str(a.get('severity', 'unknown')))} severity\n"
+                node_id = _escape_md(str(a.get('node_id', 'unknown')))
+                severity = _escape_md(str(a.get('severity', 'unknown')))
+                report += f"- **{node_id}**: {severity} severity\n"
         else:
             report += "No anomalies detected. / 未检测到异常。\n"
 
         evap = daily_data.get("evaporation", {})
-        report += f"\n## Evaporation / 蒸发损耗\n\n"
+        report += "\n## Evaporation / 蒸发损耗\n\n"
         report += f"- Total Daily Evaporation: {evap.get('total_daily_m3', 0):.1f} m³/d\n"
         return report
 
@@ -232,11 +236,16 @@ class ReportAgent:
 ## Localization / 泄漏定位
 
 """
-        suspects = diagnosis.get("top_suspects", diagnosis_result.get("localization", {}).get("suspects", []))
+        suspects = diagnosis.get(
+            "top_suspects",
+            diagnosis_result.get("localization", {}).get("suspects", []),
+        )
         if suspects:
             report += "| Pipe | Confidence |\n|------|------------|\n"
             for s in suspects:
-                report += f"| {_escape_md(str(s.get('pipe_id', 'N/A')))} | {s.get('confidence', 0):.2%} |\n"
+                pipe_id = _escape_md(str(s.get('pipe_id', 'N/A')))
+                confidence = s.get('confidence', 0)
+                report += f"| {pipe_id} | {confidence:.2%} |\n"
         else:
             report += "No specific pipe segments identified.\n"
         return report

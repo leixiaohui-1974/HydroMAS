@@ -1,6 +1,5 @@
 """Tests for agents.safety_agent module."""
 
-import pytest
 from agents.safety_agent import SafetyAgent
 
 

@@ -88,7 +88,10 @@ def simulate_batch(
         if "q_in_profile" in params and params["q_in_profile"]:
             for i, row in enumerate(params["q_in_profile"]):
                 if not isinstance(row, (list, tuple)) or len(row) < 2:
-                    raise ValueError(f"scheme q_in_profile row {i} must have [time, value], got {row!r}")
+                    raise ValueError(
+                        f"scheme q_in_profile row {i} must "
+                        f"have [time, value], got {row!r}"
+                    )
             params["q_in_profile"] = [
                 (row[0], row[1]) for row in params["q_in_profile"]
             ]

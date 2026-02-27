@@ -12,7 +12,6 @@ Levels (L0-L5):
 
 from __future__ import annotations
 
-
 CAPABILITY_WEIGHTS = {
     "sensing": 15,       # Sensor coverage and reliability / 传感器覆盖率和可靠性
     "communication": 10, # Data transmission / 数据传输
@@ -119,6 +118,9 @@ def _generate_recommendations(level: str, gaps: list[dict]) -> list[str]:
     if level_num < 4:
         recommendations.append("Integrate AI decision support for L4 / 集成 AI 决策支持以达到 L4")
     if level_num < 5:
-        recommendations.append("Achieve full redundancy and self-healing for L5 / 实现完全冗余和自愈以达到 L5")
+        recommendations.append(
+            "Achieve full redundancy and self-healing for L5"
+            " / 实现完全冗余和自愈以达到 L5"
+        )
 
     return recommendations

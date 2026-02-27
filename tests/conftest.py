@@ -7,12 +7,12 @@ import importlib.util
 from inspect import signature
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
-from core.simulation.tank_model import TankParams
-from core.simulation.simulator import run_simulation
 from core.odd.odd_definition import create_tank_odd
+from core.simulation.simulator import run_simulation
+from core.simulation.tank_model import TankParams
 
 
 def _has_module(module_name: str) -> bool:
@@ -100,9 +100,9 @@ def sample_simulation():
 @pytest.fixture
 def sample_water_level_series():
     """Generate a sample water level time series with noise."""
-    rng = np.random.default_rng(42)
+    _rng = np.random.default_rng(42)
     n = 200
-    t = np.arange(n, dtype=float)
+    _t = np.arange(n, dtype=float)
     # Simulate a tank with step inflow
     h = np.zeros(n)
     h[0] = 0.5

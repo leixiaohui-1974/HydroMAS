@@ -3,7 +3,8 @@ core.simulation.digital_twin 模块测试。
 """
 
 import pytest
-from core.simulation.digital_twin import TwinState, DigitalTwinEngine, _HAS_WNTR
+
+from core.simulation.digital_twin import _HAS_WNTR, DigitalTwinEngine, TwinState
 
 
 class TestTwinStateDefaults:

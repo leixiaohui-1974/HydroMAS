@@ -8,9 +8,8 @@ Usage:
 from __future__ import annotations
 
 import logging
-from pathlib import Path
-
 import os
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,23 +20,23 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from web.routers import (
-    simulation,
-    control,
-    prediction,
-    scheduling,
-    evaluation,
-    odd,
-    design,
-    dataclean,
-    identification,
-    skills,
     assistant,
-    water_balance,
-    leak_detection,
-    evaporation,
-    reuse,
+    control,
+    dataclean,
+    design,
     dispatch,
+    evaluation,
+    evaporation,
+    identification,
+    leak_detection,
+    odd,
+    prediction,
     report,
+    reuse,
+    scheduling,
+    simulation,
+    skills,
+    water_balance,
 )
 
 logger = logging.getLogger(__name__)
@@ -135,11 +134,20 @@ app.include_router(evaluation.router, prefix="/api/evaluation", tags=["Evaluatio
 app.include_router(odd.router, prefix="/api/odd", tags=["ODD / 安全监测"])
 app.include_router(design.router, prefix="/api/design", tags=["Design / 优化设计"])
 app.include_router(dataclean.router, prefix="/api/dataclean", tags=["DataClean / 数据清洗"])
-app.include_router(identification.router, prefix="/api/identification", tags=["Identification / 系统辨识"])
+app.include_router(
+    identification.router, prefix="/api/identification",
+    tags=["Identification / 系统辨识"],
+)
 app.include_router(skills.router, prefix="/api/skills", tags=["Skills / 技能工作流"])
 app.include_router(assistant.router, prefix="/api/assistant", tags=["Assistant / 智能助手"])
-app.include_router(water_balance.router, prefix="/api/water-balance", tags=["Water Balance / 水平衡"])
-app.include_router(leak_detection.router, prefix="/api/leak-detection", tags=["Leak Detection / 泄漏检测"])
+app.include_router(
+    water_balance.router, prefix="/api/water-balance",
+    tags=["Water Balance / 水平衡"],
+)
+app.include_router(
+    leak_detection.router, prefix="/api/leak-detection",
+    tags=["Leak Detection / 泄漏检测"],
+)
 app.include_router(evaporation.router, prefix="/api/evaporation", tags=["Evaporation / 蒸发预测"])
 app.include_router(reuse.router, prefix="/api/reuse", tags=["Reuse / 回用优化"])
 app.include_router(dispatch.router, prefix="/api/dispatch", tags=["Dispatch / 调度优化"])
@@ -201,7 +209,7 @@ async def get_roles():
 @app.get("/api/system/status")
 async def system_status():
     """Return system health summary. / 返回系统健康状态摘要。"""
-    from core.config import load_tank_config, load_odd_specs
+    from core.config import load_odd_specs, load_tank_config
 
     config = load_tank_config()
     odd_specs = load_odd_specs()

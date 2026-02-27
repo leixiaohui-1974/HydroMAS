@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------- H1: DataAnalysisPredictSkill error check ----------
 
 class TestDataAnalysisPredictErrorCheck:
@@ -14,7 +13,6 @@ class TestDataAnalysisPredictErrorCheck:
 
     def test_error_check_in_clean_result(self):
         """The skill should check for 'error' key in clean_result."""
-        import ast
         with open("skills/data_analysis_predict.py") as f:
             source = f.read()
         # Verify the error check pattern exists
@@ -29,7 +27,6 @@ class TestWarningSkillViolationsKey:
 
     def test_violations_key_used(self):
         """WarningSkill should use 'violations' key with fallback."""
-        import ast
         with open("skills/warning_skill.py") as f:
             source = f.read()
         assert 'odd_result.get("violations"' in source
@@ -184,7 +181,10 @@ class TestODDDimensionDictLookup:
 
     def test_range_val_property(self):
         from core.odd.odd_definition import DimensionSpec
-        dim = DimensionSpec(name="test", min_value=0.0, max_value=10.0, unit="m", warning_margin=0.1)
+        dim = DimensionSpec(
+            name="test", min_value=0.0, max_value=10.0,
+            unit="m", warning_margin=0.1,
+        )
         assert dim.range_val == 10.0
         assert dim.warning_lower == 1.0  # 0 + 0.1*10
         assert dim.warning_upper == 9.0  # 10 - 0.1*10

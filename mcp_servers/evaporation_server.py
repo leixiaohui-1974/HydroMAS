@@ -164,11 +164,11 @@ def predict_total_evap_loss(
         raise ValueError("mud_params must be a dict")
 
     from core.evaporation import (
-        CoolingTowerParams,
-        calc_evaporation_merkel,
         CalcinationParams,
-        calc_calcination_evap,
+        CoolingTowerParams,
         RedMudParams,
+        calc_calcination_evap,
+        calc_evaporation_merkel,
         calc_red_mud_water,
     )
 

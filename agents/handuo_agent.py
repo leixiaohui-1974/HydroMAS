@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
@@ -270,7 +269,10 @@ class HanduoAgent:
 
         if report_type == "anomaly":
             atype = data.get("type", "unknown")
-            return f"Anomaly insight: type='{atype}'. Review causal diagnosis for root-cause analysis."
+            return (
+                f"Anomaly insight: type='{atype}'. "
+                "Review causal diagnosis for root-cause analysis."
+            )
 
         return f"Insight for report_type='{report_type}' is not yet templated."
 

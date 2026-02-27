@@ -24,7 +24,8 @@ def evaluate_performance(
         observed: Observed/reference values / 观测/参考值
         predicted: Predicted/simulated values / 预测/仿真值
         metrics: Metrics to compute / 需要计算的指标
-            Options: "RMSE", "MAE", "NSE", "MAPE", "settling_time", "overshoot", "steady_state_error"
+            Options: "RMSE", "MAE", "NSE", "MAPE",
+            "settling_time", "overshoot", "steady_state_error"
         time_series: Time values (for settling_time) / 时间序列
         setpoint: Target value (for control metrics) / 目标值
 
@@ -40,7 +41,12 @@ def evaluate_performance(
         )
 
     from core.evaluation.metrics import evaluate_performance as _eval
-    return _eval(observed, predicted, metrics_list=metrics, time_series=time_series, setpoint=setpoint)
+    return _eval(
+        observed, predicted,
+        metrics_list=metrics,
+        time_series=time_series,
+        setpoint=setpoint,
+    )
 
 
 @mcp.tool()

@@ -1,8 +1,7 @@
 """Tests for core.control module."""
 
-import pytest
-from core.control.pid_controller import PIDController, PIDParams, run_pid_control
 from core.control.mpc_controller import MPCController, run_mpc_control
+from core.control.pid_controller import PIDController, PIDParams, run_pid_control
 
 
 class TestPIDController:

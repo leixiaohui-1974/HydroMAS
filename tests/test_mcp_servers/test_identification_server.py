@@ -1,9 +1,9 @@
 """Integration tests for MCP identification server."""
 
-import pytest
 import numpy as np
-from mcp_servers.identification_server import identify_parameters
+
 from core.simulation.tank_model import GRAVITY
+from mcp_servers.identification_server import identify_parameters
 
 
 class TestIdentifyParameters:

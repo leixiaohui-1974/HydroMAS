@@ -3,10 +3,14 @@ core.water_balance 模块测试。
 """
 
 import pytest
-from core.water_balance.node_balance import BalanceNode, calc_node_residual, calc_reuse_rate
-from core.water_balance.balance_graph import build_balance_graph, calc_full_balance, get_graph_summary
-from core.water_balance.residual_calc import detect_anomaly, calc_rolling_residual, classify_anomaly
 
+from core.water_balance.balance_graph import (
+    build_balance_graph,
+    calc_full_balance,
+    get_graph_summary,
+)
+from core.water_balance.node_balance import BalanceNode, calc_node_residual, calc_reuse_rate
+from core.water_balance.residual_calc import calc_rolling_residual, classify_anomaly, detect_anomaly
 
 # ---------------------------------------------------------------------------
 # Helpers

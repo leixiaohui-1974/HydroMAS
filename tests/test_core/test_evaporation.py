@@ -3,12 +3,13 @@ core.evaporation 模块测试。
 """
 
 import pytest
+
+from core.evaporation.calcination_model import CalcinationParams, calc_calcination_evap
 from core.evaporation.merkel_model import (
     CoolingTowerParams,
-    calc_evaporation_merkel,
     calc_evap_rate,
+    calc_evaporation_merkel,
 )
-from core.evaporation.calcination_model import CalcinationParams, calc_calcination_evap
 from core.evaporation.red_mud_model import RedMudParams, calc_red_mud_water
 
 

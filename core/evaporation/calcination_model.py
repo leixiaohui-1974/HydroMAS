@@ -15,7 +15,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-
 # Physical constants
 CP_WATER: float = 4.186      # kJ/(kg·℃), specific heat capacity of water
 LV_BASE: float = 2450.0      # kJ/kg, latent heat of vaporization at ~20℃

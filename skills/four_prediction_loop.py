@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from skills.base_skill import BaseSkill, SkillResult
 from skills.forecast_skill import ForecastSkill
-from skills.warning_skill import WarningSkill
-from skills.rehearsal_skill import RehearsalSkill
 from skills.plan_skill import PlanSkill
+from skills.rehearsal_skill import RehearsalSkill
+from skills.warning_skill import WarningSkill
 
 
 class FourPredictionLoopSkill(BaseSkill):
@@ -115,7 +115,11 @@ class FourPredictionLoopSkill(BaseSkill):
             data={
                 "forecast": forecast_result.data,
                 "warning": warning_result.data,
-                "rehearsal": rehearsal_result.data if rehearsal_result and rehearsal_result.success else None,
+                "rehearsal": (
+                    rehearsal_result.data
+                    if rehearsal_result and rehearsal_result.success
+                    else None
+                ),
                 "plan": plan_result.data if plan_result and plan_result.success else None,
                 "summary": summary,
                 "warning_level": warning_level,

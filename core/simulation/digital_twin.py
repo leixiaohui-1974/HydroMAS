@@ -276,8 +276,6 @@ class DigitalTwinEngine:
         Returns:
             Corrected TwinState / 校正后的 TwinState
         """
-        n = len(self._state_keys)
-
         # Build predicted state vector from current pressures / 从当前压力构建预测状态
         x_pred = np.array(
             [self._state.node_pressures.get(k, 0.0) for k in self._state_keys]
@@ -433,7 +431,6 @@ class DigitalTwinEngine:
 
         for ts in timestamps:
             pressures = results.node["pressure"].loc[ts].to_dict()
-            demands = results.node["demand"].loc[ts].to_dict()
             flows = results.link["flowrate"].loc[ts].to_dict()
 
             node_levels: dict[str, float] = {}

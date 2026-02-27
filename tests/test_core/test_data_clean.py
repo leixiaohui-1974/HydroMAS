@@ -1,16 +1,16 @@
 """Tests for core.data_clean module."""
 
 import math
-import pytest
-import numpy as np
 
-from core.data_clean.outlier_detect import detect_3sigma, detect_iqr, detect_mad
+import pytest
+
 from core.data_clean.interpolation import (
+    clean_timeseries,
     interpolate_linear,
     interpolate_spline,
     median_filter,
-    clean_timeseries,
 )
+from core.data_clean.outlier_detect import detect_3sigma, detect_iqr, detect_mad
 
 
 class TestOutlierDetection:

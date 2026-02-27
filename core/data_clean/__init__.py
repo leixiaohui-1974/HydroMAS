@@ -3,10 +3,10 @@
 """
 
 from core.data_clean.interpolation import (
+    clean_timeseries,
     interpolate_linear,
     interpolate_spline,
     median_filter,
-    clean_timeseries,
 )
 from core.data_clean.outlier_detect import (
     detect_3sigma,

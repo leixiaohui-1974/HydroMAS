@@ -11,10 +11,10 @@ from typing import Literal
 
 from fastapi import APIRouter
 
+from web.deps import get_orchestrator
 from web.models import AssistantMessage
 
 _RoleType = Literal["operator", "engineer", "analyst", "admin"]
-from web.deps import get_orchestrator
 
 logger = logging.getLogger(__name__)
 

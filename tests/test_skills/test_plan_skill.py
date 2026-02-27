@@ -1,6 +1,7 @@
 """Integration tests for PlanSkill (四预: 预案)."""
 
 import pytest
+
 from skills.plan_skill import PlanSkill
 
 

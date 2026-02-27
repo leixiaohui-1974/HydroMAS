@@ -1,6 +1,7 @@
 """Integration tests for RehearsalSkill (四预: 预演)."""
 
 import pytest
+
 from skills.rehearsal_skill import RehearsalSkill
 
 

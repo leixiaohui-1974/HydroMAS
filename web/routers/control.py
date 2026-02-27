@@ -36,7 +36,7 @@ async def run_control(req: ControlRequest):
 @router.get("/defaults")
 async def get_defaults():
     """Get default controller parameters. / 获取默认控制器参数。"""
-    from core.config import get_default_pid_params, get_default_mpc_params
+    from core.config import get_default_mpc_params, get_default_pid_params
 
     return {
         "pid": get_default_pid_params(),

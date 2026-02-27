@@ -68,7 +68,10 @@ def optimize_global_dispatch(demand_forecast: dict, supply_config: dict,
     """Global water dispatch optimization. / 全局水量调度优化。"""
     # Extract demands and supplies
     total_demand = sum(demand_forecast.values()) if isinstance(demand_forecast, dict) else 0
-    total_supply = sum(v.get("capacity", 0) for v in supply_config.values()) if isinstance(supply_config, dict) else 0
+    total_supply = (
+        sum(v.get("capacity", 0) for v in supply_config.values())
+        if isinstance(supply_config, dict) else 0
+    )
     # Simple LP-based allocation
     allocation = {}
     remaining = total_demand

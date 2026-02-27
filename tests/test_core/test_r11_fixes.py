@@ -8,7 +8,6 @@ import logging
 
 import pytest
 
-
 # ---------- H1: MPC _history bounded by deque ----------
 
 class TestMPCHistoryBounded:
@@ -16,6 +15,7 @@ class TestMPCHistoryBounded:
 
     def test_history_is_deque(self):
         from collections import deque
+
         from core.control.mpc_controller import MPCController
         mpc = MPCController()
         assert isinstance(mpc._history, deque)
@@ -173,6 +173,7 @@ class TestPolynomialNaNWarning:
 
     def test_overflow_logs_warning(self, caplog):
         import numpy as np
+
         from core.prediction.linear_predictor import predict_polynomial
         # High-degree polynomial on steep data will overflow for large horizon
         data = [float(i ** 3) for i in range(20)]

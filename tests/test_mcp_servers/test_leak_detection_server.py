@@ -1,13 +1,13 @@
 """Integration tests for MCP leak detection server."""
 
 import pytest
+
 from mcp_servers.leak_detection_server import (
     build_network_graph,
     detect_leak,
-    localize_leak,
     fuse_leak_evidence,
+    localize_leak,
 )
-
 
 # ---------------------------------------------------------------------------
 # Shared test fixtures

@@ -7,7 +7,7 @@ Implements a discrete PID controller with anti-windup and output clamping.
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -132,7 +132,8 @@ def run_pid_control(
         Dict with time series of level, control output, error, etc.
     """
     import numpy as np
-    from core.simulation.tank_model import TankParams, tank_ode, compute_outflow
+
+    from core.simulation.tank_model import TankParams, compute_outflow, tank_ode
 
     params = PIDParams(**(pid_params or {}))
     tank = TankParams(**(tank_params or {}))

@@ -40,7 +40,10 @@ def predict_future(
         return predict_linear(historical_data, horizon=horizon, lookback=lookback)
     elif model == "polynomial":
         from core.prediction.linear_predictor import predict_polynomial
-        return predict_polynomial(historical_data, horizon=horizon, lookback=lookback, degree=degree)
+        return predict_polynomial(
+            historical_data, horizon=horizon,
+            lookback=lookback, degree=degree,
+        )
     elif model == "lstm":
         from core.prediction.lstm_predictor import predict_lstm
         return predict_lstm(historical_data, horizon=horizon)
@@ -77,7 +80,10 @@ def predict_evaporation_hybrid(historical_evap: list[float], weather_forecast: l
     # Mechanism correction if tower_params provided
     if tower_params:
         from core.evaporation import CoolingTowerParams, calc_evaporation_merkel
-        params = CoolingTowerParams(**{k: v for k, v in tower_params.items() if hasattr(CoolingTowerParams, k)})
+        params = CoolingTowerParams(**{
+            k: v for k, v in tower_params.items()
+            if hasattr(CoolingTowerParams, k)
+        })
         params.validate()
         mechanism_preds = []
         for w in weather_forecast:
@@ -88,7 +94,11 @@ def predict_evaporation_hybrid(historical_evap: list[float], weather_forecast: l
         for i in range(min(len(predictions), len(mechanism_preds))):
             blended.append(0.6 * predictions[i] + 0.4 * mechanism_preds[i])
         predictions = blended
-    return {"predictions": predictions, "method": "hybrid" if tower_params else "data_driven", "horizon": len(predictions)}
+    return {
+        "predictions": predictions,
+        "method": "hybrid" if tower_params else "data_driven",
+        "horizon": len(predictions),
+    }
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 """Tests for core.prediction module."""
 
-import pytest
 import numpy as np
+import pytest
 
 from core.prediction.linear_predictor import predict_linear, predict_polynomial
 
@@ -18,8 +18,8 @@ class TestLinearPredictor:
         result = predict_linear(data, horizon=5)
         assert len(result["confidence_upper"]) == 5
         assert len(result["confidence_lower"]) == 5
-        for u, l in zip(result["confidence_upper"], result["confidence_lower"]):
-            assert u >= l
+        for u, lower in zip(result["confidence_upper"], result["confidence_lower"]):
+            assert u >= lower
 
     def test_lookback(self):
         data = list(range(100))

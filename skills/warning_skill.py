@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from skills.base_skill import BaseSkill, SkillResult
 
-
 # Warning level thresholds (fraction of horizon until breach)
 _WARNING_THRESHOLDS = {
     "red": 0.05,      # Breach within 5% of horizon (imminent)
@@ -25,10 +24,23 @@ _WARNING_THRESHOLDS = {
 }
 
 _RECOMMENDED_ACTIONS = {
-    "red": "Immediate MRC activation. Close inlet/open drain. Notify on-duty personnel. / 立即激活MRC。关闭进水/打开排水。通知值班人员。",
-    "orange": "Prepare MRC procedures. Notify dispatcher. Increase monitoring frequency to 1min. / 准备MRC程序。通知调度员。监测频率提高至1分钟。",
-    "yellow": "Alert dispatcher. Prepare contingency schemes. Monitoring frequency 5min. / 告警调度员。准备应急方案。监测频率5分钟。",
-    "blue": "Monitor closely. Review forecast accuracy. Standard monitoring. / 密切关注。核查预报精度。标准监测频率。",
+    "red": (
+        "Immediate MRC activation. Close inlet/open drain. "
+        "Notify on-duty personnel. / 立即激活MRC。关闭进水/打开排水。通知值班人员。"
+    ),
+    "orange": (
+        "Prepare MRC procedures. Notify dispatcher. "
+        "Increase monitoring frequency to 1min. "
+        "/ 准备MRC程序。通知调度员。监测频率提高至1分钟。"
+    ),
+    "yellow": (
+        "Alert dispatcher. Prepare contingency schemes. "
+        "Monitoring frequency 5min. / 告警调度员。准备应急方案。监测频率5分钟。"
+    ),
+    "blue": (
+        "Monitor closely. Review forecast accuracy. "
+        "Standard monitoring. / 密切关注。核查预报精度。标准监测频率。"
+    ),
     "none": "Normal operation. / 正常运行。",
 }
 

@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------- H1: plan_skill empty water_level guard ----------
 
 class TestPlanSkillEmptyWaterLevel:
@@ -76,10 +75,10 @@ class TestConfigSafeKeyAccess:
 
     def test_functions_still_work(self):
         from core.config import (
-            get_default_tank_params,
-            get_default_pid_params,
             get_default_mpc_params,
+            get_default_pid_params,
             get_default_simulation_params,
+            get_default_tank_params,
         )
         tp = get_default_tank_params()
         assert "area" in tp

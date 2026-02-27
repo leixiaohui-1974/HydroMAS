@@ -19,7 +19,7 @@ import asyncio
 import logging
 from typing import Any
 
-from skills.base_skill import discover_skills, SkillMetadata
+from skills.base_skill import discover_skills
 
 logger = logging.getLogger(__name__)
 

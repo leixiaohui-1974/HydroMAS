@@ -8,11 +8,10 @@ import asyncio
 import math
 
 from fastapi import APIRouter
-
 from pydantic import BaseModel, Field
 
-from web.models import SkillRequest, FourPredRequest
 from web.deps import get_orchestrator, get_report_agent
+from web.models import FourPredRequest, SkillRequest
 
 router = APIRouter()
 

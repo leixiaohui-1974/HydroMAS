@@ -1,6 +1,7 @@
 """Integration tests for FullLifecycleSkill."""
 
 import pytest
+
 from skills.full_lifecycle import FullLifecycleSkill
 
 

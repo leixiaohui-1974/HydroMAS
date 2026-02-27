@@ -7,7 +7,8 @@ graceful degradation when torch is unavailable.
 """
 
 import pytest
-from agents.rl_dispatch_agent import DispatchState, DispatchAction, RLDispatchAgent
+
+from agents.rl_dispatch_agent import DispatchAction, DispatchState, RLDispatchAgent
 
 
 class TestDispatchState:
@@ -34,7 +35,8 @@ class TestDispatchState:
         vec = state.to_vector()
         assert isinstance(vec, list)
         assert all(isinstance(v, float) for v in vec)
-        # Should contain: 2 tank_levels + 2 demands + price + hour_norm + temp_norm + humidity_norm = 8
+        # Should contain: 2 tank_levels + 2 demands + price +
+        # hour_norm + temp_norm + humidity_norm = 8
         assert len(vec) == 8
 
 

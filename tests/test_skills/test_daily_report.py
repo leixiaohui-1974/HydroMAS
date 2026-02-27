@@ -1,9 +1,8 @@
 """Integration tests for DailyReportSkill (日报)."""
 
 import pytest
-from skills.daily_report import DailyReportSkill
-from skills.base_skill import SkillResult
 
+from skills.daily_report import DailyReportSkill
 
 # ---------------------------------------------------------------------------
 # Sample data helpers
@@ -11,9 +10,18 @@ from skills.base_skill import SkillResult
 
 def _nodes_data():
     return [
-        {"node_id": "n1", "node_type": "intake", "q_in": 100, "q_out": 95, "q_loss": 0, "q_evap": 0},
-        {"node_id": "n2", "node_type": "workshop", "q_in": 95, "q_out": 90, "q_loss": 2, "q_evap": 1},
-        {"node_id": "n3", "node_type": "reuse", "q_in": 40, "q_out": 38, "q_loss": 0.5, "q_evap": 0},
+        {
+            "node_id": "n1", "node_type": "intake",
+            "q_in": 100, "q_out": 95, "q_loss": 0, "q_evap": 0,
+        },
+        {
+            "node_id": "n2", "node_type": "workshop",
+            "q_in": 95, "q_out": 90, "q_loss": 2, "q_evap": 1,
+        },
+        {
+            "node_id": "n3", "node_type": "reuse",
+            "q_in": 40, "q_out": 38, "q_loss": 0.5, "q_evap": 0,
+        },
     ]
 
 

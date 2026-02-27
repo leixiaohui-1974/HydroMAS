@@ -18,8 +18,7 @@ Where:
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
-
+from dataclasses import dataclass
 
 GRAVITY: float = 9.81  # m/s²
 

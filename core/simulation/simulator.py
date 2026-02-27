@@ -5,11 +5,11 @@
 from __future__ import annotations
 
 import bisect
-
-import numpy as np
 from typing import Literal
 
-from core.simulation.tank_model import TankParams, tank_ode, compute_outflow
+import numpy as np
+
+from core.simulation.tank_model import TankParams, compute_outflow, tank_ode
 
 
 def _make_inflow_cache(q_in_profile: list[tuple[float, float]]) -> dict:

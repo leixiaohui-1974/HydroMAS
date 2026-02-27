@@ -1,9 +1,8 @@
 """Integration tests for LeakDiagnosisSkill (泄漏诊断)."""
 
 import pytest
-from skills.leak_diagnosis import LeakDiagnosisSkill
-from skills.base_skill import SkillResult
 
+from skills.leak_diagnosis import LeakDiagnosisSkill
 
 # ---------------------------------------------------------------------------
 # Sample data helpers
@@ -11,8 +10,14 @@ from skills.base_skill import SkillResult
 
 def _nodes_data():
     return [
-        {"node_id": "n1", "node_type": "intake", "q_in": 100, "q_out": 95, "q_loss": 0, "q_evap": 0},
-        {"node_id": "n2", "node_type": "workshop", "q_in": 95, "q_out": 90, "q_loss": 2, "q_evap": 0},
+        {
+            "node_id": "n1", "node_type": "intake",
+            "q_in": 100, "q_out": 95, "q_loss": 0, "q_evap": 0,
+        },
+        {
+            "node_id": "n2", "node_type": "workshop",
+            "q_in": 95, "q_out": 90, "q_loss": 2, "q_evap": 0,
+        },
     ]
 
 

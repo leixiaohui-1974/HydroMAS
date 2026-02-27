@@ -91,7 +91,10 @@ class SafetyAgent:
             resp = {
                 "safe": False,
                 "zone": "mrc",
-                "message": "System is outside ODD. MRC actions required. / 系统已超出ODD。需要MRC动作。",
+                "message": (
+                    "System is outside ODD. MRC actions required. "
+                    "/ 系统已超出ODD。需要MRC动作。"
+                ),
                 "recommended_actions": actions,
                 "proposed_action_blocked": True,
             }
@@ -103,7 +106,10 @@ class SafetyAgent:
             return {
                 "safe": True,
                 "zone": "extended",
-                "message": "System in extended zone. Proceed with caution. / 系统在扩展域。请谨慎操作。",
+                "message": (
+                    "System in extended zone. Proceed with caution. "
+                    "/ 系统在扩展域。请谨慎操作。"
+                ),
                 "requires_human_confirmation": True,
                 "proposed_action_blocked": False,
             }
@@ -115,7 +121,11 @@ class SafetyAgent:
             "proposed_action_blocked": False,
         }
 
-    def monitor_series(self, states: list[dict[str, float]], times: list[float] | None = None) -> dict:
+    def monitor_series(
+        self,
+        states: list[dict[str, float]],
+        times: list[float] | None = None,
+    ) -> dict:
         """Monitor a series of states for ODD violations (active mode).
         监测状态序列的 ODD 越界（主动模式）。
 
@@ -153,7 +163,12 @@ class SafetyAgent:
             logger.error("Alumina ODD check failed: %s", e, exc_info=True)
             return {"zone": "error", "violations": [], "error": str(e)}
         if result.get("violations"):
-            self._violation_log.append({"state": state, "violations": result["violations"], "zone": result["zone"], "type": "alumina_odd"})
+            self._violation_log.append({
+                "state": state,
+                "violations": result["violations"],
+                "zone": result["zone"],
+                "type": "alumina_odd",
+            })
         return result
 
     def monitor_pressure_safety(self, pressures: dict[str, float]) -> dict:
@@ -161,11 +176,26 @@ class SafetyAgent:
         violations = []
         for pipe_id, pressure in pressures.items():
             if pressure < 0.1:
-                violations.append({"pipe_id": pipe_id, "pressure": pressure, "issue": "low_pressure", "severity": "high"})
+                violations.append({
+                    "pipe_id": pipe_id,
+                    "pressure": pressure,
+                    "issue": "low_pressure",
+                    "severity": "high",
+                })
             elif pressure > 0.8:
-                violations.append({"pipe_id": pipe_id, "pressure": pressure, "issue": "high_pressure", "severity": "high"})
+                violations.append({
+                    "pipe_id": pipe_id,
+                    "pressure": pressure,
+                    "issue": "high_pressure",
+                    "severity": "high",
+                })
             elif pressure < 0.15 or pressure > 0.6:
-                violations.append({"pipe_id": pipe_id, "pressure": pressure, "issue": "pressure_warning", "severity": "medium"})
+                violations.append({
+                    "pipe_id": pipe_id,
+                    "pressure": pressure,
+                    "issue": "pressure_warning",
+                    "severity": "medium",
+                })
         return {"safe": len(violations) == 0, "violations": violations, "n_checked": len(pressures)}
 
     def check_reuse_water_quality(self, quality: dict) -> dict:
@@ -173,12 +203,27 @@ class SafetyAgent:
         limits = {"cod": 50, "ph_min": 6.5, "ph_max": 9.0, "turbidity": 10}
         violations = []
         if quality.get("cod", 0) > limits["cod"]:
-            violations.append({"param": "cod", "value": quality["cod"], "limit": limits["cod"], "severity": "high"})
+            violations.append({
+                "param": "cod",
+                "value": quality["cod"],
+                "limit": limits["cod"],
+                "severity": "high",
+            })
         ph = quality.get("ph", 7.0)
         if ph < limits["ph_min"] or ph > limits["ph_max"]:
-            violations.append({"param": "ph", "value": ph, "limit": [limits["ph_min"], limits["ph_max"]], "severity": "high"})
+            violations.append({
+                "param": "ph",
+                "value": ph,
+                "limit": [limits["ph_min"], limits["ph_max"]],
+                "severity": "high",
+            })
         if quality.get("turbidity", 0) > limits["turbidity"]:
-            violations.append({"param": "turbidity", "value": quality["turbidity"], "limit": limits["turbidity"], "severity": "medium"})
+            violations.append({
+                "param": "turbidity",
+                "value": quality["turbidity"],
+                "limit": limits["turbidity"],
+                "severity": "medium",
+            })
         return {"quality_ok": len(violations) == 0, "violations": violations, "quality": quality}
 
     def get_violation_log(self) -> list[dict]:

@@ -1,7 +1,6 @@
 """Integration tests for MCP evaluation server."""
 
-import pytest
-from mcp_servers.evaluation_server import evaluate_performance, assess_wnal
+from mcp_servers.evaluation_server import assess_wnal, evaluate_performance
 
 
 class TestEvaluatePerformance:

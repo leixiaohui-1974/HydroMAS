@@ -5,8 +5,7 @@ Tests verify that TOOL_KEYWORDS and skill trigger phrases correctly
 route alumina-refinery domain intents to the right target.
 """
 
-import pytest
-from agents.orchestrator import OrchestratorAgent, TOOL_KEYWORDS
+from agents.orchestrator import OrchestratorAgent
 
 
 class TestOrchestratorAluminaRouting:

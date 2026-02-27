@@ -1,12 +1,11 @@
 """Tests for core.identification module."""
 
-import math
-import pytest
 import numpy as np
+import pytest
 
-from core.identification.least_squares import identify_tank_params
 from core.identification.arx_model import identify_arx, predict_arx
-from core.simulation.tank_model import TankParams, compute_outflow, GRAVITY
+from core.identification.least_squares import identify_tank_params
+from core.simulation.tank_model import GRAVITY
 
 
 class TestLeastSquares:

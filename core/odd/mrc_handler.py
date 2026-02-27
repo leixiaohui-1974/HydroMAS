@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from typing import Literal
 
-
 MRCAction = Literal["close_inlet", "open_drain", "emergency_stop", "alert", "increase_inflow"]
 
 
@@ -57,7 +56,10 @@ def determine_mrc_actions(violations: list[dict]) -> list[dict]:
             actions.append({
                 "action": "emergency_stop",
                 "priority": 0,
-                "description": "Emergency stop: structural integrity at risk / 紧急停止：结构安全风险",
+                "description": (
+                    "Emergency stop: structural integrity at risk"
+                    " / 紧急停止：结构安全风险"
+                ),
                 "target_dimension": dim,
             })
 

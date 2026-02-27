@@ -1,9 +1,8 @@
 """Integration tests for GlobalDispatchSkill (全局调度)."""
 
 import pytest
-from skills.global_dispatch import GlobalDispatchSkill
-from skills.base_skill import SkillResult
 
+from skills.global_dispatch import GlobalDispatchSkill
 
 # ---------------------------------------------------------------------------
 # Sample data helpers

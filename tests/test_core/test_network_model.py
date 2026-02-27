@@ -3,10 +3,11 @@ core.simulation.network_model 模块测试。
 """
 
 import pytest
+
 from core.simulation.network_model import (
+    _HAS_WNTR,
     NetworkParams,
     _require_wntr,
-    _HAS_WNTR,
     load_network,
     run_hydraulic_sim,
     run_leak_scenario,

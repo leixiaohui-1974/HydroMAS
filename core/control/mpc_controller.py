@@ -169,7 +169,7 @@ def run_mpc_control(
     Returns:
         Dict with time series of level, control output, etc.
     """
-    from core.simulation.tank_model import TankParams, tank_ode, compute_outflow
+    from core.simulation.tank_model import TankParams, compute_outflow, tank_ode
 
     tank = TankParams(**(tank_params or {}))
     tank.validate()

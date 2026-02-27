@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 # Conversion constant
 WATER_DENSITY_T_M3: float = 1.0  # Water density ~1 t/m³ for unit conversion
 

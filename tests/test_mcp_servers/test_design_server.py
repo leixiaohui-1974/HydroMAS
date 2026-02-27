@@ -1,6 +1,5 @@
 """Integration tests for MCP design server."""
 
-import pytest
 from mcp_servers.design_server import optimize_design, run_sensitivity
 
 

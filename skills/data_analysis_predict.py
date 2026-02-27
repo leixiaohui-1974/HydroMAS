@@ -35,7 +35,10 @@ class DataAnalysisPredictSkill(BaseSkill):
             "methods": methods,
         })
         if isinstance(clean_result, dict) and "error" in clean_result:
-            return SkillResult(success=False, error=f"Data cleaning failed: {clean_result['error']}")
+            return SkillResult(
+                success=False,
+                error=f"Data cleaning failed: {clean_result['error']}",
+            )
         cleaned_data = clean_result.get("data", raw_data)
         steps.append("data_cleaning")
 

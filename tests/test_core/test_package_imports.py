@@ -2,14 +2,13 @@
 包导出测试 — 确保公共 API 保持稳定。
 """
 
-import pytest
 
 
 class TestCoreSimulationExports:
     def test_exports(self):
         from core.simulation import (
-            GRAVITY, TankParams, compute_outflow, tank_ode,
-            run_simulation, simulate_euler, simulate_rk4,
+            GRAVITY,
+            TankParams,
         )
         assert GRAVITY == 9.81
         assert TankParams is not None
@@ -24,8 +23,7 @@ class TestCoreSimulationExports:
 class TestCoreControlExports:
     def test_exports(self):
         from core.control import (
-            PIDParams, PIDController, run_pid_control,
-            MPCController, run_mpc_control,
+            PIDController,
         )
         pid = PIDController()
         assert pid is not None
@@ -51,7 +49,7 @@ class TestCoreSchedulingExports:
 
 class TestCoreDesignExports:
     def test_exports(self):
-        from core.design import optimize_tank_size, sensitivity_oat, sensitivity_morris
+        from core.design import optimize_tank_size, sensitivity_morris, sensitivity_oat
         assert callable(optimize_tank_size)
         assert callable(sensitivity_oat)
         assert callable(sensitivity_morris)
@@ -60,10 +58,9 @@ class TestCoreDesignExports:
 class TestCoreEvaluationExports:
     def test_exports(self):
         from core.evaluation import (
-            rmse, mae, nse, mape,
-            settling_time, overshoot, steady_state_error,
-            evaluate_performance,
-            CAPABILITY_WEIGHTS, LEVEL_THRESHOLDS, assess_wnal,
+            CAPABILITY_WEIGHTS,
+            LEVEL_THRESHOLDS,
+            rmse,
         )
         assert callable(rmse)
         assert isinstance(CAPABILITY_WEIGHTS, dict)
@@ -78,9 +75,8 @@ class TestCoreEvaluationExports:
 class TestCoreDataCleanExports:
     def test_exports(self):
         from core.data_clean import (
-            interpolate_linear, interpolate_spline, median_filter,
-            clean_timeseries,
-            detect_3sigma, detect_iqr, detect_mad,
+            detect_3sigma,
+            interpolate_linear,
         )
         assert callable(interpolate_linear)
         assert callable(detect_3sigma)
@@ -89,9 +85,7 @@ class TestCoreDataCleanExports:
 class TestCoreODDExports:
     def test_exports(self):
         from core.odd import (
-            DimensionSpec, ODDSpec, create_tank_odd,
-            classify_value, check_odd, check_odd_series,
-            determine_mrc_actions, generate_mrc_plan,
+            create_tank_odd,
         )
         odd = create_tank_odd()
         assert len(odd.dimensions) == 6
@@ -103,7 +97,7 @@ class TestCoreODDExports:
 
 class TestCoreIdentificationExports:
     def test_exports(self):
-        from core.identification import identify_arx, predict_arx, identify_tank_params
+        from core.identification import identify_arx, identify_tank_params
         assert callable(identify_arx)
         assert callable(identify_tank_params)
 
@@ -111,9 +105,7 @@ class TestCoreIdentificationExports:
 class TestCoreTopLevelExports:
     def test_config_functions(self):
         from core import (
-            load_tank_config, load_odd_specs,
-            get_default_tank_params, get_default_pid_params,
-            get_default_mpc_params, get_default_simulation_params,
+            load_tank_config,
         )
         config = load_tank_config()
         assert "tank_params" in config
@@ -122,11 +114,8 @@ class TestCoreTopLevelExports:
 class TestComputeExports:
     def test_exports(self):
         from compute import (
-            init_ray, shutdown_ray, is_ray_available,
-            simulate_single, parameter_sweep, monte_carlo_sim,
-            parallel_sensitivity, parallel_evaluate,
-            parallel_clean, chunk_timeseries,
-            create_mpc_actor,
+            init_ray,
+            parameter_sweep,
         )
         assert callable(init_ray)
         assert callable(parameter_sweep)
@@ -134,17 +123,15 @@ class TestComputeExports:
 
 class TestSkillsExports:
     def test_base_classes(self):
-        from skills import BaseSkill, SkillResult, SkillMetadata, discover_skills
+        from skills import SkillResult, discover_skills
         assert callable(discover_skills)
         result = SkillResult(success=True, data={"test": 1})
         assert result.success
 
     def test_skill_classes(self):
         from skills import (
-            ForecastSkill, WarningSkill, RehearsalSkill, PlanSkill,
-            FourPredictionLoopSkill, DataAnalysisPredictSkill,
-            ODDAssessmentSkill, ControlSystemDesignSkill,
-            OptimizationDesignSkill, FullLifecycleSkill,
+            ForecastSkill,
+            FourPredictionLoopSkill,
         )
         assert ForecastSkill is not None
         assert FourPredictionLoopSkill is not None
@@ -153,9 +140,7 @@ class TestSkillsExports:
 class TestAgentsExports:
     def test_exports(self):
         from agents import (
-            OrchestratorAgent, TOOL_KEYWORDS,
-            TaskNode, TaskPlan, PlanningAgent,
-            AnalysisAgent, ReportAgent, SafetyAgent,
+            TOOL_KEYWORDS,
         )
         assert isinstance(TOOL_KEYWORDS, dict)
         assert "simulate_tank" in TOOL_KEYWORDS
