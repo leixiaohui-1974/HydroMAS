@@ -14,9 +14,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 
+from agents.base_agent import BaseAgent
 from agents.dev_planner import DevPlannerAgent
 from agents.dev_reviewer import DevReviewerAgent, ReviewResult
 from agents.dev_tester import DevTesterAgent
+from agents.message import AgentMessage, MessageType
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +101,7 @@ class PipelineRun:
 # DevOrchestratorAgent
 # ---------------------------------------------------------------------------
 
-class DevOrchestratorAgent:
+class DevOrchestratorAgent(BaseAgent):
     """Development Orchestrator — multi-agent collaborative pipeline.
     开发编排 Agent — 多智能体协同流水线。
 
@@ -114,12 +116,37 @@ class DevOrchestratorAgent:
     loop back to Development (up to max_iterations).
     """
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.planner = DevPlannerAgent()
         self.reviewer = DevReviewerAgent()
         self.tester = DevTesterAgent()
         self._run_counter = 0
         self._history: list[PipelineRun] = []
+
+    def get_capabilities(self) -> list[str]:
+        return [
+            "dev_pipeline", "collaborative_dev", "planning",
+            "review", "testing", "integration",
+        ]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "run_full_pipeline")
+        params = message.content.get("params", {})
+        if action == "run_full_pipeline":
+            result = self.run_full_pipeline(
+                requirement=params.get("requirement", ""),
+                files=params.get("files"),
+                modules=params.get("modules"),
+                scenario=params.get("scenario"),
+                context=params.get("context"),
+            )
+            return message.reply(result)
+        elif action == "create_pipeline":
+            pipeline = self.create_pipeline(params.get("requirement", ""))
+            return message.reply(pipeline.to_dict())
+        else:
+            return message.error_reply(f"Unknown dev_orchestrator action: {action}")
 
     def create_pipeline(self, requirement: str) -> PipelineRun:
         """Create a new development pipeline for a requirement.

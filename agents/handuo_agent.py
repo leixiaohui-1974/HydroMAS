@@ -14,6 +14,9 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_KNOWLEDGE_PATH = str(
@@ -21,7 +24,7 @@ _DEFAULT_KNOWLEDGE_PATH = str(
 )
 
 
-class HanduoAgent:
+class HanduoAgent(BaseAgent):
     """Handuo Water Network domain LLM Agent.
     瀚铎水网大模型 Agent。
 
@@ -30,12 +33,32 @@ class HanduoAgent:
     built from *process_ontology.json*.
     """
 
-    def __init__(self, knowledge_base_path: str | None = None):
+    def __init__(self, knowledge_base_path: str | None = None, **kwargs):
+        super().__init__(**kwargs)
         self.knowledge_base_path = knowledge_base_path or _DEFAULT_KNOWLEDGE_PATH
         self._knowledge: dict[str, Any] = {}
         self._llm = None
         self._build_knowledge_index()
         self._try_load_llm()
+
+    def get_capabilities(self) -> list[str]:
+        return ["domain_qa", "anomaly_diagnosis", "insight_generation", "rag_retrieval"]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "query")
+        params = message.content.get("params", {})
+        if action == "query":
+            result = await self.query(params.get("question", ""), params.get("context"))
+        elif action == "diagnose_anomaly":
+            result = await self.diagnose_anomaly(
+                params.get("anomaly_data", {}), params.get("system_state", {}),
+            )
+        elif action == "generate_insight":
+            text = await self.generate_insight(params.get("data", {}), params.get("report_type", "daily"))
+            result = {"insight": text}
+        else:
+            return message.error_reply(f"Unknown handuo action: {action}")
+        return message.reply(result)
 
     # ------------------------------------------------------------------
     # Public API

@@ -14,17 +14,44 @@ from __future__ import annotations
 import logging
 from collections import deque
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 logger = logging.getLogger(__name__)
 
 
-class SafetyAgent:
+class SafetyAgent(BaseAgent):
     """Safety Agent for ODD monitoring and MRC triggering.
     ODD 监测与 MRC 触发的安全 Agent。
     """
 
-    def __init__(self, odd_config: dict | None = None, max_log_entries: int = 1000):
+    def __init__(self, odd_config: dict | None = None, max_log_entries: int = 1000, **kwargs):
+        super().__init__(**kwargs)
         self.odd_config = odd_config
         self._violation_log: deque[dict] = deque(maxlen=max_log_entries)
+
+    def get_capabilities(self) -> list[str]:
+        return [
+            "odd_check", "safety_monitoring", "mrc_trigger",
+            "alumina_odd", "pressure_safety", "water_quality_check",
+        ]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "check_state")
+        params = message.content.get("params", {})
+        if action == "check_state":
+            result = self.check_state(params.get("state", params))
+        elif action == "check_action_safe":
+            result = self.check_action_safe(params.get("action", {}), params.get("state", {}))
+        elif action == "check_alumina_state":
+            result = self.check_alumina_state(params.get("state", params))
+        elif action == "monitor_pressure_safety":
+            result = self.monitor_pressure_safety(params.get("pressures", params))
+        elif action == "check_reuse_water_quality":
+            result = self.check_reuse_water_quality(params.get("quality", params))
+        else:
+            return message.error_reply(f"Unknown safety action: {action}")
+        return message.reply(result)
 
     def check_state(self, state: dict[str, float]) -> dict:
         """Check a single state against ODD (passive mode).

@@ -11,6 +11,9 @@ import copy
 import logging
 from dataclasses import dataclass, field
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,13 +85,27 @@ class TaskPlan:
         }
 
 
-class PlanningAgent:
+class PlanningAgent(BaseAgent):
     """Planning Agent for task decomposition.
     任务分解规划 Agent。
 
     Analyzes complex requests and produces structured task plans
     that the Orchestrator can execute.
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_capabilities(self) -> list[str]:
+        return ["task_decomposition", "dependency_analysis", "plan_generation", "strategy_selection"]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "plan")
+        params = message.content.get("params", {})
+        user_input = params.get("user_input", params.get("query", ""))
+        context = params.get("context")
+        plan = self.plan(user_input, context)
+        return message.reply({"plan": plan})
 
     # Templates for common complex requests
     PLAN_TEMPLATES = {

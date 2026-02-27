@@ -11,6 +11,9 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 logger = logging.getLogger(__name__)
 
 
@@ -290,10 +293,39 @@ SCENARIO_TEST_TEMPLATES: dict[str, list[dict]] = {
 # DevTesterAgent
 # ---------------------------------------------------------------------------
 
-class DevTesterAgent:
+class DevTesterAgent(BaseAgent):
     """Development Tester — test generation, coverage analysis, execution.
     开发测试 Agent — 测试生成、覆盖分析、执行。
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_capabilities(self) -> list[str]:
+        return ["test_generation", "coverage_analysis", "test_validation", "scenario_testing"]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "generate_test_suite")
+        params = message.content.get("params", {})
+        if action == "generate_test_suite":
+            suite = self.generate_test_suite(
+                params.get("module", ""),
+                params.get("functions"),
+                params.get("scenario"),
+            )
+            return message.reply(suite.to_dict())
+        elif action == "analyse_coverage":
+            result = self.analyse_coverage(
+                params.get("source_files", []),
+                params.get("test_files", []),
+            )
+            return message.reply(result)
+        elif action == "validate_test_result":
+            report = DevTestReport(**params.get("report", {}))
+            result = self.validate_test_result(report, params.get("criteria"))
+            return message.reply(result)
+        else:
+            return message.error_reply(f"Unknown tester action: {action}")
 
     def generate_test_suite(
         self,

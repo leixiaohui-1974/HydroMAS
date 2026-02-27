@@ -11,6 +11,9 @@ import logging
 import re
 from dataclasses import dataclass, field
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 logger = logging.getLogger(__name__)
 
 
@@ -164,7 +167,7 @@ DOMAIN_RULES = [
 # DevReviewerAgent
 # ---------------------------------------------------------------------------
 
-class DevReviewerAgent:
+class DevReviewerAgent(BaseAgent):
     """Development Reviewer — multi-dimensional code review.
     开发评审 Agent — 多维度代码审查。
 
@@ -176,13 +179,29 @@ class DevReviewerAgent:
     5. Test coverage (测试覆盖)
     """
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self._rules = {
             "architecture": ARCHITECTURE_RULES,
             "safety": SAFETY_RULES,
             "style": STYLE_RULES,
             "domain": DOMAIN_RULES,
         }
+
+    def get_capabilities(self) -> list[str]:
+        return ["code_review", "design_review", "architecture_check", "safety_check"]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "review_code")
+        params = message.content.get("params", {})
+        if action == "review_code":
+            result = self.review_code(params.get("files", {}), params.get("context"))
+            return message.reply(result.to_dict())
+        elif action == "review_design":
+            result = self.review_design(params.get("design_doc", params))
+            return message.reply(result.to_dict())
+        else:
+            return message.error_reply(f"Unknown reviewer action: {action}")
 
     def review_code(
         self,
