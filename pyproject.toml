@@ -46,6 +46,14 @@ web = [
     "jinja2>=3.1",
     "python-multipart>=0.0.6",
 ]
+alumina = [
+    "wntr>=1.0",
+    "networkx>=3.0",
+]
+gnn = [
+    "torch>=2.0",
+    "torch_geometric>=2.4",
+]
 
 [tool.ruff]
 target-version = "py311"
@@ -58,4 +66,4 @@ select = ["E", "F", "W", "I"]
 testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
-include = ["core*", "compute*", "mcp_servers*", "skills*", "agents*", "web*"]
+include = ["core*", "compute*", "mcp_servers*", "skills*", "agents*", "web*", "knowledge*"]

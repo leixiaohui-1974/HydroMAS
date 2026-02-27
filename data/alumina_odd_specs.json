@@ -1,0 +1,17 @@
+{
+  "dimensions": [
+    {"name": "water_level_clear_pool", "min_value": 1.0, "max_value": 7.5, "unit": "m", "warning_margin": 0.1},
+    {"name": "water_level_high_pool", "min_value": 2.0, "max_value": 14.0, "unit": "m", "warning_margin": 0.1},
+    {"name": "intake_flow_total", "min_value": 200, "max_value": 600, "unit": "m³/h", "warning_margin": 0.1},
+    {"name": "main_pipe_pressure", "min_value": 0.15, "max_value": 0.6, "unit": "MPa", "warning_margin": 0.1},
+    {"name": "reuse_water_cod", "min_value": 0, "max_value": 50, "unit": "mg/L", "warning_margin": 0.15},
+    {"name": "reuse_water_ph", "min_value": 6.5, "max_value": 9.0, "unit": "", "warning_margin": 0.1},
+    {"name": "cooling_tower_evap_rate", "min_value": 50, "max_value": 250, "unit": "m³/h", "warning_margin": 0.15},
+    {"name": "pump_station_efficiency", "min_value": 0.55, "max_value": 0.92, "unit": "", "warning_margin": 0.1},
+    {"name": "leak_rate", "min_value": 0, "max_value": 0.05, "unit": "", "warning_margin": 0.2},
+    {"name": "water_balance_residual", "min_value": -0.05, "max_value": 0.05, "unit": "", "warning_margin": 0.15},
+    {"name": "supply_pressure_cv", "min_value": 0, "max_value": 0.15, "unit": "", "warning_margin": 0.15},
+    {"name": "reuse_water_turbidity", "min_value": 0, "max_value": 10, "unit": "NTU", "warning_margin": 0.15}
+  ],
+  "description": "ODD specification for alumina plant water network / 氧化铝厂水网ODD规格（12维）"
+}
