@@ -163,7 +163,11 @@ class OrchestratorAgent:
     async def _execute_skill(self, skill_name: str, params: dict) -> dict:
         """Execute a Skill by name. / 按名称执行 Skill。"""
         if skill_name not in self._skill_instances:
-            return {"error": f"Skill '{skill_name}' not loaded"}
+            available = list(self._skill_instances.keys())
+            return {
+                "error": f"Skill '{skill_name}' not loaded. "
+                         f"Available: {available}",
+            }
 
         skill = self._skill_instances[skill_name]
         result = await skill.run(params)

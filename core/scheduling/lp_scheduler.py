@@ -102,6 +102,7 @@ def optimize_schedule_lp(
     return {
         "status": "optimal",
         "schedule": schedule,
+        "inflow_rate": schedule,
         "predicted_levels": levels,
         "total_inflow": float(sum(schedule)),
         "objective_value": float(pulp.value(prob.objective)),

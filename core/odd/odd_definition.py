@@ -76,7 +76,13 @@ class ODDSpec:
     def from_dict(cls, data: dict) -> ODDSpec:
         """Deserialize from dict. / 从字典反序列化。"""
         spec = cls()
-        for d in data.get("dimensions", []):
+        _required = ("name", "min_value", "max_value", "unit")
+        for i, d in enumerate(data.get("dimensions", [])):
+            missing = [k for k in _required if k not in d]
+            if missing:
+                raise ValueError(
+                    f"ODD dimension {i} missing required keys: {missing}"
+                )
             spec.add_dimension(
                 name=d["name"],
                 min_val=d["min_value"],

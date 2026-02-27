@@ -55,7 +55,8 @@ def nse(observed: list[float], predicted: list[float]) -> float:
         predicted: Predicted values / 预测值
 
     Returns:
-        NSE value in (-inf, 1].
+        NSE value in [-1e6, 1]. Returns -1e6 when all observed values are
+        identical but prediction differs.
     """
     o = np.array(observed)
     p = np.array(predicted)

@@ -44,11 +44,12 @@ class SafetyAgent:
                 odd_config=self.odd_config,
             )
         except Exception as e:
-            logger.error("ODD check failed: %s", e)
+            logger.error("ODD check failed: %s", e, exc_info=True)
             return {
-                "zone": "unknown",
+                "zone": "error",
                 "violations": [],
                 "error": str(e),
+                "check_failed": True,
                 "n_checked": 0,
             }
 

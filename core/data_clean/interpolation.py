@@ -80,7 +80,7 @@ def median_filter(data: list[float], window_size: int = 5) -> dict:
 
     Args:
         data: Input time series / 输入时序
-        window_size: Filter window size (must be odd) / 滤波窗口大小（须为奇数）
+        window_size: Filter window size (positive; even values auto-adjusted to odd) / 滤波窗口大小
 
     Returns:
         Dict with filtered data and metadata.

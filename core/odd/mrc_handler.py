@@ -26,8 +26,10 @@ def determine_mrc_actions(violations: list[dict]) -> list[dict]:
     actions = []
 
     for v in violations:
-        dim = v["dimension"]
-        bound = v["bound_violated"]
+        dim = v.get("dimension")
+        bound = v.get("bound_violated")
+        if not dim or not bound:
+            continue
 
         if dim == "water_level":
             if bound == "upper":

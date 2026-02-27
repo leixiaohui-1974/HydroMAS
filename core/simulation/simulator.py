@@ -192,7 +192,10 @@ def run_simulation(
         solver: Solver type ("euler" or "rk4") / 求解器类型
 
     Returns:
-        Simulation result dict.
+        Simulation result dict with time, water_level, outflow, inflow arrays.
+
+    Raises:
+        ValueError: If dt <= 0, duration <= 0, or step count exceeds 10,000,000.
     """
     if dt <= 0:
         raise ValueError(f"dt must be positive, got {dt}")

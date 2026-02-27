@@ -116,6 +116,10 @@ def predict_polynomial(
 
     # Sanitize overflow: clamp inf/nan to large finite values
     if np.any(~np.isfinite(predictions)):
+        import logging
+        _logger = logging.getLogger(__name__)
+        n_bad = int(np.sum(~np.isfinite(predictions)))
+        _logger.warning("Polynomial prediction contains %d inf/NaN values; clamping", n_bad)
         predictions = np.nan_to_num(predictions, nan=0.0, posinf=1e15, neginf=-1e15)
 
     return {

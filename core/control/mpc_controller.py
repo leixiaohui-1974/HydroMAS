@@ -7,6 +7,8 @@ quadratic programming problem at each step.
 
 from __future__ import annotations
 
+from collections import deque
+
 import numpy as np
 from scipy.optimize import minimize
 
@@ -63,7 +65,7 @@ class MPCController:
         self.dt = dt
         self._bounds = [(self.u_min, self.u_max)] * self.horizon
         self._prev_solution: np.ndarray | None = None
-        self._history: list[dict] = []
+        self._history: deque[dict] = deque(maxlen=10000)
 
     def _predict(self, h0: float, u_seq: np.ndarray, q_out_est: float,
                  h_buf: np.ndarray | None = None) -> np.ndarray:

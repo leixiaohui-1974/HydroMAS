@@ -147,9 +147,13 @@ def check_odd_series(
         elif result["zone"] == "extended" and worst_zone == "normal":
             worst_zone = "extended"
 
+    n_violations = sum(
+        1 for r in step_results if r.get("zone") == "mrc"
+    )
     return {
         "worst_zone": worst_zone,
         "time_to_breach": time_to_breach,
         "n_steps": len(state_series),
+        "n_violations": n_violations,
         "step_results": step_results,
     }
