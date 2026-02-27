@@ -70,12 +70,25 @@ def optimize_tank_size(
         }
 
     opt_area, opt_height = result.x
+    volume = float(opt_area * opt_height)
+    if volume < required_volume:
+        # Numerical tolerance guard for SLSQP near active constraints.
+        if opt_height >= max_height - 1e-9:
+            opt_area = min(max_area, required_volume / max_height)
+        else:
+            opt_height = min(max_height, required_volume / max(opt_area, 1e-9))
+        volume = float(opt_area * opt_height)
+        if volume < required_volume:
+            opt_area = min(max_area, required_volume / max_height)
+            opt_height = max_height
+            volume = float(opt_area * opt_height)
+    final_cost = float(cost(np.array([opt_area, opt_height])))
     return {
         "status": "optimal",
         "optimal_area": float(opt_area),
         "optimal_height": float(opt_height),
-        "volume": float(opt_area * opt_height),
-        "cost": float(result.fun),
+        "volume": volume,
+        "cost": final_cost,
         "required_volume": required_volume,
         "peak_demand": peak_demand,
         "reserve_time": min_reserve_time,

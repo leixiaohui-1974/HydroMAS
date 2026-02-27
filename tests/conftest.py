@@ -2,12 +2,76 @@
 HydroOS-Agent 测试套件共享 fixture。
 """
 
+import asyncio
+import importlib.util
+from inspect import signature
+from pathlib import Path
+
 import pytest
 import numpy as np
 
 from core.simulation.tank_model import TankParams
 from core.simulation.simulator import run_simulation
 from core.odd.odd_definition import create_tank_odd
+
+
+def _has_module(module_name: str) -> bool:
+    """Return True when a module can be imported in current environment."""
+    return importlib.util.find_spec(module_name) is not None
+
+
+def pytest_ignore_collect(collection_path, config):
+    """Skip optional web API tests when FastAPI is not installed."""
+    path = Path(str(collection_path))
+    if "tests/test_web" in path.as_posix() and not _has_module("fastapi"):
+        return True
+    return False
+
+
+def pytest_configure(config):
+    """Register markers used by the suite when pytest-asyncio is unavailable."""
+    config.addinivalue_line("markers", "asyncio: mark async test coroutine")
+
+def pytest_collection_modifyitems(config, items):
+    """Skip FastAPI-dependent tests when web deps are unavailable."""
+    if _has_module("fastapi"):
+        return
+
+    fastapi_targets = (
+        "tests/test_web/",
+        "tests/test_core/test_r3_fixes.py::TestGZipMiddleware",
+        "tests/test_core/test_r3_fixes.py::TestHSTSHeader",
+        "tests/test_core/test_r3_fixes.py::TestValueErrorTruncation",
+        "tests/test_core/test_r3_fixes.py::TestObjectiveLiteral",
+        "tests/test_core/test_r4_fixes.py::TestCORSDefault",
+        "tests/test_core/test_r5_fixes.py::TestReportEndpointsBounded",
+        "tests/test_core/test_r5_fixes.py::TestOpenAPIProduction",
+        "tests/test_core/test_r5_fixes.py::TestCSPHeaders",
+        "tests/test_core/test_r6_fixes.py::TestRolePathValidation",
+    )
+    marker = pytest.mark.skip(reason="fastapi is not installed in this environment")
+    for item in items:
+        if any(target in item.nodeid for target in fastapi_targets):
+            item.add_marker(marker)
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_pyfunc_call(pyfuncitem):
+    """Run async tests without requiring pytest-asyncio plugin."""
+    if _has_module("pytest_asyncio"):
+        return None
+
+    test_func = pyfuncitem.obj
+    if not asyncio.iscoroutinefunction(test_func):
+        return None
+
+    kwargs = {
+        name: pyfuncitem.funcargs[name]
+        for name in signature(test_func).parameters
+        if name in pyfuncitem.funcargs
+    }
+    asyncio.run(test_func(**kwargs))
+    return True
 
 
 @pytest.fixture

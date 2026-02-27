@@ -56,7 +56,6 @@ select = ["E", "F", "W", "I"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-asyncio_mode = "auto"
 
 [tool.setuptools.packages.find]
 include = ["core*", "compute*", "mcp_servers*", "skills*", "agents*", "web*"]
