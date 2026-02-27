@@ -1,0 +1,10 @@
+{
+  "article_path": "/home/admin/workspace/workspace/articles/water-ai-cowork-article.md",
+  "images_dir": "/home/admin/workspace/workspace/articles/images-new",
+  "images": [],
+  "output": "/home/admin/workspace/workspace/articles/video/article-002-water-ai.mp4",
+  "voice": "zh-CN-YunxiNeural",
+  "rate": "+0%",
+  "title": "从 AI 助手到水网大脑：同一条进化路",
+  "temp_dir": "/tmp/article-video-002"
+}

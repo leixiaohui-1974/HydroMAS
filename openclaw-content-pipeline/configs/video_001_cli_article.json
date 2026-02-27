@@ -1,0 +1,10 @@
+{
+  "article_path": "/home/admin/workspace/workspace/articles/ai-cli-article-draft.md",
+  "images_dir": "/home/admin/workspace/workspace/articles/images-new",
+  "images": [],
+  "output": "/home/admin/workspace/workspace/articles/video/article-001-ai-cli.mp4",
+  "voice": "zh-CN-YunxiNeural",
+  "rate": "+0%",
+  "title": "为什么所有 AI 公司都在做命令行工具？",
+  "temp_dir": "/tmp/article-video-001"
+}
