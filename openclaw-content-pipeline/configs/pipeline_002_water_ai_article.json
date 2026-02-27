@@ -1,0 +1,31 @@
+{
+  "feishu": {
+    "app_id": "cli_a915cc56d5f89cb1",
+    "app_secret": "YOUR_APP_SECRET"
+  },
+  "doc_token": "PYZndhvshoY6cnxNHP7cvTL9ntu",
+  "gemini_api_key": "YOUR_GEMINI_API_KEY",
+  "output_dir": "/home/admin/workspace/workspace/articles/images-new",
+  "resolution": "2K",
+  "skip_generate": false,
+  "images": [
+    {
+      "filename": "002-ai-water-parallel.png",
+      "prompt": "A clean split-screen infographic showing parallel evolution paths. Left column titled 'AI进化' in Chinese: three stages vertically - '对话' with speech bubble icon, '编程' with code editor icon, '协作' with robot-agent icon. Right column titled '水网自主等级' in Chinese: three stages - 'L1 咨询建议' with sensor/dashboard icon, 'L3 有条件自主' with optimization loop icon, 'L5 完全自主' with autonomous system icon. Horizontal arrows connecting each pair. Center label '同一条进化逻辑' in Chinese. Professional tech infographic, blue-cyan water theme on right, warm orange AI theme on left, dark gradient background, clean modern flat style, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcnZJPT7weFPpVtZEeiS6cIYg",
+      "description": "AI进化 vs 水网自主等级平行对比图"
+    },
+    {
+      "filename": "002-agentic-loop-comparison.png",
+      "prompt": "A side-by-side comparison diagram of two circular workflows. Left circle: 'AI协作Agent循环' in Chinese with 5 steps in a clockwise cycle - '分析需求', '规划策略', '拆分子任务', '执行步骤', '验证结果'. Right circle: '水网控制闭环' in Chinese with 5 steps - '监测水力状态', '预测趋势', '计算最优方案', '下发指令', '验证效果'. Both circles connected by a double arrow labeled '相同架构' in Chinese. Professional engineering diagram style, clean lines, blue and teal color palette, white background, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcn4afzh6O0qBARBC7es7fW6d",
+      "description": "Agent循环 vs 水网控制闭环对比图"
+    },
+    {
+      "filename": "002-platform-plugin-paradigm.png",
+      "prompt": "An infographic showing the '平台+插件' paradigm for two systems side by side. Left: 'AI协作平台' as a central hub with plugin blocks radiating out - '云盘', '表格', '签章', '人事工具', '法务工具'. Right: '水利操作系统' as a central hub with plugin blocks - '传感器', '执行器', '水力模型', '天气预报', '优化算法'. Below both, a shared label: '复杂系统智能的通用范式' in Chinese. Clean modern tech illustration, modular block design, gradient purple-blue background, bright accent colors for plugins, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcnDVwChbED8QHdZMoE3uBpsf",
+      "description": "通用平台+专业插件范式对比图"
+    }
+  ]
+}

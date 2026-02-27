@@ -1,0 +1,24 @@
+{
+  "agent_id": "content_orchestrator",
+  "name": "ContentOrchestratorAgent",
+  "display_name": "内容编排Agent / Content Orchestrator",
+  "description": "Orchestrates the full content production pipeline: Planning→Writing→Review→Illustration→Publishing→Video/PPT.",
+  "capabilities": [
+    "full_pipeline",
+    "plan_only",
+    "review_only",
+    "multi_channel_publish",
+    "iterative_refinement"
+  ],
+  "subordinates": ["content_planner", "content_reviewer", "content_publisher"],
+  "input_protocol": {
+    "type": "requirement",
+    "format": "free_text + optional configs"
+  },
+  "output_protocol": {
+    "type": "PipelineResult",
+    "fields": ["pipeline_id", "success", "pipeline", "plan", "review", "publish_results"]
+  },
+  "layer": "L4",
+  "version": "1.0.0"
+}

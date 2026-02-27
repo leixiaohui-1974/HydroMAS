@@ -1,0 +1,49 @@
+{
+  "feishu": {
+    "app_id": "cli_a915cc56d5f89cb1",
+    "app_secret": "YOUR_APP_SECRET"
+  },
+  "doc_token": "Hk4md9l25ojaaMxtK6tcumWonRc",
+  "gemini_api_key": "YOUR_GEMINI_API_KEY",
+  "output_dir": "/home/admin/workspace/workspace/articles/images-new",
+  "resolution": "2K",
+  "skip_generate": false,
+  "images": [
+    {
+      "filename": "001-web-browser-vs-cli.png",
+      "prompt": "A clean split-screen infographic. Left side: a web browser window with AI chat bubbles and a copy-paste icon, labeled '网页聊天' in Chinese characters. Right side: a dark terminal window with a file directory tree and code, labeled '命令行工具' in Chinese characters. Connected by an arrow showing evolution. Flat modern vector style, blue and orange palette, white background, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcnS6BbSUg8BkrTOfBNOex5Hf",
+      "description": "网页浏览器 vs 命令行终端对比图"
+    },
+    {
+      "filename": "001-workflow-comparison.png",
+      "prompt": "A comparison diagram with two rows. Top row: frustrated person copying code between browser tabs, slow workflow with red X marks, labeled '传统方式' in Chinese. Bottom row: person at a terminal with AI directly editing files and running tests, fast workflow with green check marks, labeled 'AI命令行' in Chinese. Clean flat illustration style, professional, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcnO1SViJ78M4iPnhVBV2f1Qe",
+      "description": "工作流对比图"
+    },
+    {
+      "filename": "001-three-tools-comparison.png",
+      "prompt": "Three columns comparing AI CLI tools. Column 1: Claude Code logo with brain icon and label '深度推理' in Chinese. Column 2: Gemini CLI logo with scale icon and label '免费规模' in Chinese. Column 3: Codex CLI logo with lock icon and label '开源' in Chinese. Each has a distinctive color: orange, blue, green. Clean infographic layout, modern tech style, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcn0Ze1loERrPhxiMJ8mfO1Dg",
+      "description": "AI 命令行工具对比图"
+    },
+    {
+      "filename": "001-human-role-evolution.png",
+      "prompt": "A three-stage evolution diagram from left to right. Stage 1: human typing questions to AI chatbot, labeled '对话伙伴' in Chinese. Stage 2: human and AI working side by side on files, labeled '工作伙伴' in Chinese. Stage 3: AI autonomously managing tasks while human oversees, labeled '自主代理' in Chinese. Each stage connected by arrows. Clean modern illustration, gradient blue-purple, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcnxnLiNUPGzvujYPaliSTnZb",
+      "description": "人类角色演进图"
+    },
+    {
+      "filename": "001-ai-evolution-roadmap.png",
+      "prompt": "A timeline roadmap showing three milestones: 2023 '模型能力' with a brain icon, 2024 '工具协议 MCP/A2A' with a plug/connector icon, 2025 'CLI AI工具爆发' with a rocket icon. Connected by a flowing line. Below each milestone, brief supporting text in Chinese. Clean tech infographic style, dark gradient background, bright accent colors, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcnOyY8kvdFaxhEP76okH86lc",
+      "description": "AI 演进路线图"
+    },
+    {
+      "filename": "001-water-systems-analogy.png",
+      "prompt": "A split analogy diagram. Left side: programmer at terminal labeled '程序员' saying '重构这些文件' to Claude Code. Right side: water engineer at terminal labeled '水利工程师' saying '运行防洪模拟' to an AI tool. Both sides mirror each other in layout. Professional tech illustration, blue water theme on right, code green theme on left, clean modern flat style, no watermark. All text labels must be in Chinese.",
+      "insert_after_block": "doxcn71YaHxwWWhPf8GGch2etLg",
+      "description": "AI 演进 vs 水利网络自主性对比图"
+    }
+  ]
+}
