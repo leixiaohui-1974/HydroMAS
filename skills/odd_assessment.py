@@ -48,22 +48,20 @@ class ODDAssessmentSkill(BaseSkill):
             })
 
             # Check each simulated state against ODD
-            states = [
-                {"water_level": h}
-                for h in sim["water_level"]
-            ]
+            water_levels = sim.get("water_level") or []
+            states = [{"water_level": h} for h in water_levels]
             series_check = await self.call_tool("check_odd", {
                 "current_state": states[0] if states else current_state,
                 "odd_config": odd_config,
                 "check_mode": "predictive",
                 "forecast_series": states,
-                "time_series": sim["time"],
+                "time_series": sim.get("time", []),
             })
 
             scan_results.append({
                 "scenario": scenario,
-                "max_level": max(sim["water_level"]),
-                "min_level": min(sim["water_level"]),
+                "max_level": max(water_levels) if water_levels else 0.0,
+                "min_level": min(water_levels) if water_levels else 0.0,
                 "odd_assessment": series_check,
             })
         steps.append("boundary_scan")

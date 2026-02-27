@@ -90,6 +90,8 @@ def predict_polynomial(
     """
     data = np.array(historical_data, dtype=float)
 
+    if degree < 1:
+        raise ValueError(f"degree must be >= 1, got {degree}")
     if horizon <= 0:
         raise ValueError(f"horizon must be positive, got {horizon}")
 

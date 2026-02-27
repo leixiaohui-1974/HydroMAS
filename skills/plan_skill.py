@@ -59,7 +59,7 @@ class PlanSkill(BaseSkill):
             target = constraints.get("target_level", 1.0)
             best_idx = min(
                 range(len(sim_results)),
-                key=lambda i: abs(sim_results[i].get("water_level", [0.0])[-1] - target),
+                key=lambda i: abs((sim_results[i].get("water_level") or [0.0])[-1] - target),
             )
             rehearsal = {
                 "ranking": [{"scheme_index": best_idx, "label": schemes[best_idx].get("label", "")}],
@@ -79,7 +79,7 @@ class PlanSkill(BaseSkill):
         # Sample demand at intervals
         n_periods = min(10, len(demand))
         step_size = max(1, len(demand) // n_periods)
-        sampled_demand = [demand[i * step_size] for i in range(n_periods)]
+        sampled_demand = [demand[min(i * step_size, len(demand) - 1)] for i in range(n_periods)]
 
         schedule = await self.call_tool("optimize_schedule", {
             "demand_forecast": sampled_demand,
@@ -91,7 +91,7 @@ class PlanSkill(BaseSkill):
 
         # Step 3: ODD safety verification
         safety_check = await self.call_tool("check_odd", {
-            "current_state": {"water_level": best_sim["water_level"][-1]},
+            "current_state": {"water_level": (best_sim.get("water_level") or [0.5])[-1]},
         })
         steps.append("safety_verification")
 

@@ -114,6 +114,8 @@ def sensitivity_morris(
         raise ValueError(f"n_levels must be at least 2, got {n_levels}")
     if not param_ranges:
         raise ValueError("param_ranges must not be empty")
+    if n_trajectories <= 0:
+        raise ValueError(f"n_trajectories must be positive, got {n_trajectories}")
 
     rng = np.random.default_rng(seed)
     param_names = list(param_ranges.keys())

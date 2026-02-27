@@ -52,13 +52,14 @@ class AnalysisAgent:
 
         async def _run_one(i: int, scheme: dict) -> dict:
             sim = await asyncio.to_thread(simulate_tank, **scheme)
+            levels = sim.get("water_level") or [0.0]
             return {
                 "scheme_index": i,
                 "scheme": scheme,
                 "simulation": sim,
-                "max_level": max(sim["water_level"]),
-                "min_level": min(sim["water_level"]),
-                "final_level": sim["water_level"][-1],
+                "max_level": max(levels),
+                "min_level": min(levels),
+                "final_level": levels[-1],
             }
 
         results = await asyncio.gather(*[_run_one(i, s) for i, s in enumerate(schemes)])

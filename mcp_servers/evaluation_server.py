@@ -40,7 +40,7 @@ def evaluate_performance(
         )
 
     from core.evaluation.metrics import evaluate_performance as _eval
-    return _eval(observed, predicted, metrics, time_series, setpoint)
+    return _eval(observed, predicted, metrics_list=metrics, time_series=time_series, setpoint=setpoint)
 
 
 @mcp.tool()

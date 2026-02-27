@@ -99,6 +99,8 @@ def settling_time(
     Returns:
         Settling time (s) or None if not settled.
     """
+    if tolerance <= 0:
+        raise ValueError(f"tolerance must be positive, got {tolerance}")
     band = abs(setpoint * tolerance) if setpoint != 0 else tolerance
     t = np.array(time_series)
     v = np.array(value_series)
@@ -152,6 +154,8 @@ def steady_state_error(value_series: list[float], setpoint: float, n_tail: int =
     Returns:
         Steady-state error.
     """
+    if n_tail <= 0:
+        raise ValueError(f"n_tail must be positive, got {n_tail}")
     v = np.array(value_series)
     tail = v[-n_tail:] if len(v) >= n_tail else v
     return float(np.mean(tail) - setpoint)

@@ -43,6 +43,9 @@ def simulate_tank(
 
     profile = None
     if q_in_profile:
+        for i, row in enumerate(q_in_profile):
+            if not isinstance(row, (list, tuple)) or len(row) < 2:
+                raise ValueError(f"q_in_profile row {i} must have [time, value], got {row!r}")
         profile = [(row[0], row[1]) for row in q_in_profile]
 
     return run_simulation(
@@ -83,6 +86,9 @@ def simulate_batch(
         params.setdefault("duration", duration)
         # Convert q_in_profile format
         if "q_in_profile" in params and params["q_in_profile"]:
+            for i, row in enumerate(params["q_in_profile"]):
+                if not isinstance(row, (list, tuple)) or len(row) < 2:
+                    raise ValueError(f"scheme q_in_profile row {i} must have [time, value], got {row!r}")
             params["q_in_profile"] = [
                 (row[0], row[1]) for row in params["q_in_profile"]
             ]

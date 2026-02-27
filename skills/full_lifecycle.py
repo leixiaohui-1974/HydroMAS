@@ -69,11 +69,13 @@ class FullLifecycleSkill(BaseSkill):
         steps.append("closed_loop_control")
 
         # Step 5: ODD safety assessment
-        mid_idx = len(ctrl_result["water_level"]) // 2
+        water_levels = ctrl_result.get("water_level") or [initial_h]
+        control_outputs = ctrl_result.get("control_output") or [0.0]
+        mid_idx = len(water_levels) // 2
         odd_result = await self.call_tool("check_odd", {
             "current_state": {
-                "water_level": ctrl_result["water_level"][mid_idx],
-                "inflow_rate": ctrl_result["control_output"][min(mid_idx, len(ctrl_result["control_output"]) - 1)],
+                "water_level": water_levels[mid_idx],
+                "inflow_rate": control_outputs[min(mid_idx, len(control_outputs) - 1)],
             },
         })
         steps.append("odd_assessment")
