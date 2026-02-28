@@ -17,9 +17,12 @@ from fastapi import APIRouter
 
 from web.deps import (
     get_agent_context, get_agent_registry, get_executor,
-    get_health_monitor, get_message_bus,
+    get_health_monitor, get_message_bus, get_skill_registry,
 )
-from web.models import AgentMessageRequest, ExecutionPlanRequest
+from web.models import (
+    AgentLifecycleRequest, AgentMessageRequest, BatchAgentRequest,
+    CrossDomainWorkflowRequest, ExecutionPlanRequest, SkillRequest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +136,113 @@ async def send_agent_message(agent_id: str, req: AgentMessageRequest):
     if response is None:
         return {"error": "No response received", "status": 500}
     return response.to_dict()
+
+
+# ---------- Agent Lifecycle / Agent 生命周期 ----------
+
+@router.post("/agents/{agent_id}/lifecycle")
+async def agent_lifecycle(agent_id: str, req: AgentLifecycleRequest):
+    """Manage agent lifecycle (start/stop/pause/resume).
+    管理 Agent 生命周期（启动/停止/暂停/恢复）。
+    """
+    from agents.base_agent import AgentStatus
+
+    registry = get_agent_registry()
+    agent = registry.get_agent(agent_id)
+    if agent is None:
+        return {"error": f"Agent '{agent_id}' not found", "status": 404}
+
+    action = req.action
+    previous = agent.status.value
+
+    if action == "start":
+        await agent.initialize()
+        agent.status = AgentStatus.IDLE
+    elif action == "stop":
+        await agent.shutdown()
+    elif action == "pause":
+        agent.status = AgentStatus.PAUSED
+    elif action == "resume":
+        if agent.status == AgentStatus.PAUSED:
+            agent.status = AgentStatus.IDLE
+        else:
+            return {
+                "error": f"Cannot resume: agent is in '{agent.status.value}' state, not 'paused'",
+            }
+
+    return {
+        "agent_id": agent_id,
+        "action": action,
+        "previous_status": previous,
+        "current_status": agent.status.value,
+    }
+
+
+@router.post("/agents/batch-lifecycle")
+async def batch_agent_lifecycle(req: BatchAgentRequest):
+    """Batch lifecycle operation on multiple agents.
+    对多个 Agent 执行批量生命周期操作。
+    """
+    from agents.base_agent import AgentStatus
+
+    registry = get_agent_registry()
+    results = []
+
+    for agent_id in req.agent_ids:
+        agent = registry.get_agent(agent_id)
+        if agent is None:
+            results.append({"agent_id": agent_id, "error": "not found"})
+            continue
+
+        previous = agent.status.value
+        try:
+            if req.action == "start":
+                await agent.initialize()
+                agent.status = AgentStatus.IDLE
+            elif req.action == "stop":
+                await agent.shutdown()
+            elif req.action == "pause":
+                agent.status = AgentStatus.PAUSED
+            elif req.action == "resume":
+                if agent.status == AgentStatus.PAUSED:
+                    agent.status = AgentStatus.IDLE
+            results.append({
+                "agent_id": agent_id,
+                "previous_status": previous,
+                "current_status": agent.status.value,
+            })
+        except Exception as exc:
+            results.append({"agent_id": agent_id, "error": str(exc)})
+
+    return {"action": req.action, "results": results}
+
+
+# ---------- Cross-Domain Workflow / 跨域工作流 ----------
+
+@router.post("/cross-domain-workflow")
+async def run_cross_domain_workflow(req: CrossDomainWorkflowRequest):
+    """Execute a cross-domain workflow from natural language input.
+    从自然语言输入执行跨域工作流。
+
+    Flow: NL input → PlanningAgent decomposition → DAG execution
+    """
+    from agents.orchestrator import OrchestratorAgent
+
+    registry = get_agent_registry()
+    bus = get_message_bus()
+    monitor = get_health_monitor()
+
+    orch = OrchestratorAgent(
+        agent_id="web_orchestrator",
+        registry=registry,
+        health_monitor=monitor,
+        message_bus=bus,
+    )
+
+    result = await orch.run_cross_domain_workflow(
+        req.user_input, req.params or {},
+    )
+    return result
 
 
 # ---------- DAG Execution / DAG 执行 ----------
@@ -272,6 +382,8 @@ async def get_architecture():
         for cap in agent_info["capabilities"]:
             capability_map.setdefault(cap, []).append(agent_info["id"])
 
+    skills = get_skill_registry()
+
     return {
         "platform": "HydroOS-Agent",
         "version": "0.1.0",
@@ -280,11 +392,138 @@ async def get_architecture():
                 "total": summary["total_agents"],
                 "agents": summary["agents"],
             },
-            "L3_skills": {"count": 17},
+            "L3_skills": {"count": len(skills)},
             "L2_mcp_servers": {"count": 13},
             "L1_compute": {"engine": "Ray"},
             "L0_core": {"submodules": 14},
         },
         "capability_map": capability_map,
         "bus_connected": summary["bus_connected"],
+    }
+
+
+# ---------- Skill Management / 技能管理 ----------
+
+@router.get("/skills")
+async def list_skills():
+    """List all registered skills with metadata.
+    列出所有已注册的 Skill 及其元数据。
+    """
+    skills = get_skill_registry()
+    result = []
+    for name, entry in skills.items():
+        meta = entry["metadata"]
+        info: dict = {"name": name, "has_instance": entry["instance"] is not None}
+        if meta:
+            info["display_name"] = meta.display_name
+            info["description"] = meta.description
+            info["tools_required"] = meta.tools_required
+            info["max_execution_time"] = meta.max_execution_time
+        result.append(info)
+    return {"total_skills": len(result), "skills": result}
+
+
+@router.get("/skills/{skill_name}")
+async def get_skill_detail(skill_name: str):
+    """Get detailed information about a specific skill.
+    获取特定 Skill 的详细信息。
+    """
+    skills = get_skill_registry()
+    entry = skills.get(skill_name)
+    if entry is None:
+        return {"error": f"Skill '{skill_name}' not found", "status": 404}
+
+    meta = entry["metadata"]
+    info: dict = {
+        "name": skill_name,
+        "has_instance": entry["instance"] is not None,
+        "class": entry["instance"].__class__.__name__ if entry["instance"] else None,
+    }
+    if meta:
+        info["display_name"] = meta.display_name
+        info["description"] = meta.description
+        info["trigger_phrases"] = meta.trigger_phrases
+        info["input_schema"] = meta.input_schema
+        info["output_schema"] = meta.output_schema
+        info["tools_required"] = meta.tools_required
+        info["max_execution_time"] = meta.max_execution_time
+    return info
+
+
+@router.post("/skills/{skill_name}/execute")
+async def execute_skill(skill_name: str, req: SkillRequest):
+    """Execute a specific skill with given parameters.
+    使用指定参数执行特定 Skill。
+    """
+    skills = get_skill_registry()
+    entry = skills.get(skill_name)
+    if entry is None:
+        return {"error": f"Skill '{skill_name}' not found", "status": 404}
+
+    instance = entry["instance"]
+    if instance is None:
+        return {"error": f"Skill '{skill_name}' has no executable instance", "status": 400}
+
+    result = await instance.run(req.params)
+    return {
+        "skill": skill_name,
+        "success": result.success,
+        "data": result.data,
+        "error": result.error,
+        "execution_time": round(result.execution_time, 3),
+        "steps_completed": result.steps_completed,
+    }
+
+
+# ---------- Dashboard / 仪表板 ----------
+
+@router.get("/dashboard")
+async def get_dashboard():
+    """Aggregated platform dashboard with agents, skills, health, and recent activity.
+    平台聚合仪表板 — 包含 Agent、Skill、健康状态和近期活动。
+    """
+    registry = get_agent_registry()
+    monitor = get_health_monitor()
+    bus = get_message_bus()
+    executor = get_executor()
+    skills = get_skill_registry()
+
+    # Agent summary
+    agent_summary = registry.summary()
+
+    # Platform health
+    platform_health = monitor.get_platform_health()
+
+    # Recent messages
+    recent_messages = bus.get_history(limit=10)
+
+    # Execution history
+    exec_history = executor.get_history()
+
+    # Skill summary
+    skill_names = list(skills.keys())
+
+    return {
+        "agents": {
+            "total": agent_summary["total_agents"],
+            "by_status": platform_health.get("status_distribution", {}),
+            "bus_connected": agent_summary["bus_connected"],
+        },
+        "health": {
+            "total_requests": platform_health.get("total_requests", 0),
+            "total_errors": platform_health.get("total_errors", 0),
+            "error_rate": platform_health.get("overall_error_rate", 0.0),
+        },
+        "skills": {
+            "total": len(skill_names),
+            "names": skill_names,
+        },
+        "execution": {
+            "total_plans": len(exec_history),
+            "recent_plans": exec_history[-5:] if exec_history else [],
+        },
+        "messages": {
+            "recent_count": len(recent_messages),
+            "recent": recent_messages,
+        },
     }

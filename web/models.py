@@ -303,3 +303,32 @@ class ExecutionTaskRequest(BaseModel):
 class ExecutionPlanRequest(BaseModel):
     objective: str = Field(..., min_length=1, max_length=500, description="执行目标")
     tasks: list[ExecutionTaskRequest] = Field(..., min_length=1, max_length=50, description="任务列表")
+
+
+# ---------- Agent Lifecycle / Agent 生命周期 ----------
+
+class AgentLifecycleRequest(BaseModel):
+    action: Literal["start", "stop", "pause", "resume"] = Field(
+        ..., description="生命周期操作"
+    )
+
+
+class BatchAgentRequest(BaseModel):
+    action: Literal["start", "stop", "pause", "resume"] = Field(
+        ..., description="批量操作类型"
+    )
+    agent_ids: list[str] = Field(
+        ..., min_length=1, max_length=50,
+        description="目标 Agent ID 列表",
+    )
+
+
+# ---------- Cross-Domain Workflow / 跨域工作流 ----------
+
+class CrossDomainWorkflowRequest(BaseModel):
+    user_input: str = Field(
+        ..., min_length=1, max_length=2000,
+        description="自然语言工作流描述",
+    )
+    params: dict = Field(default_factory=dict, description="附加参数")
+    auto_replan: bool = Field(False, description="失败时是否自动重规划")

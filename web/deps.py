@@ -145,3 +145,60 @@ def get_executor():
                     message_bus=get_message_bus(),
                 )
     return get_executor._instance
+
+
+def get_skill_registry():
+    """Get or create the singleton skill registry (thread-safe).
+    获取或创建单例 Skill 注册表（线程安全）。
+
+    Returns a dict mapping skill_name → {metadata: SkillMetadata, instance: BaseSkill}.
+    """
+    if not hasattr(get_skill_registry, "_instance"):
+        with _lock:
+            if not hasattr(get_skill_registry, "_instance"):
+                from skills.base_skill import discover_skills
+                from skills import (
+                    ForecastSkill, WarningSkill, RehearsalSkill, PlanSkill,
+                    FourPredictionLoopSkill, DataAnalysisPredictSkill,
+                    ODDAssessmentSkill, ControlSystemDesignSkill,
+                    OptimizationDesignSkill, FullLifecycleSkill,
+                    LeakDiagnosisSkill, EvapOptimizationSkill,
+                    ReuseSchedulingSkill, GlobalDispatchSkill,
+                    DailyReportSkill,
+                )
+
+                # Discover metadata from YAML files
+                metadata_map = discover_skills()
+
+                # Map skill names to their class constructors
+                _SKILL_CLASSES = {
+                    "forecast_skill": ForecastSkill,
+                    "warning_skill": WarningSkill,
+                    "rehearsal_skill": RehearsalSkill,
+                    "plan_skill": PlanSkill,
+                    "four_prediction_loop": FourPredictionLoopSkill,
+                    "data_analysis_predict": DataAnalysisPredictSkill,
+                    "odd_assessment": ODDAssessmentSkill,
+                    "control_system_design": ControlSystemDesignSkill,
+                    "optimization_design": OptimizationDesignSkill,
+                    "full_lifecycle": FullLifecycleSkill,
+                    "leak_diagnosis": LeakDiagnosisSkill,
+                    "evap_optimization": EvapOptimizationSkill,
+                    "reuse_scheduling": ReuseSchedulingSkill,
+                    "global_dispatch": GlobalDispatchSkill,
+                    "daily_report": DailyReportSkill,
+                }
+
+                registry: dict = {}
+                for name, meta in metadata_map.items():
+                    cls = _SKILL_CLASSES.get(name)
+                    instance = cls(metadata=meta) if cls else None
+                    registry[name] = {"metadata": meta, "instance": instance}
+
+                # Register skills that have classes but no YAML
+                for name, cls in _SKILL_CLASSES.items():
+                    if name not in registry:
+                        registry[name] = {"metadata": None, "instance": cls()}
+
+                get_skill_registry._instance = registry
+    return get_skill_registry._instance
