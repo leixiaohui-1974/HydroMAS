@@ -149,7 +149,7 @@ HydroMAS/
 │   ├── alumina_odd_specs.json #   12-dimension alumina ODD
 │   ├── process_ontology.json  #   Process entities and fault modes
 │   └── sample_timeseries.csv
-├── tests/                # pytest test suite (1421 tests)
+├── tests/                # pytest test suite (1457 tests)
 │   ├── test_core/        #   Core module unit tests
 │   ├── test_compute/     #   Ray compute tests
 │   ├── test_mcp/         #   MCP server tests
@@ -238,7 +238,7 @@ from knowledge import load_ontology, query_ontology, RAGService
 ## Running Tests
 
 ```bash
-pytest                          # All 1421 tests
+pytest                          # All 1457 tests
 pytest tests/test_core/         # Core module tests only
 pytest tests/test_skills/       # Skill workflow tests
 pytest tests/test_agents/       # Agent tests (domain + dev pipeline + multi-agent infra)
