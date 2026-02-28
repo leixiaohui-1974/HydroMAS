@@ -66,4 +66,4 @@ select = ["E", "F", "W", "I"]
 testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
-include = ["core*", "compute*", "mcp_servers*", "skills*", "agents*", "web*", "knowledge*"]
+include = ["core*", "compute*", "mcp_servers*", "skills*", "agents*", "web*", "knowledge*", "integrations*", "openclaw*"]

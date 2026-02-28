@@ -342,3 +342,21 @@ class IntentRequest(BaseModel):
         description="用户自然语言输入",
     )
     compound: bool = Field(False, description="是否检测复合意图")
+
+
+# ---------- Feishu / 飞书集成 ----------
+
+class FeishuWebhookRequest(BaseModel):
+    raw_body: dict = Field(..., description="飞书回调原始 JSON 体")
+
+
+class FeishuAlertRequest(BaseModel):
+    alert_id: str = Field(default="", description="告警 ID")
+    severity: str = Field(
+        default="info",
+        description="告警级别 (info/warning/critical)",
+    )
+    dimension: str = Field(default="", description="告警维度")
+    message: str = Field(default="", max_length=2000, description="告警消息")
+    value: float = Field(default=0.0, description="当前值")
+    threshold: float = Field(default=0.0, description="阈值")

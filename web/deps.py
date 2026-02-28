@@ -289,3 +289,50 @@ def get_adaptive_scheduler():
                 from agents.adaptive_scheduler import AdaptiveScheduler
                 get_adaptive_scheduler._instance = AdaptiveScheduler()
     return get_adaptive_scheduler._instance
+
+
+def get_feishu_bot():
+    """Get or create the singleton FeishuBotHandler (thread-safe).
+    获取或创建单例 FeishuBotHandler（线程安全）。
+    """
+    if not hasattr(get_feishu_bot, "_instance"):
+        with _lock:
+            if not hasattr(get_feishu_bot, "_instance"):
+                import os
+                from integrations.feishu_bot import FeishuBotHandler
+                get_feishu_bot._instance = FeishuBotHandler(
+                    app_id=os.environ.get("FEISHU_APP_ID", ""),
+                    app_secret=os.environ.get("FEISHU_APP_SECRET", ""),
+                    webhook_url=os.environ.get("FEISHU_WEBHOOK_URL", ""),
+                )
+    return get_feishu_bot._instance
+
+
+def get_feishu_alert():
+    """Get or create the singleton FeishuAlertSender (thread-safe).
+    获取或创建单例 FeishuAlertSender（线程安全）。
+    """
+    if not hasattr(get_feishu_alert, "_instance"):
+        with _lock:
+            if not hasattr(get_feishu_alert, "_instance"):
+                import os
+                from integrations.feishu_alert import FeishuAlertSender
+                get_feishu_alert._instance = FeishuAlertSender(
+                    webhook_url=os.environ.get("FEISHU_ALERT_WEBHOOK_URL", ""),
+                )
+    return get_feishu_alert._instance
+
+
+def get_feishu_sync():
+    """Get or create the singleton FeishuBitableSync (thread-safe).
+    获取或创建单例 FeishuBitableSync（线程安全）。
+    """
+    if not hasattr(get_feishu_sync, "_instance"):
+        with _lock:
+            if not hasattr(get_feishu_sync, "_instance"):
+                import os
+                from integrations.feishu_sync import FeishuBitableSync
+                get_feishu_sync._instance = FeishuBitableSync(
+                    app_token=os.environ.get("FEISHU_APP_ID", ""),
+                )
+    return get_feishu_sync._instance

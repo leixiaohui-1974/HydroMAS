@@ -130,10 +130,12 @@ class FeishuBotHandler:
         app_id: str = "",
         app_secret: str = "",
         webhook_url: str = "",
+        orchestrator: object | None = None,
     ) -> None:
         self.app_id = app_id
         self.app_secret = app_secret
         self.webhook_url = webhook_url
+        self._orchestrator = orchestrator
         self._token: str = ""
         self._token_expires: float = 0
 
@@ -153,6 +155,13 @@ class FeishuBotHandler:
         # Default: route to Orchestrator for natural language processing
         return await self._route_to_orchestrator(text, message)
 
+    def _get_orchestrator(self):
+        """Get orchestrator — injected singleton or fallback to new instance."""
+        if self._orchestrator is not None:
+            return self._orchestrator
+        from agents.orchestrator import OrchestratorAgent
+        return OrchestratorAgent()
+
     async def _execute_command(
         self,
         skill_name: str,
@@ -166,9 +175,7 @@ class FeishuBotHandler:
         )
 
         try:
-            from agents.orchestrator import OrchestratorAgent
-
-            orch = OrchestratorAgent()
+            orch = self._get_orchestrator()
             result = await orch.handle_request(
                 f"Execute {skill_name}: {args}",
             )
@@ -198,9 +205,7 @@ class FeishuBotHandler:
         )
 
         try:
-            from agents.orchestrator import OrchestratorAgent
-
-            orch = OrchestratorAgent()
+            orch = self._get_orchestrator()
             result = await orch.handle_request(text)
 
             return FeishuCardResponse(

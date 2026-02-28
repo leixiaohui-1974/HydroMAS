@@ -27,6 +27,7 @@ from web.routers import (
     dispatch,
     evaluation,
     evaporation,
+    feishu,
     identification,
     leak_detection,
     odd,
@@ -156,6 +157,10 @@ app.include_router(report.router, prefix="/api/report", tags=["Report / 运营�
 app.include_router(
     orchestration.router, prefix="/api/orchestration",
     tags=["Orchestration / 多智能体编排"],
+)
+app.include_router(
+    feishu.router, prefix="/api/feishu",
+    tags=["Feishu / 飞书集成"],
 )
 
 
