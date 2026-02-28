@@ -27,6 +27,7 @@ from agents.message import (
     MessagePriority,
     MessageType,
 )
+from agents.health import AgentHealthMonitor, AgentMetrics
 from agents.registry import AgentRegistry
 
 # Domain agents
@@ -58,6 +59,8 @@ __all__ = [
     "ExecutionPlan",
     "ExecutionTask",
     "TaskStatus",
+    "AgentHealthMonitor",
+    "AgentMetrics",
     # Domain agents
     "OrchestratorAgent",
     "TOOL_KEYWORDS",

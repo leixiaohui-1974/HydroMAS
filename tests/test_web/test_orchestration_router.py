@@ -9,6 +9,9 @@ Tests cover:
 - POST /api/orchestration/execute-plan (DAG execution)
 - GET /api/orchestration/message-history (bus history)
 - GET /api/orchestration/architecture (platform overview)
+- GET /api/orchestration/health (all agents health check)
+- GET /api/orchestration/agents/{agent_id}/health (single agent health check)
+- GET /api/orchestration/metrics (platform metrics)
 """
 
 import pytest
@@ -225,6 +228,41 @@ class TestMessageHistory:
         assert resp.status_code == 200
         data = resp.json()
         assert data["count"] <= 5
+
+
+class TestHealthEndpoints:
+    """Test health check and metrics endpoints."""
+
+    def test_check_all_health(self, client):
+        resp = client.get("/api/orchestration/health")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total" in data
+        assert "healthy" in data
+        assert "unhealthy" in data
+        assert "agents" in data
+        assert data["total"] == 15
+
+    def test_check_agent_health(self, client):
+        resp = client.get("/api/orchestration/agents/planning/health")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["agent_id"] == "planning"
+        assert "healthy" in data
+
+    def test_check_nonexistent_agent_health(self, client):
+        resp = client.get("/api/orchestration/agents/nonexistent/health")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["healthy"] is False
+
+    def test_platform_metrics(self, client):
+        resp = client.get("/api/orchestration/metrics")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total_agents" in data
+        assert "total_requests" in data
+        assert "overall_error_rate" in data
 
 
 class TestArchitecture:

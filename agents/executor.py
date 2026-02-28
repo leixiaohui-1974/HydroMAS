@@ -70,6 +70,9 @@ class ExecutionTask:
     completed_at: float = 0.0
     retries: int = 0
     max_retries: int = 2
+    timeout_sec: float = 30.0
+    priority: int = 1  # 0=low, 1=normal, 2=high, 3=critical
+    cancelled: bool = False
 
     @property
     def duration(self) -> float:
@@ -88,6 +91,9 @@ class ExecutionTask:
             "error": self.error,
             "duration": round(self.duration, 3),
             "retries": self.retries,
+            "timeout_sec": self.timeout_sec,
+            "priority": self.priority,
+            "cancelled": self.cancelled,
         }
 
 
@@ -219,6 +225,9 @@ class MultiAgentExecutor:
             if not ready:
                 break
 
+            # Sort by priority (higher first) for deterministic ordering
+            ready.sort(key=lambda t: t.priority, reverse=True)
+
             # Execute all ready tasks concurrently
             coros = [self._execute_task(task, plan) for task in ready]
             await asyncio.gather(*coros)
@@ -269,7 +278,16 @@ class MultiAgentExecutor:
     async def _execute_task(self, task: ExecutionTask, plan: ExecutionPlan) -> None:
         """Execute a single task by sending a message to the target agent.
         通过向目标 Agent 发送消息来执行单个任务。
+
+        Supports timeout (per-task timeout_sec) and cancellation.
         """
+        # Check cancellation before starting
+        if task.cancelled:
+            task.status = TaskStatus.SKIPPED
+            task.error = "Task cancelled before execution"
+            task.completed_at = time.time()
+            return
+
         task.status = TaskStatus.RUNNING
         task.started_at = time.time()
 
@@ -308,11 +326,22 @@ class MultiAgentExecutor:
             },
         )
 
-        # Execute with retry
+        # Execute with retry + timeout
         for attempt in range(task.max_retries + 1):
+            # Check cancellation between retries
+            if task.cancelled:
+                task.status = TaskStatus.SKIPPED
+                task.error = "Task cancelled during execution"
+                task.completed_at = time.time()
+                agent.status = AgentStatus.IDLE
+                return
+
             try:
                 agent.status = AgentStatus.RUNNING
-                response = await agent.handle_message(message)
+                response = await asyncio.wait_for(
+                    agent.handle_message(message),
+                    timeout=task.timeout_sec,
+                )
                 agent.status = AgentStatus.IDLE
 
                 if response.type == MessageType.ERROR:
@@ -339,6 +368,25 @@ class MultiAgentExecutor:
                 )
                 return
 
+            except asyncio.TimeoutError:
+                task.retries = attempt + 1
+                agent.status = AgentStatus.IDLE
+                if attempt < task.max_retries:
+                    logger.warning(
+                        "Executor: task %s timed out (%.1fs) — retrying (%d/%d)",
+                        task.id, task.timeout_sec, attempt + 1, task.max_retries,
+                    )
+                    await asyncio.sleep(0.1 * (attempt + 1))
+                else:
+                    task.status = TaskStatus.FAILED
+                    task.error = f"Task timed out after {task.timeout_sec}s ({task.retries} attempts)"
+                    task.completed_at = time.time()
+                    self.context.add_trace(agent.agent_id, f"task_timeout:{task.id}", {
+                        "timeout_sec": task.timeout_sec,
+                        "retries": task.retries,
+                    })
+                    logger.error("Executor: task %s timed out", task.id)
+
             except Exception as exc:
                 task.retries = attempt + 1
                 if attempt < task.max_retries:
@@ -360,6 +408,27 @@ class MultiAgentExecutor:
                         "Executor: task %s failed after %d attempts: %s",
                         task.id, task.retries, exc,
                     )
+
+    # ------------------------------------------------------------------
+    # Plan cancellation
+    # ------------------------------------------------------------------
+
+    def cancel_plan(self, plan: ExecutionPlan) -> ExecutionPlan:
+        """Cancel all pending tasks in a plan.
+        取消计划中所有待执行的任务。
+        """
+        for task in plan.tasks:
+            if task.status in (TaskStatus.PENDING, TaskStatus.RUNNING):
+                task.cancelled = True
+                if task.status == TaskStatus.PENDING:
+                    task.status = TaskStatus.SKIPPED
+                    task.error = "Cancelled by user"
+                    task.completed_at = time.time()
+        plan.status = TaskStatus.FAILED
+        plan.completed_at = time.time()
+        self.context.add_trace("executor", "plan_cancelled", {"plan_id": plan.id})
+        logger.info("Executor: plan %s cancelled", plan.id)
+        return plan
 
     # ------------------------------------------------------------------
     # Plan builders

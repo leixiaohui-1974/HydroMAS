@@ -15,7 +15,7 @@ import logging
 
 from fastapi import APIRouter
 
-from web.deps import get_agent_context, get_agent_registry, get_message_bus
+from web.deps import get_agent_context, get_agent_registry, get_health_monitor, get_message_bus
 from web.models import AgentMessageRequest, ExecutionPlanRequest
 
 logger = logging.getLogger(__name__)
@@ -71,6 +71,37 @@ async def find_by_capability(capability: str):
             for a in agents
         ],
     }
+
+
+# ---------- Agent Health / Agent 健康检查 ----------
+
+@router.get("/health")
+async def check_all_health():
+    """Run health checks on all registered agents.
+    对所有已注册 Agent 运行健康检查。
+    """
+    monitor = get_health_monitor()
+    result = await monitor.check_all_health()
+    return result
+
+
+@router.get("/agents/{agent_id}/health")
+async def check_agent_health(agent_id: str):
+    """Run a health check on a specific agent.
+    对特定 Agent 运行健康检查。
+    """
+    monitor = get_health_monitor()
+    result = await monitor.check_agent_health(agent_id)
+    return result
+
+
+@router.get("/metrics")
+async def get_platform_health():
+    """Get platform-wide health summary and metrics.
+    获取平台整体健康摘要与指标。
+    """
+    monitor = get_health_monitor()
+    return monitor.get_platform_health()
 
 
 # ---------- Agent Messaging / Agent 消息通信 ----------

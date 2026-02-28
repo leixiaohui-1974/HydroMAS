@@ -116,3 +116,15 @@ def get_agent_context():
                 from agents.context import AgentContext
                 get_agent_context._instance = AgentContext()
     return get_agent_context._instance
+
+
+def get_health_monitor():
+    """Get or create the singleton AgentHealthMonitor (thread-safe).
+    获取或创建单例 AgentHealthMonitor（线程安全）。
+    """
+    if not hasattr(get_health_monitor, "_instance"):
+        with _lock:
+            if not hasattr(get_health_monitor, "_instance"):
+                from agents.health import AgentHealthMonitor
+                get_health_monitor._instance = AgentHealthMonitor(get_agent_registry())
+    return get_health_monitor._instance
