@@ -283,3 +283,103 @@ class DailyReportRequest(BaseModel):
         default=["balance", "anomaly", "kpi", "evaporation", "reuse"],
         description="包含章节"
     )
+
+
+# ---------- Orchestration / 多智能体编排 ----------
+
+class AgentMessageRequest(BaseModel):
+    action: str = Field(..., min_length=1, max_length=200, description="动作名称")
+    params: dict = Field(default_factory=dict, description="动作参数")
+
+
+class ExecutionTaskRequest(BaseModel):
+    task_id: str = Field(..., min_length=1, max_length=100, description="任务 ID")
+    agent_id: str = Field(..., min_length=1, max_length=100, description="Agent ID")
+    action: str = Field(..., min_length=1, max_length=200, description="动作名称")
+    params: dict = Field(default_factory=dict, description="任务参数")
+    dependencies: list[str] = Field(default_factory=list, description="依赖任务 ID 列表")
+
+
+class ExecutionPlanRequest(BaseModel):
+    objective: str = Field(..., min_length=1, max_length=500, description="执行目标")
+    tasks: list[ExecutionTaskRequest] = Field(..., min_length=1, max_length=50, description="任务列表")
+
+
+# ---------- Agent Lifecycle / Agent 生命周期 ----------
+
+class AgentLifecycleRequest(BaseModel):
+    action: Literal["start", "stop", "pause", "resume"] = Field(
+        ..., description="生命周期操作"
+    )
+
+
+class BatchAgentRequest(BaseModel):
+    action: Literal["start", "stop", "pause", "resume"] = Field(
+        ..., description="批量操作类型"
+    )
+    agent_ids: list[str] = Field(
+        ..., min_length=1, max_length=50,
+        description="目标 Agent ID 列表",
+    )
+
+
+# ---------- Cross-Domain Workflow / 跨域工作流 ----------
+
+class CrossDomainWorkflowRequest(BaseModel):
+    user_input: str = Field(
+        ..., min_length=1, max_length=2000,
+        description="自然语言工作流描述",
+    )
+    params: dict = Field(default_factory=dict, description="附加参数")
+    auto_replan: bool = Field(False, description="失败时是否自动重规划")
+
+
+# ---------- Intelligence / 智能升级 ----------
+
+class IntentRequest(BaseModel):
+    user_input: str = Field(
+        ..., min_length=1, max_length=2000,
+        description="用户自然语言输入",
+    )
+    compound: bool = Field(False, description="是否检测复合意图")
+
+
+# ---------- Feishu / 飞书集成 ----------
+
+class FeishuWebhookRequest(BaseModel):
+    raw_body: dict = Field(..., description="飞书回调原始 JSON 体")
+
+
+class FeishuAlertRequest(BaseModel):
+    alert_id: str = Field(default="", description="告警 ID")
+    severity: str = Field(
+        default="info",
+        description="告警级别 (info/warning/critical)",
+    )
+    dimension: str = Field(default="", description="告警维度")
+    message: str = Field(default="", max_length=2000, description="告警消息")
+    value: float = Field(default=0.0, description="当前值")
+    threshold: float = Field(default=0.0, description="阈值")
+
+
+# ---------- Gateway / 网关 (OpenClaw 集成) ----------
+
+class GatewayRequest(BaseModel):
+    message: str = Field(
+        ..., min_length=1, max_length=5000,
+        description="用户自然语言输入",
+    )
+    role: Literal["researcher", "designer", "operator"] = Field(
+        "operator", description="助理角色 (科研/设计/运维)",
+    )
+    session_id: str = Field(default="", description="会话 ID (用于上下文跟踪)")
+    params: dict = Field(default_factory=dict, description="附加参数")
+
+
+class GatewayToolRequest(BaseModel):
+    skill_name: str = Field(
+        ..., min_length=1, max_length=200,
+        description="技能名称",
+    )
+    params: dict = Field(default_factory=dict, description="技能参数")
+    role: str = Field(default="operator", description="调用角色")

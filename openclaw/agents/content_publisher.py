@@ -13,6 +13,8 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
 from openclaw.models import (
     ContentStage,
     ImageConfig,
@@ -45,13 +47,64 @@ class PublishResult:
         }
 
 
-class ContentPublisherAgent:
+class ContentPublisherAgent(BaseAgent):
     """Content Publisher Agent — orchestrates multi-channel publishing.
     内容发布Agent — 编排多渠道发布。
     """
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self._publish_history: list[PublishResult] = []
+
+    def get_capabilities(self) -> list[str]:
+        return [
+            "publish_planning",
+            "feishu_publish",
+            "wechat_publish",
+            "video_generation",
+            "config_validation",
+        ]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "plan_publish")
+        try:
+            if action == "plan_publish":
+                result = self.plan_publish(
+                    message.content.get("channels", []),
+                    message.content.get("article_path", ""),
+                    message.content.get("doc_token", ""),
+                )
+                return message.reply({"result": result})
+            elif action == "validate_config":
+                result = self.validate_config(
+                    message.content.get("channel", ""),
+                    message.content.get("config", {}),
+                )
+                return message.reply({"result": result})
+            elif action == "publish_feishu_images":
+                cfg = ImageConfig(**message.content.get("config", {}))
+                result = self.publish_feishu_images(cfg)
+                return message.reply({"result": result.to_dict()})
+            elif action == "publish_wechat":
+                cfg = PublishConfig(**{
+                    k: v for k, v in message.content.get("config", {}).items()
+                    if k in PublishConfig.__dataclass_fields__
+                })
+                result = self.publish_wechat(cfg)
+                return message.reply({"result": result.to_dict()})
+            elif action == "generate_video":
+                cfg = VideoConfig(**{
+                    k: v for k, v in message.content.get("config", {}).items()
+                    if k in VideoConfig.__dataclass_fields__
+                })
+                result = self.generate_video(cfg)
+                return message.reply({"result": result.to_dict()})
+            elif action == "get_history":
+                return message.reply({"result": self.get_publish_history()})
+            else:
+                return message.error_reply(f"Unknown action: {action}")
+        except Exception as exc:
+            return message.error_reply(str(exc))
 
     def plan_publish(
         self,

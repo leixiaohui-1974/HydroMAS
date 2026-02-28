@@ -14,6 +14,9 @@ import math
 from dataclasses import dataclass, field
 from typing import Any
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 logger = logging.getLogger(__name__)
 
 
@@ -64,7 +67,7 @@ class DispatchAction:
     valve_positions: list[float] = field(default_factory=list)
 
 
-class RLDispatchAgent:
+class RLDispatchAgent(BaseAgent):
     """Reinforcement Learning Dispatch Agent.
     强化学习调度 Agent。
 
@@ -78,7 +81,9 @@ class RLDispatchAgent:
         self,
         twin_engine: Any | None = None,
         model_path: str | None = None,
+        **kwargs,
     ):
+        super().__init__(**kwargs)
         self.twin_engine = twin_engine
         self.model_path = model_path
         self._rl_model: Any | None = None
@@ -95,6 +100,29 @@ class RLDispatchAgent:
         self.max_intake: float = 500.0  # m3/h per source
 
         self._try_load_rl(model_path)
+
+    def get_capabilities(self) -> list[str]:
+        return ["rl_dispatch", "water_scheduling", "policy_training", "policy_evaluation"]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "get_action")
+        params = message.content.get("params", {})
+        if action == "get_action":
+            state = DispatchState(**params) if isinstance(params, dict) else params
+            result = self.get_action(state)
+            return message.reply({
+                "intake_flows": result.intake_flows,
+                "pump_states": result.pump_states,
+                "valve_positions": result.valve_positions,
+            })
+        elif action == "evaluate":
+            result = self.evaluate(params.get("n_episodes", 100))
+            return message.reply(result)
+        elif action == "train":
+            result = self.train(params.get("n_episodes", 1000), params.get("save_path"))
+            return message.reply(result)
+        else:
+            return message.error_reply(f"Unknown dispatch action: {action}")
 
     # ------------------------------------------------------------------
     # Public API

@@ -12,6 +12,8 @@ import copy
 import logging
 from dataclasses import dataclass, field
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
 from agents.planning_agent import TaskNode, TaskPlan
 
 logger = logging.getLogger(__name__)
@@ -105,12 +107,30 @@ MODULE_KEYWORDS: dict[str, list[str]] = {
 # DevPlannerAgent
 # ---------------------------------------------------------------------------
 
-class DevPlannerAgent:
+class DevPlannerAgent(BaseAgent):
     """Development Planner — analyses requirements and generates plans.
     开发规划 Agent — 分析需求并生成实施计划。
 
     Inspired by MetaGPT Product Manager + Architect roles.
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_capabilities(self) -> list[str]:
+        return ["requirement_analysis", "plan_generation", "design_doc", "task_decomposition"]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "plan")
+        params = message.content.get("params", {})
+        if action == "plan":
+            result = self.plan(params.get("user_input", params.get("query", "")), params.get("context"))
+        elif action == "analyse_requirement":
+            req = self.analyse_requirement(params.get("user_input", ""))
+            result = req.to_dict()
+        else:
+            return message.error_reply(f"Unknown dev_planner action: {action}")
+        return message.reply(result)
 
     # Pre-defined plan templates for common development tasks
     PLAN_TEMPLATES: dict[str, list[TaskNode]] = {

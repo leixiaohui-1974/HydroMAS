@@ -10,6 +10,9 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,12 +23,39 @@ def _escape_md(text: str) -> str:
     return text.replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
 
 
-class ReportAgent:
+class ReportAgent(BaseAgent):
     """Report generation agent.
     报告生成 Agent。
 
     Produces structured Markdown reports from analysis results.
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_capabilities(self) -> list[str]:
+        return [
+            "report_generation", "control_report", "odd_report",
+            "lifecycle_report", "water_balance_report",
+            "daily_report", "leak_report",
+        ]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "")
+        params = message.content.get("params", {})
+        generators = {
+            "control_report": self.generate_control_report,
+            "odd_report": self.generate_odd_report,
+            "lifecycle_report": self.generate_lifecycle_report,
+            "water_balance_report": self.generate_water_balance_report,
+            "daily_report": self.generate_daily_operation_report,
+            "leak_report": self.generate_leak_diagnosis_report,
+        }
+        gen = generators.get(action)
+        if gen is None:
+            return message.error_reply(f"Unknown report action: {action}")
+        report_md = gen(params.get("data", params))
+        return message.reply({"report": report_md})
 
     def generate_control_report(self, results: dict) -> str:
         """Generate a control system design report.

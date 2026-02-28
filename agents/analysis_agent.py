@@ -11,10 +11,13 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from agents.base_agent import BaseAgent
+from agents.message import AgentMessage, MessageType
+
 logger = logging.getLogger(__name__)
 
 
-class AnalysisAgent:
+class AnalysisAgent(BaseAgent):
     """Analysis Agent for flexible data analysis.
     灵活数据分析 Agent。
 
@@ -24,6 +27,34 @@ class AnalysisAgent:
         - Optimization (dynamically construct optimization problems)
         - Visualization (generate matplotlib/plotly code)
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_capabilities(self) -> list[str]:
+        return [
+            "scheme_comparison", "sensitivity_analysis",
+            "visualization", "water_balance_analysis",
+            "evaporation_analysis", "reuse_comparison",
+        ]
+
+    async def handle_message(self, message: AgentMessage) -> AgentMessage:
+        action = message.content.get("action", "")
+        params = message.content.get("params", {})
+        if action == "compare_schemes":
+            result = await self.compare_schemes(**params)
+        elif action == "analyze_water_balance":
+            result = await self.analyze_water_balance(**params)
+        elif action == "analyze_evaporation_trend":
+            result = await self.analyze_evaporation_trend(**params)
+        elif action == "compare_reuse_strategies":
+            result = await self.compare_reuse_strategies(**params)
+        elif action == "generate_visualization_code":
+            code = await self.generate_visualization_code(**params)
+            result = {"code": code}
+        else:
+            return message.error_reply(f"Unknown analysis action: {action}")
+        return message.reply(result)
 
     async def compare_schemes(
         self,

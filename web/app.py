@@ -27,9 +27,12 @@ from web.routers import (
     dispatch,
     evaluation,
     evaporation,
+    feishu,
+    gateway,
     identification,
     leak_detection,
     odd,
+    orchestration,
     prediction,
     report,
     reuse,
@@ -152,6 +155,18 @@ app.include_router(evaporation.router, prefix="/api/evaporation", tags=["Evapora
 app.include_router(reuse.router, prefix="/api/reuse", tags=["Reuse / 回用优化"])
 app.include_router(dispatch.router, prefix="/api/dispatch", tags=["Dispatch / 调度优化"])
 app.include_router(report.router, prefix="/api/report", tags=["Report / 运营报告"])
+app.include_router(
+    orchestration.router, prefix="/api/orchestration",
+    tags=["Orchestration / 多智能体编排"],
+)
+app.include_router(
+    feishu.router, prefix="/api/feishu",
+    tags=["Feishu / 飞书集成"],
+)
+app.include_router(
+    gateway.router, prefix="/api/gateway",
+    tags=["Gateway / OpenClaw 网关"],
+)
 
 
 # ---------- User Roles / 用户角色 ----------

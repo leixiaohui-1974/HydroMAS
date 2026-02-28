@@ -188,6 +188,67 @@ class BaseSkill(ABC):
 
         return fn(**params)
 
+    async def call_agent(
+        self,
+        agent_id: str,
+        action: str,
+        params: dict | None = None,
+        registry: Any | None = None,
+        timeout: float = 30.0,
+    ) -> dict:
+        """Delegate work to an Agent via the multi-agent infrastructure.
+        通过多智能体基础设施将工作委托给 Agent。
+
+        This bridges the Skill (L3) ↔ Agent (L4) layers, allowing
+        Skills to leverage Agent intelligence during workflow execution.
+
+        Args:
+            agent_id: Target agent identifier / 目标 Agent ID
+            action: Action to invoke on the agent / 调用的动作
+            params: Parameters for the action / 动作参数
+            registry: AgentRegistry instance (optional, for dependency injection)
+            timeout: Timeout in seconds / 超时秒数
+
+        Returns:
+            Response content dict from the agent.
+
+        Raises:
+            ValueError: If agent is not found or registry unavailable.
+            TimeoutError: If agent does not respond within timeout.
+        """
+        if registry is None:
+            # Try lazy import from web deps (available when running in web context)
+            try:
+                from web.deps import get_agent_registry
+                registry = get_agent_registry()
+            except ImportError:
+                raise ValueError(
+                    "No AgentRegistry available. Pass registry= or run within web context."
+                )
+
+        from agents.message import AgentMessage, MessageType
+
+        agent = registry.get_agent(agent_id)
+        if agent is None:
+            raise ValueError(f"Agent '{agent_id}' not found in registry")
+
+        message = AgentMessage(
+            type=MessageType.REQUEST,
+            sender=f"skill:{self.__class__.__name__}",
+            recipient=agent_id,
+            content={"action": action, **(params or {})},
+        )
+
+        response = await asyncio.wait_for(
+            agent.handle_message(message),
+            timeout=timeout,
+        )
+        if response.type == MessageType.ERROR:
+            raise RuntimeError(
+                f"Agent '{agent_id}' returned error: {response.content.get('error', 'Unknown')}"
+            )
+        return response.content
+
     async def run(self, params: dict) -> SkillResult:
         """Run the Skill with timing and error handling.
         运行 Skill，带计时和错误处理。
