@@ -228,6 +228,22 @@ async def list_capabilities():
     }
 
 
+# ---------- Negotiation / 协商 ----------
+
+@router.get("/negotiate/{capability}")
+async def negotiate_capability(capability: str):
+    """Negotiate which agent should handle a capability.
+    协商哪个 Agent 应处理某项能力。
+    """
+    from agents.negotiation import CapabilityNegotiator
+
+    registry = get_agent_registry()
+    monitor = get_health_monitor()
+    negotiator = CapabilityNegotiator(registry, health_monitor=monitor)
+    result = negotiator.negotiate(capability)
+    return result.to_dict()
+
+
 # ---------- Message Bus / 消息总线 ----------
 
 @router.get("/message-history")

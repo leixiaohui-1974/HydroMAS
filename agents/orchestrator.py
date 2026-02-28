@@ -66,15 +66,48 @@ class OrchestratorAgent(BaseAgent):
         Level 2: Match Tool keywords → direct tool call
         Level 3: Capability-based routing → find agent by capability via registry
         Level 4: No match → delegate to Planning Agent for decomposition
+
+    Phase 3 enhancements:
+        - Health-aware agent delegation (prefers healthy, low-latency agents)
+        - Event-driven workflow: emits routing/execution events via MessageBus
+        - Cross-domain workflow orchestration (plan → execute → replan on failure)
     """
 
-    def __init__(self, registry: AgentRegistry | None = None, **kwargs):
+    def __init__(
+        self,
+        registry: AgentRegistry | None = None,
+        health_monitor: Any | None = None,
+        message_bus: Any | None = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.skills = discover_skills()
         self._skill_instances: dict[str, Any] = {}
         self.registry = registry
+        self.health_monitor = health_monitor
+        self.message_bus = message_bus
         self.context = AgentContext()
         self._load_skill_instances()
+
+    # ------------------------------------------------------------------
+    # Event emission
+    # ------------------------------------------------------------------
+
+    async def _emit_event(self, topic: str, data: dict) -> None:
+        """Publish a routing/orchestration event via MessageBus.
+        通过 MessageBus 发布路由/编排事件。
+        """
+        if self.message_bus is None:
+            return
+        event = AgentMessage(
+            type=MessageType.EVENT,
+            sender=self.agent_id,
+            content={"topic": topic, **data},
+        )
+        try:
+            await self.message_bus.publish(topic, event)
+        except Exception:
+            pass  # Non-critical — don't block main flow
 
     # ------------------------------------------------------------------
     # BaseAgent interface
@@ -215,8 +248,8 @@ class OrchestratorAgent(BaseAgent):
         }
 
     def _match_capability(self, input_lower: str) -> dict | None:
-        """Try to match input to a registered agent's capability.
-        尝试将输入匹配到已注册 Agent 的能力。
+        """Try to match input to a registered agent's capability (health-aware).
+        尝试将输入匹配到已注册 Agent 的能力（健康感知）。
         """
         if not self.registry:
             return None
@@ -228,18 +261,24 @@ class OrchestratorAgent(BaseAgent):
             "rl_dispatch": ["强化学习调度", "rl dispatch", "reinforcement"],
             "report_generation": ["生成报告", "generate report", "report"],
             "dev_pipeline": ["开发流水线", "dev pipeline", "collaborative dev"],
+            "content_planning": ["内容规划", "content plan", "写作计划"],
+            "content_review": ["内容审核", "content review", "文章审查"],
+            "content_publish": ["内容发布", "publish content", "发布文章"],
         }
 
         for capability, keywords in capability_keywords.items():
             if any(kw in input_lower for kw in keywords):
-                agents = self.registry.find_by_capability(capability)
-                if agents:
+                # Use health-aware selection if monitor available
+                best = self.registry.find_best_agent(
+                    capability, health_monitor=self.health_monitor,
+                )
+                if best:
                     return {
                         "route_type": "agent",
-                        "target": agents[0].agent_id,
+                        "target": best.agent_id,
                         "confidence": 0.6,
                         "capability": capability,
-                        "message": f"Routing to {agents[0].__class__.__name__} via capability match",
+                        "message": f"Routing to {best.__class__.__name__} via capability match",
                     }
         return None
 
@@ -265,6 +304,13 @@ class OrchestratorAgent(BaseAgent):
         self.context.add_trace(self.agent_id, "classify_intent", {
             "input": user_input[:100],
             "intent": intent,
+        })
+
+        # Emit routing event
+        await self._emit_event("orchestrator.routed", {
+            "route_type": intent["route_type"],
+            "target": intent["target"],
+            "confidence": intent.get("confidence", 0),
         })
 
         if intent["route_type"] == "skill":
@@ -372,6 +418,7 @@ class OrchestratorAgent(BaseAgent):
         self,
         objective: str,
         agent_tasks: list[dict],
+        auto_replan: bool = False,
     ) -> dict:
         """Run a collaborative workflow across multiple agents.
         跨多个 Agent 运行协作工作流。
@@ -379,6 +426,7 @@ class OrchestratorAgent(BaseAgent):
         Args:
             objective: Workflow objective description
             agent_tasks: List of {agent_id, action, params, dependencies} dicts
+            auto_replan: If True, automatically replan on failure using PlanningAgent
 
         Returns:
             Workflow execution result.
@@ -388,7 +436,11 @@ class OrchestratorAgent(BaseAgent):
         if not self.registry:
             return {"status": "failed", "error": "No registry configured for multi-agent execution"}
 
-        executor = MultiAgentExecutor(self.registry, self.context)
+        executor = MultiAgentExecutor(
+            self.registry, self.context,
+            health_monitor=self.health_monitor,
+            message_bus=self.message_bus,
+        )
 
         plan = ExecutionPlan(objective=objective)
         for i, task_def in enumerate(agent_tasks):
@@ -403,10 +455,119 @@ class OrchestratorAgent(BaseAgent):
 
         result = await executor.execute(plan)
 
+        # Auto-replan on failure if requested
+        if auto_replan and result.has_failures:
+            await self._emit_event("orchestrator.replanning", {
+                "plan_id": result.id,
+                "failed_tasks": [t.id for t in result.get_failed_tasks()],
+            })
+            planner = self.registry.get_agent("planning") if self.registry else None
+            if planner:
+                from agents.planning_agent import PlanningAgent, TaskNode, TaskPlan
+                if isinstance(planner, PlanningAgent):
+                    original_tp = TaskPlan(objective=objective)
+                    for t in result.tasks:
+                        original_tp.add_node(TaskNode(
+                            id=t.id,
+                            description=t.action,
+                            tool_or_skill=t.agent_id,
+                            dependencies=t.dependencies,
+                            status="failed" if t.status.value == "failed" else t.status.value,
+                        ))
+                    failed_ids = [t.id for t in result.get_failed_tasks()]
+                    new_tp = planner.replan(original_tp, failed_ids)
+                    if new_tp.nodes:
+                        replan = ExecutionPlan(objective=new_tp.objective)
+                        for node in new_tp.nodes:
+                            replan.add_task(ExecutionTask(
+                                id=node.id,
+                                agent_id=node.tool_or_skill,
+                                action=node.tool_or_skill,
+                                params=node.params,
+                                dependencies=node.dependencies,
+                            ))
+                        replan_result = await executor.execute(replan)
+                        self.context.add_trace(self.agent_id, "replanned_workflow", {
+                            "original_plan_id": result.id,
+                            "replan_id": replan_result.id,
+                            "status": replan_result.status.value,
+                        })
+                        return {
+                            **replan_result.to_dict(),
+                            "replanned": True,
+                            "original_plan_id": result.id,
+                        }
+
         self.context.add_trace(self.agent_id, "collaborative_workflow", {
             "plan_id": result.id,
             "status": result.status.value,
             "n_tasks": len(result.tasks),
+        })
+
+        return result.to_dict()
+
+    async def run_cross_domain_workflow(
+        self,
+        user_input: str,
+        params: dict | None = None,
+    ) -> dict:
+        """Plan and execute a cross-domain workflow from natural language.
+        从自然语言规划并执行跨域工作流。
+
+        Uses PlanningAgent for decomposition → Executor for DAG execution.
+
+        Args:
+            user_input: Natural language workflow description
+            params: Additional parameters
+
+        Returns:
+            Workflow execution result.
+        """
+        if not self.registry:
+            return {"status": "failed", "error": "No registry configured"}
+
+        # Step 1: Use PlanningAgent to decompose into task DAG
+        planner = self.registry.get_agent("planning")
+        if planner is None:
+            return {"status": "failed", "error": "PlanningAgent not found in registry"}
+
+        from agents.planning_agent import PlanningAgent
+        if not isinstance(planner, PlanningAgent):
+            return {"status": "failed", "error": "planning agent is not a PlanningAgent"}
+
+        task_plan = planner.plan(user_input, params)
+
+        # Step 2: Convert TaskPlan → ExecutionPlan
+        from agents.executor import ExecutionPlan, ExecutionTask, MultiAgentExecutor
+
+        exec_plan = ExecutionPlan(objective=task_plan.objective)
+        for node in task_plan.nodes:
+            exec_plan.add_task(ExecutionTask(
+                id=node.id,
+                agent_id=node.tool_or_skill,
+                action=node.tool_or_skill,
+                params=node.params,
+                dependencies=node.dependencies,
+            ))
+
+        # Step 3: Execute with health-aware executor
+        executor = MultiAgentExecutor(
+            self.registry, self.context,
+            health_monitor=self.health_monitor,
+            message_bus=self.message_bus,
+        )
+
+        await self._emit_event("orchestrator.cross_domain", {
+            "objective": task_plan.objective,
+            "task_count": len(task_plan.nodes),
+        })
+
+        result = await executor.execute(exec_plan)
+
+        self.context.add_trace(self.agent_id, "cross_domain_workflow", {
+            "plan_id": result.id,
+            "objective": task_plan.objective,
+            "status": result.status.value,
         })
 
         return result.to_dict()

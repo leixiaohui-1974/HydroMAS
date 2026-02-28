@@ -28,6 +28,7 @@ from agents.message import (
     MessageType,
 )
 from agents.health import AgentHealthMonitor, AgentMetrics
+from agents.negotiation import AgentBid, CapabilityNegotiator, NegotiationResult
 from agents.registry import AgentRegistry
 
 # Domain agents
@@ -61,6 +62,9 @@ __all__ = [
     "TaskStatus",
     "AgentHealthMonitor",
     "AgentMetrics",
+    "CapabilityNegotiator",
+    "NegotiationResult",
+    "AgentBid",
     # Domain agents
     "OrchestratorAgent",
     "TOOL_KEYWORDS",
