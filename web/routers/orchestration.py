@@ -15,7 +15,10 @@ import logging
 
 from fastapi import APIRouter
 
-from web.deps import get_agent_context, get_agent_registry, get_health_monitor, get_message_bus
+from web.deps import (
+    get_agent_context, get_agent_registry, get_executor,
+    get_health_monitor, get_message_bus,
+)
 from web.models import AgentMessageRequest, ExecutionPlanRequest
 
 logger = logging.getLogger(__name__)
@@ -139,10 +142,9 @@ async def execute_plan(req: ExecutionPlanRequest):
     """Execute a multi-agent DAG execution plan.
     执行多 Agent DAG 执行计划。
     """
-    from agents.executor import ExecutionPlan, ExecutionTask, MultiAgentExecutor
+    from agents.executor import ExecutionPlan, ExecutionTask
 
-    registry = get_agent_registry()
-    context = get_agent_context()
+    executor = get_executor()
 
     # Build execution plan from request
     plan = ExecutionPlan(objective=req.objective)
@@ -162,7 +164,6 @@ async def execute_plan(req: ExecutionPlanRequest):
         return {"error": "Plan validation failed", "validation_errors": [str(e)]}
 
     # Execute
-    executor = MultiAgentExecutor(registry, context)
     result_plan = await executor.execute(plan)
 
     return {
@@ -180,6 +181,50 @@ async def execute_plan(req: ExecutionPlanRequest):
             }
             for t in result_plan.tasks
         ],
+    }
+
+
+# ---------- Plan Management / 计划管理 ----------
+
+@router.get("/execution-plans")
+async def list_execution_plans(limit: int = 20):
+    """List recent execution plans from history.
+    列出最近的执行计划历史。
+    """
+    executor = get_executor()
+    history = executor.get_history()
+    return {"plans": history[-limit:], "total": len(history)}
+
+
+@router.get("/agents/{agent_id}/metrics")
+async def get_agent_metrics(agent_id: str):
+    """Get execution metrics for a specific agent.
+    获取特定 Agent 的执行指标。
+    """
+    monitor = get_health_monitor()
+    return monitor.get_metrics(agent_id)
+
+
+@router.get("/capabilities")
+async def list_capabilities():
+    """List all capabilities across all agents with provider mapping.
+    列出所有 Agent 的能力及其提供者映射。
+    """
+    registry = get_agent_registry()
+    summary = registry.summary()
+
+    capability_map: dict[str, list[dict]] = {}
+    for agent_info in summary["agents"]:
+        for cap in agent_info["capabilities"]:
+            capability_map.setdefault(cap, []).append({
+                "agent_id": agent_info["id"],
+                "type": agent_info["type"],
+                "status": agent_info["status"],
+            })
+
+    return {
+        "total_capabilities": len(capability_map),
+        "capabilities": capability_map,
     }
 
 

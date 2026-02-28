@@ -115,6 +115,54 @@ class AgentRegistry:
             if capability in agent.get_capabilities()
         ]
 
+    def find_best_agent(
+        self,
+        capability: str,
+        health_monitor: Any | None = None,
+    ) -> BaseAgent | None:
+        """Find the best available agent for a capability, ranked by health.
+        查找能力最佳的可用 Agent，按健康度排序。
+
+        Selection criteria (in priority order):
+        1. Agent status must be IDLE or RUNNING
+        2. Agent must be healthy (if health monitor available)
+        3. Lowest error rate
+        4. Lowest average latency
+
+        Args:
+            capability: Required capability
+            health_monitor: Optional AgentHealthMonitor for health-aware ranking
+
+        Returns:
+            Best agent or None if no suitable agent found.
+        """
+        candidates = self.find_by_capability(capability)
+        if not candidates:
+            return None
+
+        # Filter out agents in ERROR/STOPPED state
+        available = [
+            a for a in candidates
+            if a.status in (AgentStatus.IDLE, AgentStatus.RUNNING)
+        ]
+        if not available:
+            # Fall back to any candidate if none are in ideal state
+            available = candidates
+
+        if len(available) == 1 or health_monitor is None:
+            return available[0]
+
+        # Rank by health metrics: prefer healthy, low error rate, low latency
+        def _score(agent: BaseAgent) -> tuple[int, float, float]:
+            m = health_monitor.get_metrics(agent.agent_id)
+            healthy = 0 if m.get("healthy", True) else 1
+            error_rate = m.get("error_rate", 0.0)
+            avg_latency = m.get("avg_latency_ms", 0.0)
+            return (healthy, error_rate, avg_latency)
+
+        available.sort(key=_score)
+        return available[0]
+
     def find_by_type(self, agent_type: type) -> list[BaseAgent]:
         """Find agents of a specific class type.
         查找特定类型的 Agent。

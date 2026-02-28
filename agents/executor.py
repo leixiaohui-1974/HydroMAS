@@ -196,9 +196,13 @@ class MultiAgentExecutor:
         self,
         registry: AgentRegistry,
         context: AgentContext | None = None,
+        health_monitor: Any | None = None,
+        message_bus: Any | None = None,
     ):
         self.registry = registry
         self.context = context or AgentContext()
+        self.health_monitor = health_monitor
+        self.message_bus = message_bus
         self._execution_history: list[ExecutionPlan] = []
 
     async def execute(self, plan: ExecutionPlan) -> ExecutionPlan:
@@ -219,6 +223,12 @@ class MultiAgentExecutor:
         self.context.add_trace("executor", "plan_started", {"plan_id": plan.id})
 
         logger.info("Executor: starting plan %s with %d tasks", plan.id, len(plan.tasks))
+
+        # Emit plan_started event
+        await self._emit_event("plan.started", {
+            "plan_id": plan.id, "objective": plan.objective,
+            "task_count": len(plan.tasks),
+        })
 
         while True:
             ready = plan.get_ready_tasks()
@@ -268,6 +278,12 @@ class MultiAgentExecutor:
         })
         self._execution_history.append(plan)
 
+        # Emit plan_completed event
+        await self._emit_event("plan.completed", {
+            "plan_id": plan.id, "status": plan.status.value,
+            "duration": plan.completed_at - plan.created_at,
+        })
+
         logger.info(
             "Executor: plan %s %s (%.2fs)",
             plan.id, plan.status.value,
@@ -293,11 +309,11 @@ class MultiAgentExecutor:
 
         agent = self.registry.get_agent(task.agent_id)
         if agent is None:
-            # Try finding agent by capability
-            candidates = self.registry.find_by_capability(task.action)
-            if candidates:
-                agent = candidates[0]
-            else:
+            # Try finding best agent by capability (health-aware)
+            agent = self.registry.find_best_agent(
+                task.action, health_monitor=self.health_monitor,
+            )
+            if agent is None:
                 task.status = TaskStatus.FAILED
                 task.error = f"No agent found for '{task.agent_id}' or capability '{task.action}'"
                 task.completed_at = time.time()
@@ -362,6 +378,18 @@ class MultiAgentExecutor:
                     "duration": task.duration,
                 })
 
+                # Record success in health monitor
+                if self.health_monitor:
+                    self.health_monitor.record_request(
+                        agent.agent_id, task.duration * 1000, success=True,
+                    )
+
+                # Emit task_completed event
+                await self._emit_event("task.completed", {
+                    "task_id": task.id, "agent_id": agent.agent_id,
+                    "action": task.action, "duration": task.duration,
+                })
+
                 logger.info(
                     "Executor: task %s completed by %s (%.2fs)",
                     task.id, agent.agent_id, task.duration,
@@ -381,6 +409,10 @@ class MultiAgentExecutor:
                     task.status = TaskStatus.FAILED
                     task.error = f"Task timed out after {task.timeout_sec}s ({task.retries} attempts)"
                     task.completed_at = time.time()
+                    if self.health_monitor:
+                        self.health_monitor.record_request(
+                            agent.agent_id, task.timeout_sec * 1000, success=False,
+                        )
                     self.context.add_trace(agent.agent_id, f"task_timeout:{task.id}", {
                         "timeout_sec": task.timeout_sec,
                         "retries": task.retries,
@@ -400,6 +432,11 @@ class MultiAgentExecutor:
                     task.error = str(exc)
                     task.completed_at = time.time()
                     agent.status = AgentStatus.IDLE
+                    if self.health_monitor:
+                        latency = (task.completed_at - task.started_at) * 1000
+                        self.health_monitor.record_request(
+                            agent.agent_id, latency, success=False,
+                        )
                     self.context.add_trace(agent.agent_id, f"task_failed:{task.id}", {
                         "error": str(exc),
                         "retries": task.retries,
@@ -408,6 +445,26 @@ class MultiAgentExecutor:
                         "Executor: task %s failed after %d attempts: %s",
                         task.id, task.retries, exc,
                     )
+
+    # ------------------------------------------------------------------
+    # Event publishing
+    # ------------------------------------------------------------------
+
+    async def _emit_event(self, topic: str, data: dict) -> None:
+        """Publish a domain event via MessageBus if connected.
+        通过 MessageBus 发布领域事件（如已连接）。
+        """
+        if self.message_bus is None:
+            return
+        event = AgentMessage(
+            type=MessageType.EVENT,
+            sender="executor",
+            content={"topic": topic, **data},
+        )
+        try:
+            await self.message_bus.publish(topic, event)
+        except Exception as exc:
+            logger.debug("Executor: event publish failed for %s: %s", topic, exc)
 
     # ------------------------------------------------------------------
     # Plan cancellation

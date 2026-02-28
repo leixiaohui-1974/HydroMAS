@@ -128,3 +128,20 @@ def get_health_monitor():
                 from agents.health import AgentHealthMonitor
                 get_health_monitor._instance = AgentHealthMonitor(get_agent_registry())
     return get_health_monitor._instance
+
+
+def get_executor():
+    """Get or create the singleton MultiAgentExecutor (thread-safe).
+    获取或创建单例 MultiAgentExecutor（线程安全）。
+    """
+    if not hasattr(get_executor, "_instance"):
+        with _lock:
+            if not hasattr(get_executor, "_instance"):
+                from agents.executor import MultiAgentExecutor
+                get_executor._instance = MultiAgentExecutor(
+                    registry=get_agent_registry(),
+                    context=get_agent_context(),
+                    health_monitor=get_health_monitor(),
+                    message_bus=get_message_bus(),
+                )
+    return get_executor._instance

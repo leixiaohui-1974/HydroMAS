@@ -265,6 +265,33 @@ class TestHealthEndpoints:
         assert "overall_error_rate" in data
 
 
+class TestPlanManagement:
+    """Test Phase 2 plan management endpoints."""
+
+    def test_list_execution_plans(self, client):
+        resp = client.get("/api/orchestration/execution-plans")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "plans" in data
+        assert "total" in data
+
+    def test_get_agent_metrics(self, client):
+        resp = client.get("/api/orchestration/agents/planning/metrics")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "agent_id" in data or "request_count" in data
+
+    def test_list_capabilities(self, client):
+        resp = client.get("/api/orchestration/capabilities")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total_capabilities" in data
+        assert "capabilities" in data
+        assert data["total_capabilities"] > 0
+        # task_decomposition should be in the capability map
+        assert "task_decomposition" in data["capabilities"]
+
+
 class TestArchitecture:
     """Test GET /api/orchestration/architecture."""
 
