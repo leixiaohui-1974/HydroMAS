@@ -20,7 +20,8 @@ L4  Agents      — 15 Agents (all extend BaseAgent with unified lifecycle)
                    DevOps:  DevPlanner, DevReviewer, DevTester, DevOrchestrator (4)
                    Content: ContentPlanner, ContentReviewer, ContentPublisher, ContentOrchestrator (4)
                    Infrastructure: BaseAgent, AgentMessage, MessageBus, AgentRegistry,
-                                   AgentContext, MultiAgentExecutor, AgentHealthMonitor
+                                   AgentContext, MultiAgentExecutor, AgentHealthMonitor,
+                                   CapabilityNegotiator
 L3  Skills      — 17 Skills (四预 + leak diagnosis + evap optimization + reuse + dispatch
                              + daily report + collaborative_dev + content_pipeline)
 L2  MCP Servers — 13 FastMCP servers (9 original + water_balance + evaporation + leak_detection + reuse)
@@ -149,7 +150,7 @@ HydroMAS/
 │   ├── alumina_odd_specs.json #   12-dimension alumina ODD
 │   ├── process_ontology.json  #   Process entities and fault modes
 │   └── sample_timeseries.csv
-├── tests/                # pytest test suite (1457 tests)
+├── tests/                # pytest test suite (1480 tests)
 │   ├── test_core/        #   Core module unit tests
 │   ├── test_compute/     #   Ray compute tests
 │   ├── test_mcp/         #   MCP server tests
@@ -238,7 +239,7 @@ from knowledge import load_ontology, query_ontology, RAGService
 ## Running Tests
 
 ```bash
-pytest                          # All 1457 tests
+pytest                          # All 1480 tests
 pytest tests/test_core/         # Core module tests only
 pytest tests/test_skills/       # Skill workflow tests
 pytest tests/test_agents/       # Agent tests (domain + dev pipeline + multi-agent infra)
