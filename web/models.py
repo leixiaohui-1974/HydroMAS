@@ -360,3 +360,26 @@ class FeishuAlertRequest(BaseModel):
     message: str = Field(default="", max_length=2000, description="告警消息")
     value: float = Field(default=0.0, description="当前值")
     threshold: float = Field(default=0.0, description="阈值")
+
+
+# ---------- Gateway / 网关 (OpenClaw 集成) ----------
+
+class GatewayRequest(BaseModel):
+    message: str = Field(
+        ..., min_length=1, max_length=5000,
+        description="用户自然语言输入",
+    )
+    role: Literal["researcher", "designer", "operator"] = Field(
+        "operator", description="助理角色 (科研/设计/运维)",
+    )
+    session_id: str = Field(default="", description="会话 ID (用于上下文跟踪)")
+    params: dict = Field(default_factory=dict, description="附加参数")
+
+
+class GatewayToolRequest(BaseModel):
+    skill_name: str = Field(
+        ..., min_length=1, max_length=200,
+        description="技能名称",
+    )
+    params: dict = Field(default_factory=dict, description="技能参数")
+    role: str = Field(default="operator", description="调用角色")

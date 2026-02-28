@@ -28,6 +28,7 @@ from web.routers import (
     evaluation,
     evaporation,
     feishu,
+    gateway,
     identification,
     leak_detection,
     odd,
@@ -161,6 +162,10 @@ app.include_router(
 app.include_router(
     feishu.router, prefix="/api/feishu",
     tags=["Feishu / 飞书集成"],
+)
+app.include_router(
+    gateway.router, prefix="/api/gateway",
+    tags=["Gateway / OpenClaw 网关"],
 )
 
 
