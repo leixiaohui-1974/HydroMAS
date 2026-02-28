@@ -20,7 +20,7 @@ L4  Agents      — 15 Agents (all extend BaseAgent with unified lifecycle)
                    DevOps:  DevPlanner, DevReviewer, DevTester, DevOrchestrator (4)
                    Content: ContentPlanner, ContentReviewer, ContentPublisher, ContentOrchestrator (4)
                    Infrastructure: BaseAgent, AgentMessage, MessageBus, AgentRegistry,
-                                   AgentContext, MultiAgentExecutor
+                                   AgentContext, MultiAgentExecutor, AgentHealthMonitor
 L3  Skills      — 17 Skills (四预 + leak diagnosis + evap optimization + reuse + dispatch
                              + daily report + collaborative_dev + content_pipeline)
 L2  MCP Servers — 13 FastMCP servers (9 original + water_balance + evaporation + leak_detection + reuse)
@@ -149,7 +149,7 @@ HydroMAS/
 │   ├── alumina_odd_specs.json #   12-dimension alumina ODD
 │   ├── process_ontology.json  #   Process entities and fault modes
 │   └── sample_timeseries.csv
-├── tests/                # pytest test suite (1373 tests)
+├── tests/                # pytest test suite (1421 tests)
 │   ├── test_core/        #   Core module unit tests
 │   ├── test_compute/     #   Ray compute tests
 │   ├── test_mcp/         #   MCP server tests
@@ -174,7 +174,8 @@ HydroMAS/
 - **Water balance**: `R = Q_in - Q_out - Q_loss - Q_evap - dV/dt` (residual ≈ 0 when balanced)
 - **Merkel evaporation**: `E = Q × Cp × ΔT / L_v × K_evap`
 - **Leak detection**: Graph Autoencoder (GAT) + acoustic fusion for pipe segment localization
-- **Multi-agent infrastructure**: BaseAgent → AgentMessage/MessageBus → AgentRegistry → AgentContext → MultiAgentExecutor
+- **Multi-agent infrastructure**: BaseAgent → AgentMessage/MessageBus → AgentRegistry → AgentContext → MultiAgentExecutor → AgentHealthMonitor
+- **Skill→Agent bridge**: BaseSkill.call_agent() connects L3 Skills to L4 Agents via MessageBus
 - **Multi-agent DevOps**: DevPlanner (requirement→DAG) → DevReviewer (code review) → DevTester (test gen) → DevOrchestrator (pipeline)
 - **Content pipeline**: ContentPlanner → ContentReviewer → ContentPublisher → ContentOrchestrator (writing→review→publish)
 - **Scenario testing**: Research (写作+建模+管理=科研), Design (MBD设计), Operations (运维) × Tank/Alumina = 6 scenarios
@@ -237,7 +238,7 @@ from knowledge import load_ontology, query_ontology, RAGService
 ## Running Tests
 
 ```bash
-pytest                          # All 1373 tests
+pytest                          # All 1421 tests
 pytest tests/test_core/         # Core module tests only
 pytest tests/test_skills/       # Skill workflow tests
 pytest tests/test_agents/       # Agent tests (domain + dev pipeline + multi-agent infra)
