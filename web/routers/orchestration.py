@@ -16,13 +16,15 @@ import logging
 from fastapi import APIRouter
 
 from web.deps import (
-    get_agent_context, get_agent_registry, get_circuit_breakers,
-    get_executor, get_health_monitor, get_message_bus,
-    get_rate_limiters, get_skill_registry, get_span_recorder,
+    get_adaptive_scheduler, get_agent_context, get_agent_registry,
+    get_circuit_breakers, get_executor, get_health_monitor,
+    get_intent_classifier, get_message_bus, get_rate_limiters,
+    get_skill_registry, get_span_recorder,
 )
 from web.models import (
     AgentLifecycleRequest, AgentMessageRequest, BatchAgentRequest,
-    CrossDomainWorkflowRequest, ExecutionPlanRequest, SkillRequest,
+    CrossDomainWorkflowRequest, ExecutionPlanRequest, IntentRequest,
+    SkillRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -682,4 +684,83 @@ async def deep_health_check():
             "total_spans": recorder.span_count,
         },
         "recent_spans": error_spans,
+    }
+
+
+# ---------- Intent Classification / 意图分类 ----------
+
+@router.post("/intent")
+async def classify_intent(req: IntentRequest):
+    """Classify user intent using semantic multi-level routing.
+    使用语义多级路由分类用户意图。
+    """
+    classifier = get_intent_classifier()
+    if req.compound:
+        results = classifier.classify_compound(req.user_input)
+        return {
+            "compound": True,
+            "intents": [r.to_dict() for r in results],
+            "count": len(results),
+        }
+    result = classifier.classify(req.user_input)
+    return result.to_dict()
+
+
+@router.get("/intent/history")
+async def get_intent_history(limit: int = 20):
+    """Get recent intent classification history.
+    获取近期意图分类历史。
+    """
+    classifier = get_intent_classifier()
+    return {
+        "history": classifier.get_intent_history(limit=min(limit, 100)),
+        "stats": classifier.get_routing_stats(),
+    }
+
+
+# ---------- Adaptive Scheduling / 自适应调度 ----------
+
+@router.get("/scheduling/status")
+async def get_scheduling_status():
+    """Get adaptive scheduler status and performance profiles.
+    获取自适应调度器状态和性能画像。
+    """
+    scheduler = get_adaptive_scheduler()
+    return scheduler.get_scheduling_status()
+
+
+@router.get("/scheduling/profiles")
+async def get_scheduling_profiles():
+    """Get all agent performance profiles.
+    获取所有 Agent 的性能画像。
+    """
+    scheduler = get_adaptive_scheduler()
+    return {"profiles": scheduler.get_all_profiles()}
+
+
+@router.get("/scheduling/recommend/{agent_id}/{action}")
+async def get_scheduling_recommendation(agent_id: str, action: str):
+    """Get scheduling recommendation for an agent and action.
+    获取 Agent + 动作的调度建议。
+    """
+    scheduler = get_adaptive_scheduler()
+    rec = scheduler.recommend(agent_id, action)
+    return rec.to_dict()
+
+
+# ---------- Negotiation History / 协商历史 ----------
+
+@router.get("/negotiation/history")
+async def get_negotiation_history(limit: int = 20):
+    """Get recent negotiation history.
+    获取近期协商历史。
+    """
+    from agents.negotiation import CapabilityNegotiator
+
+    registry = get_agent_registry()
+    monitor = get_health_monitor()
+    negotiator = CapabilityNegotiator(registry, health_monitor=monitor)
+    return {
+        "history": negotiator.get_negotiation_history(limit=min(limit, 100)),
+        "preferences": negotiator.get_all_preferences(),
     }

@@ -27,8 +27,10 @@ from agents.message import (
     MessagePriority,
     MessageType,
 )
+from agents.adaptive_scheduler import AdaptiveScheduler, SchedulingRecommendation
 from agents.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry, CircuitState
 from agents.health import AgentHealthMonitor, AgentMetrics
+from agents.intent_classifier import IntentClassifier, IntentResult
 from agents.negotiation import AgentBid, CapabilityNegotiator, NegotiationResult
 from agents.rate_limiter import AgentRateLimiterRegistry, TokenBucketLimiter
 from agents.registry import AgentRegistry
@@ -77,6 +79,10 @@ __all__ = [
     "CircuitState",
     "TokenBucketLimiter",
     "AgentRateLimiterRegistry",
+    "IntentClassifier",
+    "IntentResult",
+    "AdaptiveScheduler",
+    "SchedulingRecommendation",
     # Domain agents
     "OrchestratorAgent",
     "TOOL_KEYWORDS",

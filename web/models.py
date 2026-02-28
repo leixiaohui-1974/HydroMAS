@@ -332,3 +332,13 @@ class CrossDomainWorkflowRequest(BaseModel):
     )
     params: dict = Field(default_factory=dict, description="附加参数")
     auto_replan: bool = Field(False, description="失败时是否自动重规划")
+
+
+# ---------- Intelligence / 智能升级 ----------
+
+class IntentRequest(BaseModel):
+    user_input: str = Field(
+        ..., min_length=1, max_length=2000,
+        description="用户自然语言输入",
+    )
+    compound: bool = Field(False, description="是否检测复合意图")

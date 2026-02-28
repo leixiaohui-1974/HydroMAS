@@ -241,3 +241,51 @@ def get_skill_registry():
 
                 get_skill_registry._instance = registry
     return get_skill_registry._instance
+
+
+def get_intent_classifier():
+    """Get or create the singleton IntentClassifier (thread-safe).
+    获取或创建单例 IntentClassifier（线程安全）。
+    """
+    if not hasattr(get_intent_classifier, "_instance"):
+        with _lock:
+            if not hasattr(get_intent_classifier, "_instance"):
+                from agents.intent_classifier import IntentClassifier
+                from agents.orchestrator import TOOL_KEYWORDS
+                from skills.base_skill import discover_skills
+
+                # Build skill trigger map
+                skill_triggers = {}
+                for name, meta in discover_skills().items():
+                    skill_triggers[name] = meta.trigger_phrases
+
+                # Capability keywords for registry-based routing
+                capability_keywords = {
+                    "code_review": ["代码审查", "code review", "review code"],
+                    "test_generation": ["生成测试", "generate test", "test generation"],
+                    "domain_qa": ["知识问答", "domain question", "knowledge query"],
+                    "rl_dispatch": ["强化学习调度", "rl dispatch", "reinforcement"],
+                    "report_generation": ["生成报告", "generate report", "report"],
+                    "content_planning": ["内容规划", "content plan", "写作计划"],
+                    "content_review": ["内容审核", "content review", "文章审查"],
+                    "content_publish": ["内容发布", "publish content", "发布文章"],
+                }
+
+                get_intent_classifier._instance = IntentClassifier(
+                    skill_triggers=skill_triggers,
+                    tool_keywords=dict(TOOL_KEYWORDS),
+                    capability_keywords=capability_keywords,
+                )
+    return get_intent_classifier._instance
+
+
+def get_adaptive_scheduler():
+    """Get or create the singleton AdaptiveScheduler (thread-safe).
+    获取或创建单例 AdaptiveScheduler（线程安全）。
+    """
+    if not hasattr(get_adaptive_scheduler, "_instance"):
+        with _lock:
+            if not hasattr(get_adaptive_scheduler, "_instance"):
+                from agents.adaptive_scheduler import AdaptiveScheduler
+                get_adaptive_scheduler._instance = AdaptiveScheduler()
+    return get_adaptive_scheduler._instance
