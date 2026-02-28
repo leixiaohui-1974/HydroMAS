@@ -210,8 +210,9 @@ def get_skill_registry():
                     OptimizationDesignSkill, FullLifecycleSkill,
                     LeakDiagnosisSkill, EvapOptimizationSkill,
                     ReuseSchedulingSkill, GlobalDispatchSkill,
-                    DailyReportSkill,
+                    DailyReportSkill, CollaborativeDevSkill,
                 )
+                from openclaw.skills.content_pipeline_skill import ContentPipelineSkill
 
                 # Discover metadata from YAML files
                 metadata_map = discover_skills()
@@ -233,6 +234,8 @@ def get_skill_registry():
                     "reuse_scheduling": ReuseSchedulingSkill,
                     "global_dispatch": GlobalDispatchSkill,
                     "daily_report": DailyReportSkill,
+                    "collaborative_dev": CollaborativeDevSkill,
+                    "content_pipeline": ContentPipelineSkill,
                 }
 
                 registry: dict = {}

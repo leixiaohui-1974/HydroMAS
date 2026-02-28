@@ -20,6 +20,7 @@ from skills.optimization_design import OptimizationDesignSkill
 from skills.plan_skill import PlanSkill
 from skills.rehearsal_skill import RehearsalSkill
 from skills.reuse_scheduling import ReuseSchedulingSkill
+from skills.collaborative_dev import CollaborativeDevSkill
 from skills.warning_skill import WarningSkill
 
 __all__ = [
@@ -42,4 +43,5 @@ __all__ = [
     "ReuseSchedulingSkill",
     "GlobalDispatchSkill",
     "DailyReportSkill",
+    "CollaborativeDevSkill",
 ]
