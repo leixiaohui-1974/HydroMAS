@@ -20,6 +20,7 @@ from agents.base_agent import AgentStatus, BaseAgent
 from agents.context import AgentContext
 from agents.message import AgentMessage, MessageType
 from agents.registry import AgentRegistry
+from agents.tracing import SpanRecorder, SpanStatus, TraceContext
 
 logger = logging.getLogger(__name__)
 
@@ -198,11 +199,17 @@ class MultiAgentExecutor:
         context: AgentContext | None = None,
         health_monitor: Any | None = None,
         message_bus: Any | None = None,
+        span_recorder: SpanRecorder | None = None,
+        circuit_breakers: Any | None = None,
+        rate_limiters: Any | None = None,
     ):
         self.registry = registry
         self.context = context or AgentContext()
         self.health_monitor = health_monitor
         self.message_bus = message_bus
+        self.span_recorder = span_recorder
+        self.circuit_breakers = circuit_breakers
+        self.rate_limiters = rate_limiters
         self._execution_history: list[ExecutionPlan] = []
 
     async def execute(self, plan: ExecutionPlan) -> ExecutionPlan:
@@ -224,6 +231,21 @@ class MultiAgentExecutor:
 
         logger.info("Executor: starting plan %s with %d tasks", plan.id, len(plan.tasks))
 
+        # Create trace context for this plan execution
+        trace_ctx = TraceContext()
+        trace_ctx.baggage["plan_id"] = plan.id
+
+        # Start plan-level span
+        plan_span = None
+        if self.span_recorder:
+            plan_span = self.span_recorder.start_span(
+                name=f"plan:{plan.objective or plan.id}",
+                trace_ctx=trace_ctx,
+                agent_id="executor",
+                attributes={"plan_id": plan.id, "task_count": len(plan.tasks)},
+            )
+            trace_ctx = trace_ctx.child_context(plan_span.span_id)
+
         # Emit plan_started event
         await self._emit_event("plan.started", {
             "plan_id": plan.id, "objective": plan.objective,
@@ -239,7 +261,7 @@ class MultiAgentExecutor:
             ready.sort(key=lambda t: t.priority, reverse=True)
 
             # Execute all ready tasks concurrently
-            coros = [self._execute_task(task, plan) for task in ready]
+            coros = [self._execute_task(task, plan, trace_ctx) for task in ready]
             await asyncio.gather(*coros)
 
             # Check for unrecoverable failures
@@ -278,6 +300,16 @@ class MultiAgentExecutor:
         })
         self._execution_history.append(plan)
 
+        # Finish plan-level span
+        if plan_span and self.span_recorder:
+            plan_span.set_attribute("status", plan.status.value)
+            plan_span.set_attribute("duration", plan.completed_at - plan.created_at)
+            plan_span.finish(
+                status=SpanStatus.OK if not plan.has_failures else SpanStatus.ERROR,
+                error="Plan has failed tasks" if plan.has_failures else None,
+            )
+            self.span_recorder.record(plan_span)
+
         # Emit plan_completed event
         await self._emit_event("plan.completed", {
             "plan_id": plan.id, "status": plan.status.value,
@@ -291,11 +323,16 @@ class MultiAgentExecutor:
         )
         return plan
 
-    async def _execute_task(self, task: ExecutionTask, plan: ExecutionPlan) -> None:
+    async def _execute_task(
+        self,
+        task: ExecutionTask,
+        plan: ExecutionPlan,
+        trace_ctx: TraceContext | None = None,
+    ) -> None:
         """Execute a single task by sending a message to the target agent.
         通过向目标 Agent 发送消息来执行单个任务。
 
-        Supports timeout (per-task timeout_sec) and cancellation.
+        Supports timeout, cancellation, circuit breaker, and rate limiting.
         """
         # Check cancellation before starting
         if task.cancelled:
@@ -319,6 +356,32 @@ class MultiAgentExecutor:
                 task.completed_at = time.time()
                 logger.error("Executor: %s", task.error)
                 return
+
+        # Circuit breaker check
+        if self.circuit_breakers and not self.circuit_breakers.allow_request(agent.agent_id):
+            task.status = TaskStatus.FAILED
+            task.error = f"Circuit breaker OPEN for agent '{agent.agent_id}'"
+            task.completed_at = time.time()
+            logger.warning("Executor: %s", task.error)
+            return
+
+        # Rate limiter check
+        if self.rate_limiters and not self.rate_limiters.allow(agent.agent_id):
+            task.status = TaskStatus.FAILED
+            task.error = f"Rate limit exceeded for agent '{agent.agent_id}'"
+            task.completed_at = time.time()
+            logger.warning("Executor: %s", task.error)
+            return
+
+        # Start task-level span
+        task_span = None
+        if self.span_recorder and trace_ctx:
+            task_span = self.span_recorder.start_span(
+                name=f"task:{task.action}",
+                trace_ctx=trace_ctx,
+                agent_id=agent.agent_id,
+                attributes={"task_id": task.id, "plan_id": plan.id, "action": task.action},
+            )
 
         # Collect dependency results into task params
         dep_results = {}
@@ -378,11 +441,18 @@ class MultiAgentExecutor:
                     "duration": task.duration,
                 })
 
-                # Record success in health monitor
+                # Record success in health monitor + circuit breaker
                 if self.health_monitor:
                     self.health_monitor.record_request(
                         agent.agent_id, task.duration * 1000, success=True,
                     )
+                if self.circuit_breakers:
+                    self.circuit_breakers.record_success(agent.agent_id)
+
+                # Finish task span
+                if task_span and self.span_recorder:
+                    task_span.finish(status=SpanStatus.OK)
+                    self.span_recorder.record(task_span)
 
                 # Emit task_completed event
                 await self._emit_event("task.completed", {
@@ -413,6 +483,11 @@ class MultiAgentExecutor:
                         self.health_monitor.record_request(
                             agent.agent_id, task.timeout_sec * 1000, success=False,
                         )
+                    if self.circuit_breakers:
+                        self.circuit_breakers.record_failure(agent.agent_id)
+                    if task_span and self.span_recorder:
+                        task_span.finish(status=SpanStatus.ERROR, error=task.error)
+                        self.span_recorder.record(task_span)
                     self.context.add_trace(agent.agent_id, f"task_timeout:{task.id}", {
                         "timeout_sec": task.timeout_sec,
                         "retries": task.retries,
@@ -437,6 +512,11 @@ class MultiAgentExecutor:
                         self.health_monitor.record_request(
                             agent.agent_id, latency, success=False,
                         )
+                    if self.circuit_breakers:
+                        self.circuit_breakers.record_failure(agent.agent_id)
+                    if task_span and self.span_recorder:
+                        task_span.finish(status=SpanStatus.ERROR, error=str(exc))
+                        self.span_recorder.record(task_span)
                     self.context.add_trace(agent.agent_id, f"task_failed:{task.id}", {
                         "error": str(exc),
                         "retries": task.retries,

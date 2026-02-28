@@ -16,8 +16,9 @@ import logging
 from fastapi import APIRouter
 
 from web.deps import (
-    get_agent_context, get_agent_registry, get_executor,
-    get_health_monitor, get_message_bus, get_skill_registry,
+    get_agent_context, get_agent_registry, get_circuit_breakers,
+    get_executor, get_health_monitor, get_message_bus,
+    get_rate_limiters, get_skill_registry, get_span_recorder,
 )
 from web.models import (
     AgentLifecycleRequest, AgentMessageRequest, BatchAgentRequest,
@@ -526,4 +527,159 @@ async def get_dashboard():
             "recent_count": len(recent_messages),
             "recent": recent_messages,
         },
+    }
+
+
+# ---------- Tracing / 链路追踪 ----------
+
+@router.get("/traces")
+async def list_traces(limit: int = 20):
+    """List recent traces with summary info.
+    列出近期 Trace 的摘要信息。
+    """
+    recorder = get_span_recorder()
+    traces = recorder.get_recent_traces(limit=min(limit, 100))
+    return {
+        "total_traces": recorder.trace_count,
+        "total_spans": recorder.span_count,
+        "traces": traces,
+    }
+
+
+@router.get("/traces/{trace_id}")
+async def get_trace_detail(trace_id: str):
+    """Get all spans for a specific trace.
+    获取特定 Trace 的所有 Span。
+    """
+    recorder = get_span_recorder()
+    spans = recorder.get_trace(trace_id)
+    if not spans:
+        return {"error": f"Trace '{trace_id}' not found", "status": 404}
+    return {
+        "trace_id": trace_id,
+        "span_count": len(spans),
+        "spans": spans,
+    }
+
+
+@router.get("/spans")
+async def query_spans(
+    agent_id: str | None = None,
+    status: str | None = None,
+    min_duration_ms: float = 0.0,
+    limit: int = 50,
+):
+    """Query spans with filters.
+    按条件查询 Span。
+    """
+    from agents.tracing import SpanStatus as SS
+
+    recorder = get_span_recorder()
+    status_filter = None
+    if status:
+        try:
+            status_filter = SS(status)
+        except ValueError:
+            return {"error": f"Invalid status: {status}. Use: ok, error, unset"}
+
+    spans = recorder.query_spans(
+        agent_id=agent_id,
+        status=status_filter,
+        min_duration_ms=min_duration_ms,
+        limit=min(limit, 200),
+    )
+    return {"count": len(spans), "spans": spans}
+
+
+# ---------- Circuit Breakers / 断路器 ----------
+
+@router.get("/circuit-breakers")
+async def list_circuit_breakers():
+    """Get status of all circuit breakers.
+    获取所有断路器状态。
+    """
+    cb_registry = get_circuit_breakers()
+    statuses = cb_registry.get_all_status()
+    open_breakers = cb_registry.get_open_breakers()
+    return {
+        "total": len(statuses),
+        "open_count": len(open_breakers),
+        "open_agents": open_breakers,
+        "breakers": statuses,
+    }
+
+
+@router.post("/circuit-breakers/{agent_id}/reset")
+async def reset_circuit_breaker(agent_id: str):
+    """Reset a circuit breaker for a specific agent.
+    重置特定 Agent 的断路器。
+    """
+    cb_registry = get_circuit_breakers()
+    cb_registry.reset(agent_id)
+    breaker = cb_registry.get_breaker(agent_id)
+    return {"agent_id": agent_id, "status": breaker.state.value, "message": "Circuit breaker reset"}
+
+
+# ---------- Rate Limits / 限流 ----------
+
+@router.get("/rate-limits")
+async def list_rate_limits():
+    """Get status of all rate limiters.
+    获取所有限流器状态。
+    """
+    rl_registry = get_rate_limiters()
+    statuses = rl_registry.get_all_status()
+    return {"total": len(statuses), "limiters": statuses}
+
+
+@router.post("/rate-limits/{agent_id}")
+async def configure_rate_limit(agent_id: str, rate: float = 10.0, capacity: float = 20.0):
+    """Configure rate limit for a specific agent.
+    配置特定 Agent 的限流参数。
+    """
+    rl_registry = get_rate_limiters()
+    rl_registry.configure(agent_id, rate=rate, capacity=capacity)
+    limiter = rl_registry.get_limiter(agent_id)
+    return {"agent_id": agent_id, "configured": limiter.to_dict()}
+
+
+# ---------- Deep Health Check / 深度健康检查 ----------
+
+@router.get("/health/deep")
+async def deep_health_check():
+    """Comprehensive health check including circuit breakers, rate limits, and traces.
+    综合健康检查 — 包含断路器、限流器和追踪。
+    """
+    monitor = get_health_monitor()
+    cb_registry = get_circuit_breakers()
+    rl_registry = get_rate_limiters()
+    recorder = get_span_recorder()
+
+    # Agent health
+    agent_health = await monitor.check_all_health()
+
+    # Circuit breaker status
+    open_breakers = cb_registry.get_open_breakers()
+
+    # Platform health
+    platform = monitor.get_platform_health()
+
+    # Recent error spans
+    error_spans = recorder.query_spans(status=None, limit=5)
+
+    return {
+        "agents": agent_health,
+        "platform": platform,
+        "circuit_breakers": {
+            "open_count": len(open_breakers),
+            "open_agents": open_breakers,
+        },
+        "rate_limiters": {
+            "total_configured": len(rl_registry.get_all_status()),
+        },
+        "tracing": {
+            "total_traces": recorder.trace_count,
+            "total_spans": recorder.span_count,
+        },
+        "recent_spans": error_spans,
     }

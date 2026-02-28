@@ -130,6 +130,42 @@ def get_health_monitor():
     return get_health_monitor._instance
 
 
+def get_span_recorder():
+    """Get or create the singleton SpanRecorder (thread-safe).
+    获取或创建单例 SpanRecorder（线程安全）。
+    """
+    if not hasattr(get_span_recorder, "_instance"):
+        with _lock:
+            if not hasattr(get_span_recorder, "_instance"):
+                from agents.tracing import SpanRecorder
+                get_span_recorder._instance = SpanRecorder()
+    return get_span_recorder._instance
+
+
+def get_circuit_breakers():
+    """Get or create the singleton CircuitBreakerRegistry (thread-safe).
+    获取或创建单例 CircuitBreakerRegistry（线程安全）。
+    """
+    if not hasattr(get_circuit_breakers, "_instance"):
+        with _lock:
+            if not hasattr(get_circuit_breakers, "_instance"):
+                from agents.circuit_breaker import CircuitBreakerRegistry
+                get_circuit_breakers._instance = CircuitBreakerRegistry()
+    return get_circuit_breakers._instance
+
+
+def get_rate_limiters():
+    """Get or create the singleton AgentRateLimiterRegistry (thread-safe).
+    获取或创建单例 AgentRateLimiterRegistry（线程安全）。
+    """
+    if not hasattr(get_rate_limiters, "_instance"):
+        with _lock:
+            if not hasattr(get_rate_limiters, "_instance"):
+                from agents.rate_limiter import AgentRateLimiterRegistry
+                get_rate_limiters._instance = AgentRateLimiterRegistry()
+    return get_rate_limiters._instance
+
+
 def get_executor():
     """Get or create the singleton MultiAgentExecutor (thread-safe).
     获取或创建单例 MultiAgentExecutor（线程安全）。
@@ -143,6 +179,9 @@ def get_executor():
                     context=get_agent_context(),
                     health_monitor=get_health_monitor(),
                     message_bus=get_message_bus(),
+                    span_recorder=get_span_recorder(),
+                    circuit_breakers=get_circuit_breakers(),
+                    rate_limiters=get_rate_limiters(),
                 )
     return get_executor._instance
 

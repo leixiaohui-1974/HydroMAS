@@ -27,9 +27,12 @@ from agents.message import (
     MessagePriority,
     MessageType,
 )
+from agents.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry, CircuitState
 from agents.health import AgentHealthMonitor, AgentMetrics
 from agents.negotiation import AgentBid, CapabilityNegotiator, NegotiationResult
+from agents.rate_limiter import AgentRateLimiterRegistry, TokenBucketLimiter
 from agents.registry import AgentRegistry
+from agents.tracing import Span, SpanRecorder, SpanStatus, TraceContext
 
 # Domain agents
 from agents.analysis_agent import AnalysisAgent
@@ -65,6 +68,15 @@ __all__ = [
     "CapabilityNegotiator",
     "NegotiationResult",
     "AgentBid",
+    "Span",
+    "SpanRecorder",
+    "SpanStatus",
+    "TraceContext",
+    "CircuitBreaker",
+    "CircuitBreakerRegistry",
+    "CircuitState",
+    "TokenBucketLimiter",
+    "AgentRateLimiterRegistry",
     # Domain agents
     "OrchestratorAgent",
     "TOOL_KEYWORDS",
