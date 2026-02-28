@@ -15,7 +15,6 @@ OpenClaw 通过此网关调用 HydroMAS 的全部能力：
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import re
 import time
@@ -24,10 +23,8 @@ from fastapi import APIRouter
 
 from web.deps import (
     get_agent_registry,
-    get_executor,
     get_health_monitor,
     get_intent_classifier,
-    get_message_bus,
     get_orchestrator,
     get_skill_registry,
 )

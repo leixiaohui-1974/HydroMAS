@@ -118,7 +118,8 @@ HydroMAS/
 │   ├── dev_tester.py     #   Test generation + quality gate
 │   ├── dev_orchestrator.py #  Analyse→Plan→Implement→Review→Test pipeline
 │   └── agent_cards/      #   Agent capability definitions (11 cards)
-├── openclaw/             # OpenClaw content pipeline (multi-agent)
+├── openclaw/             # OpenClaw content pipeline (multi-agent) + gateway client
+│   ├── hydromas_client.py #  Stdlib-only Python SDK for OpenClaw→HydroMAS (NEW)
 │   ├── models.py         #   ContentStage, ArticleConfig, ImageConfig, PublishConfig, VideoConfig, ContentPipeline
 │   ├── agents/           #   Content agents
 │   │   ├── content_planner.py      # Requirement analysis → content plan
@@ -129,7 +130,7 @@ HydroMAS/
 │   └── skills/
 │       └── content_pipeline_skill.py # HydroMAS BaseSkill wrapper
 ├── openclaw-content-pipeline/  # Original OpenClaw skill scripts + articles
-│   ├── skills/           #   Feishu image pipeline, WeChat publish, article-to-video
+│   ├── skills/           #   Feishu image pipeline, WeChat publish, article-to-video, hydromas-assistant
 │   ├── articles/         #   Markdown article drafts
 │   └── configs/          #   Pipeline & video JSON configs
 ├── integrations/         # External platform integrations
@@ -140,10 +141,11 @@ HydroMAS/
 │   ├── process_ontology.py #  Alumina process ontology loader
 │   └── rag_service.py     #  TF-IDF based RAG retrieval service
 ├── web/                  # FastAPI web platform
-│   ├── app.py            #   FastAPI app with 19 routers (18 + feishu)
+│   ├── app.py            #   FastAPI app with 20 routers
 │   ├── deps.py           #   Singletons: orchestrator, registry, bus, executor, feishu, etc.
-│   ├── models.py         #   Pydantic models (original + 8 new)
-│   ├── routers/          #   API endpoints (11 original + 6 new + orchestration + feishu)
+│   ├── models.py         #   Pydantic models (original + 10 new)
+│   ├── routers/          #   API endpoints (20 routers, ~90 endpoints)
+│   │   ├── gateway.py    #   OpenClaw unified gateway: chat/skill/roles/skills/health (NEW)
 │   │   └── feishu.py     #   Feishu webhook/alert/sync/status endpoints (NEW)
 │   ├── static/           #   Frontend assets
 │   └── templates/        #   Jinja2 templates
@@ -154,18 +156,21 @@ HydroMAS/
 │   ├── alumina_odd_specs.json #   12-dimension alumina ODD
 │   ├── process_ontology.json  #   Process entities and fault modes
 │   └── sample_timeseries.csv
-├── tests/                # pytest test suite (1628 tests)
+├── tests/                # pytest test suite (1725 tests)
 │   ├── test_core/        #   Core module unit tests
 │   ├── test_compute/     #   Ray compute tests
-│   ├── test_mcp/         #   MCP server tests
+│   ├── test_mcp_servers/ #   MCP server tests
 │   ├── test_skills/      #   Skill workflow tests
-│   ├── test_agents/      #   Agent tests (domain + dev pipeline)
-│   ├── test_web/         #   Web API tests
+│   ├── test_agents/      #   Agent tests (domain + dev pipeline + multi-agent infra)
+│   ├── test_web/         #   Web API tests (all 20 routers with dedicated test files)
 │   ├── test_scenarios/   #   E2E scenario tests (6 scenarios: R1/D1/O1 tank + R2/D2/O2 alumina)
 │   ├── test_integrations/ #  Feishu integration tests (unit + E2E)
-│   └── test_openclaw/    #   OpenClaw content pipeline tests (94 tests)
+│   └── test_openclaw/    #   OpenClaw content pipeline tests
 ├── Dockerfile            # Production container
 ├── docker-compose.yml    # Full stack with TDengine + Neo4j
+├── .dockerignore         # Exclude tests/docs from Docker image
+├── .env.example          # Environment variable template
+├── deploy.sh             # Deployment script (dev/prod/test/docker)
 └── pyproject.toml
 ```
 
@@ -185,6 +190,8 @@ HydroMAS/
 - **Content pipeline**: ContentPlanner → ContentReviewer → ContentPublisher → ContentOrchestrator (writing→review→publish)
 - **Scenario testing**: Research (写作+建模+管理=科研), Design (MBD设计), Operations (运维) × Tank/Alumina = 6 scenarios
 - **Feishu integration**: Bot handler (webhook → /api/feishu/webhook), Alert sender (card messages), Bitable sync (CRUD), singleton orchestrator injection
+- **OpenClaw gateway**: Unified `/api/gateway/` entry point — chat (NL), skill (direct), roles, skills listing, health; three roles: researcher/designer/operator
+- **HydroMASClient**: Stdlib-only Python SDK (`openclaw/hydromas_client.py`) for OpenClaw skill integration — no external deps
 
 ## Import Examples
 
@@ -236,6 +243,9 @@ from integrations.feishu_bot import FeishuBotHandler
 from integrations.feishu_alert import FeishuAlertSender
 from integrations.feishu_sync import FeishuBitableSync
 
+# OpenClaw gateway client (stdlib only, for skill integration)
+from openclaw.hydromas_client import HydroMASClient
+
 # Knowledge
 from knowledge import load_ontology, query_ontology, RAGService
 ```
@@ -243,7 +253,7 @@ from knowledge import load_ontology, query_ontology, RAGService
 ## Running Tests
 
 ```bash
-pytest                          # All 1628 tests
+pytest                          # All 1725 tests
 pytest tests/test_core/         # Core module tests only
 pytest tests/test_skills/       # Skill workflow tests
 pytest tests/test_agents/       # Agent tests (domain + dev pipeline + multi-agent infra)

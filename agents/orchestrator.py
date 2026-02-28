@@ -167,6 +167,8 @@ class OrchestratorAgent(BaseAgent):
             "reuse_scheduling": "skills.reuse_scheduling.ReuseSchedulingSkill",
             "global_dispatch": "skills.global_dispatch.GlobalDispatchSkill",
             "daily_report": "skills.daily_report.DailyReportSkill",
+            "collaborative_dev": "skills.collaborative_dev.CollaborativeDevSkill",
+            "content_pipeline": "openclaw.skills.content_pipeline_skill.ContentPipelineSkill",
         })
 
         import importlib

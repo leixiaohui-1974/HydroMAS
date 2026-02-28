@@ -10,12 +10,19 @@ _lock = threading.RLock()
 
 
 def get_orchestrator():
-    """Get or create the singleton OrchestratorAgent (thread-safe)."""
+    """Get or create the singleton OrchestratorAgent (thread-safe).
+    Wired with registry, health monitor, and message bus for full routing.
+    """
     if not hasattr(get_orchestrator, "_instance"):
         with _lock:
             if not hasattr(get_orchestrator, "_instance"):
                 from agents.orchestrator import OrchestratorAgent
-                get_orchestrator._instance = OrchestratorAgent()
+                get_orchestrator._instance = OrchestratorAgent(
+                    agent_id="orchestrator",
+                    registry=get_agent_registry(),
+                    health_monitor=get_health_monitor(),
+                    message_bus=get_message_bus(),
+                )
     return get_orchestrator._instance
 
 
