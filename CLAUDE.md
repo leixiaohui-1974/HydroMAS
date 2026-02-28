@@ -140,9 +140,11 @@ HydroMAS/
 │   ├── process_ontology.py #  Alumina process ontology loader
 │   └── rag_service.py     #  TF-IDF based RAG retrieval service
 ├── web/                  # FastAPI web platform
-│   ├── app.py            #   FastAPI app with 18 routers
-│   ├── models.py         #   Pydantic models (original + 6 new)
-│   ├── routers/          #   API endpoints (11 original + 6 new + orchestration)
+│   ├── app.py            #   FastAPI app with 19 routers (18 + feishu)
+│   ├── deps.py           #   Singletons: orchestrator, registry, bus, executor, feishu, etc.
+│   ├── models.py         #   Pydantic models (original + 8 new)
+│   ├── routers/          #   API endpoints (11 original + 6 new + orchestration + feishu)
+│   │   └── feishu.py     #   Feishu webhook/alert/sync/status endpoints (NEW)
 │   ├── static/           #   Frontend assets
 │   └── templates/        #   Jinja2 templates
 ├── data/                 # Configuration files
@@ -152,7 +154,7 @@ HydroMAS/
 │   ├── alumina_odd_specs.json #   12-dimension alumina ODD
 │   ├── process_ontology.json  #   Process entities and fault modes
 │   └── sample_timeseries.csv
-├── tests/                # pytest test suite (1591 tests)
+├── tests/                # pytest test suite (1628 tests)
 │   ├── test_core/        #   Core module unit tests
 │   ├── test_compute/     #   Ray compute tests
 │   ├── test_mcp/         #   MCP server tests
@@ -160,7 +162,7 @@ HydroMAS/
 │   ├── test_agents/      #   Agent tests (domain + dev pipeline)
 │   ├── test_web/         #   Web API tests
 │   ├── test_scenarios/   #   E2E scenario tests (6 scenarios: R1/D1/O1 tank + R2/D2/O2 alumina)
-│   ├── test_integrations/ #  Feishu integration tests
+│   ├── test_integrations/ #  Feishu integration tests (unit + E2E)
 │   └── test_openclaw/    #   OpenClaw content pipeline tests (94 tests)
 ├── Dockerfile            # Production container
 ├── docker-compose.yml    # Full stack with TDengine + Neo4j
@@ -182,7 +184,7 @@ HydroMAS/
 - **Multi-agent DevOps**: DevPlanner (requirement→DAG) → DevReviewer (code review) → DevTester (test gen) → DevOrchestrator (pipeline)
 - **Content pipeline**: ContentPlanner → ContentReviewer → ContentPublisher → ContentOrchestrator (writing→review→publish)
 - **Scenario testing**: Research (写作+建模+管理=科研), Design (MBD设计), Operations (运维) × Tank/Alumina = 6 scenarios
-- **Feishu integration**: Bot handler (webhook), Alert sender (card messages), Bitable sync (CRUD)
+- **Feishu integration**: Bot handler (webhook → /api/feishu/webhook), Alert sender (card messages), Bitable sync (CRUD), singleton orchestrator injection
 
 ## Import Examples
 
@@ -241,7 +243,7 @@ from knowledge import load_ontology, query_ontology, RAGService
 ## Running Tests
 
 ```bash
-pytest                          # All 1591 tests
+pytest                          # All 1628 tests
 pytest tests/test_core/         # Core module tests only
 pytest tests/test_skills/       # Skill workflow tests
 pytest tests/test_agents/       # Agent tests (domain + dev pipeline + multi-agent infra)
