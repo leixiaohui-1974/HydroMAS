@@ -138,7 +138,7 @@ class TestDailyReport:
         assert result.success
         assert "report_markdown" in result.data
         assert "2026-02-27" in result.data["report_markdown"]
-        assert "# Daily Operation Report" in result.data["report_markdown"]
+        assert "日运营报告" in result.data["report_markdown"]
 
     @pytest.mark.asyncio
     async def test_daily_report_missing_nodes(self):
@@ -222,4 +222,4 @@ class TestDailyReport:
         })
         assert result.success
         report = result.data["report_markdown"]
-        assert "No anomalies detected" in report
+        assert "未检测到异常" in report

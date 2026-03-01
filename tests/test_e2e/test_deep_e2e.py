@@ -890,16 +890,17 @@ print("hello")
         assert link_found
 
     def test_humanize_key_known_keys(self):
-        """Known keys should return Chinese labels."""
+        """Known keys should return bilingual Chinese+English labels."""
         import hydromas_call
-        assert hydromas_call._humanize_key("initial_h") == "初始水位 (m)"
-        assert hydromas_call._humanize_key("warning_level") == "预警等级"
-        assert hydromas_call._humanize_key("leak_location") == "泄漏位置"
+        assert "初始水位" in hydromas_call._humanize_key("initial_h")
+        assert "预警等级" in hydromas_call._humanize_key("warning_level")
+        assert "泄漏位置" in hydromas_call._humanize_key("leak_location")
 
     def test_humanize_key_unknown_key(self):
-        """Unknown keys should be title-cased."""
+        """Unknown keys should be title-cased (with optional CN prefix)."""
         import hydromas_call
-        assert hydromas_call._humanize_key("custom_metric") == "Custom Metric"
+        result = hydromas_call._humanize_key("custom_metric")
+        assert "Custom Metric" in result
 
     def test_format_value_types(self):
         """_format_value should handle all types correctly."""
