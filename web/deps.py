@@ -328,11 +328,22 @@ def get_feishu_bot():
             if not hasattr(get_feishu_bot, "_instance"):
                 import os
                 from integrations.feishu_bot import FeishuBotHandler
+                # Parse user→role mapping: "uid1:admin,uid2:researcher"
+                user_roles = {}
+                roles_env = os.environ.get("FEISHU_USER_ROLES", "")
+                if roles_env:
+                    for pair in roles_env.split(","):
+                        parts = pair.strip().split(":")
+                        if len(parts) == 2:
+                            user_roles[parts[0].strip()] = parts[1].strip()
+
                 get_feishu_bot._instance = FeishuBotHandler(
                     app_id=os.environ.get("FEISHU_APP_ID", ""),
                     app_secret=os.environ.get("FEISHU_APP_SECRET", ""),
                     webhook_url=os.environ.get("FEISHU_WEBHOOK_URL", ""),
                     client=get_feishu_client(),
+                    user_roles=user_roles,
+                    rate_limit=int(os.environ.get("FEISHU_RATE_LIMIT", "5")),
                 )
     return get_feishu_bot._instance
 

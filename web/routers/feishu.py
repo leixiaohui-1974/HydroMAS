@@ -1,5 +1,12 @@
 """Feishu webhook API router — 飞书 Webhook 接入路由。
 
+Multi-user concurrent support (v0.2.2):
+- Webhook returns immediate ACK (avoids Feishu 5s timeout)
+- AI processing runs in background task
+- Response sent back via Feishu reply_message API
+- Per-user session isolation
+- Per-user rate limiting
+
 Endpoints:
     POST /api/feishu/webhook       — Receive Feishu bot event (message or challenge)
     POST /api/feishu/alert         — Send alert via Feishu webhook
@@ -7,13 +14,16 @@ Endpoints:
     POST /api/feishu/sync/flush    — Flush pending Bitable sync records
     GET  /api/feishu/sync/schemas  — Get Bitable table schemas
     GET  /api/feishu/status        — Integration health status
+    GET  /api/feishu/users         — Active Feishu users
+    POST /api/feishu/users/role    — Set user role mapping
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 
 from web.deps import get_feishu_bot, get_feishu_alert, get_feishu_sync, get_feishu_client
 from web.models import FeishuWebhookRequest, FeishuAlertRequest
@@ -27,17 +37,20 @@ router = APIRouter()
 
 
 @router.post("/webhook")
-async def feishu_webhook(body: FeishuWebhookRequest):
+async def feishu_webhook(body: FeishuWebhookRequest, background_tasks: BackgroundTasks):
     """Receive Feishu bot callback event.
     接收飞书机器人回调事件。
 
-    Handles two cases:
-    1. Challenge verification (Feishu sends { "challenge": "..." })
-    2. Message event (Feishu sends { "event": { "message": { ... } } })
+    Multi-user concurrent mode:
+    1. Challenge verification → immediate response
+    2. Message event → immediate ACK + background AI processing + async reply
+
+    飞书要求 webhook 在 5 秒内响应，AI 处理通常需要更长时间，
+    所以我们立即返回 ACK，后台异步处理并通过飞书 API 回复。
     """
     handler = get_feishu_bot()
 
-    # Challenge verification
+    # Challenge verification (must respond immediately)
     challenge_resp = handler.verify_webhook(body.raw_body)
     if challenge_resp is not None:
         return challenge_resp
@@ -57,12 +70,30 @@ async def feishu_webhook(body: FeishuWebhookRequest):
         msg_type=message_data.get("message_type", "text"),
     )
 
-    response = await handler.handle_message(msg)
-    return {
-        "card": response.to_card_json(),
-        "status": response.status,
-        "title": response.title,
-    }
+    # Skip non-text messages
+    if msg.msg_type != "text" or not msg.text.strip():
+        return {"status": "ignored", "reason": "non-text or empty"}
+
+    # Check if client is configured for async replies
+    client = get_feishu_client()
+    if client.app_id and client.app_secret:
+        # Production mode: immediate ACK + background processing
+        # Use handle_message_async which schedules background task
+        try:
+            loop = asyncio.get_running_loop()
+            ack = handler.handle_message_async(msg, loop=loop)
+        except RuntimeError:
+            ack = handler.handle_message_async(msg)
+
+        return ack
+    else:
+        # Dev mode (no Feishu credentials): synchronous processing
+        response = await handler.handle_message(msg)
+        return {
+            "card": response.to_card_json(),
+            "status": response.status,
+            "title": response.title,
+        }
 
 
 @router.post("/alert")
@@ -138,6 +169,7 @@ async def feishu_status():
             "ready": True,
             "webhook_url_configured": bool(handler.webhook_url),
             "commands": list(handler.COMMAND_MAP.keys()),
+            "active_users": handler.get_active_user_count(),
         },
         "alert": {
             "ready": True,
@@ -149,6 +181,48 @@ async def feishu_status():
             "app_token_configured": bool(sync.app_token),
             "table_schemas": list(sync.get_table_schemas().keys()),
         },
+    }
+
+
+@router.get("/users")
+async def feishu_active_users():
+    """Get active Feishu users and their roles.
+    获取活跃的飞书用户及其角色。
+    """
+    handler = get_feishu_bot()
+    active = handler.get_active_users()
+    return {
+        "active_users": {
+            uid: {
+                "last_active": ts,
+                "role": handler.get_user_role(uid),
+            }
+            for uid, ts in active.items()
+        },
+        "total": len(active),
+        "recent_1h": handler.get_active_user_count(),
+    }
+
+
+@router.post("/users/role")
+async def set_feishu_user_role(user_id: str, role: str):
+    """Set HydroClaw role for a Feishu user.
+    设置飞书用户对应的 HydroClaw 角色。
+
+    Roles: operator, designer, researcher, admin, teacher
+    """
+    valid_roles = {"operator", "designer", "researcher", "admin", "teacher"}
+    if role not in valid_roles:
+        return {
+            "error": f"Invalid role '{role}'. Valid: {', '.join(sorted(valid_roles))}",
+        }
+
+    handler = get_feishu_bot()
+    handler.set_user_role(user_id, role)
+    return {
+        "user_id": user_id,
+        "role": role,
+        "status": "updated",
     }
 
 
