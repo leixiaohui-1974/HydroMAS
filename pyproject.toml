@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hydroos-agent"
-version = "0.1.0"
-description = "HydroOS-Agent: Multi-Agent Intelligent Decision Platform for Water Network Lifecycle Management"
+name = "hydroclaw"
+version = "0.2.0"
+description = "HydroClaw: Water Network Intelligent Workbench — Multi-Agent Cognitive Decision Platform"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -66,4 +66,4 @@ select = ["E", "F", "W", "I"]
 testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
-include = ["core*", "compute*", "mcp_servers*", "skills*", "agents*", "web*", "knowledge*", "integrations*", "openclaw*"]
+include = ["core*", "compute*", "mcp_servers*", "skills*", "agents*", "web*", "knowledge*", "integrations*", "openclaw*", "hydroclaw*"]

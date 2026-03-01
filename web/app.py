@@ -50,9 +50,9 @@ _BASE_DIR = Path(__file__).parent
 _is_prod = os.environ.get("ENV", "development") == "production"
 
 app = FastAPI(
-    title="HydroOS-Agent",
-    description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform",
-    version="0.1.0",
+    title="HydroClaw — 水网智能工作台",
+    description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform (HydroClaw v0.2.0)",
+    version="0.2.0",
     docs_url=None if _is_prod else "/docs",
     redoc_url=None if _is_prod else "/redoc",
     openapi_url=None if _is_prod else "/openapi.json",
@@ -254,6 +254,13 @@ ROLES = {
             "identification", "evaluation", "reports",
         ],
         "description": "全功能访问，系统配置与管理",
+    },
+    "teacher": {
+        "name": "教学助理",
+        "name_en": "Teaching",
+        "icon": "book-open",
+        "modules": ["dashboard", "simulation", "control", "prediction", "design", "identification"],
+        "description": "教学场景、原理演示、实验指导、受控仿真",
     },
 }
 

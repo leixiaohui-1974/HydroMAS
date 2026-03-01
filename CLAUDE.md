@@ -1,7 +1,7 @@
-# HydroOS-Agent — Multi-Agent Intelligent Decision Platform
+# HydroClaw — 水网智能工作台 (Water Network Intelligent Workbench)
 
-Water network lifecycle management platform based on a five-layer architecture.
-水网全生命周期管理的多智能体智能决策平台。
+Multi-agent intelligent decision platform for water network lifecycle management.
+水网全生命周期管理的多智能体智能决策平台，基于 HydroMAS 认知内核 + OpenClaw 代理架构。
 
 Extended for **alumina plant water network intelligence** (氧化铝厂水网智能化):
 - Daily intake 10,400 m³ (Wujiang River 7,800 + Flood Channel 2,600)
@@ -11,6 +11,15 @@ Extended for **alumina plant water network intelligence** (氧化铝厂水网智
 Includes **OpenClaw content pipeline** for multi-agent content production:
 - Writing → Illustration → Publishing (Feishu/WeChat) → Video → PPT
 - Multi-agent: ContentPlanner → ContentReviewer → ContentPublisher → ContentOrchestrator
+
+Includes **HydroClaw workbench layer** (v0.2.0):
+- Personality system (SOUL/USER/IDENTITY) inspired by OpenClaw
+- Memory manager with daily notes, keyword search, time-decay scoring
+- Session management with per-user/per-group/main scoping
+- RBAC with 5 roles: operator, designer, researcher, admin, teacher
+- Heartbeat service for proactive health monitoring
+- Self-evolution pipeline: interaction logging → analysis → development → deployment
+- Cognitive API categories mapping to CHS theory (感知→认知→决策→控制)
 
 ## Architecture (五层架构)
 
@@ -129,6 +138,21 @@ HydroMAS/
 │   │   └── agent_cards/            # 3 agent cards (JSON)
 │   └── skills/
 │       └── content_pipeline_skill.py # HydroMAS BaseSkill wrapper
+├── hydroclaw/            # HydroClaw workbench layer (NEW v0.2.0)
+│   ├── __init__.py       #   Package init, __version__ = "0.1.0"
+│   ├── personality/      #   Personality system (SOUL/USER/IDENTITY management)
+│   │   └── manager.py    #   PersonalityManager + PersonalityProfile
+│   ├── memory/           #   Long-term memory + daily notes + search
+│   │   └── manager.py    #   MemoryManager (keyword search, time-decay scoring)
+│   ├── session/          #   Multi-tenant session management
+│   │   └── manager.py    #   SessionManager + Session + ConversationTurn
+│   ├── rbac/             #   Role-based access control (5 roles)
+│   │   └── manager.py    #   RBACManager + Role + Permission
+│   ├── heartbeat/        #   Proactive health monitoring
+│   │   └── service.py    #   HeartbeatService + HeartbeatCheck + HeartbeatResult
+│   └── evolution/        #   Self-evolution pipeline
+│       ├── logger.py     #   InteractionLogger + InteractionRecord (JSONL)
+│       └── analyzer.py   #   EvolutionAnalyzer + EvolutionReport
 ├── openclaw-content-pipeline/  # Original OpenClaw skill scripts + articles
 │   ├── skills/           #   Feishu image pipeline, WeChat publish, article-to-video, hydromas-assistant
 │   ├── articles/         #   Markdown article drafts
@@ -140,23 +164,37 @@ HydroMAS/
 ├── knowledge/            # Knowledge management
 │   ├── process_ontology.py #  Alumina process ontology loader
 │   └── rag_service.py     #  TF-IDF based RAG retrieval service
-├── web/                  # FastAPI web platform
-│   ├── app.py            #   FastAPI app with 20 routers
+├── web/                  # FastAPI web platform (HydroClaw v0.2.0)
+│   ├── app.py            #   FastAPI app "HydroClaw — 水网智能工作台" with 20 routers
 │   ├── deps.py           #   Singletons: orchestrator, registry, bus, executor, feishu, etc.
-│   ├── models.py         #   Pydantic models (original + 10 new)
-│   ├── routers/          #   API endpoints (20 routers, ~90 endpoints)
-│   │   ├── gateway.py    #   OpenClaw unified gateway: chat/skill/roles/skills/health (NEW)
-│   │   └── feishu.py     #   Feishu webhook/alert/sync/status endpoints (NEW)
+│   ├── models.py         #   Pydantic models (original + 10 new), 5 roles
+│   ├── routers/          #   API endpoints (20 routers, ~100+ endpoints)
+│   │   ├── gateway.py    #   HydroClaw unified gateway: chat/skill/roles/skills/health
+│   │   │                 #     + cognitive/sessions/heartbeat/evolution/memory/personality
+│   │   └── feishu.py     #   Feishu webhook/alert/sync/status endpoints
 │   ├── static/           #   Frontend assets
 │   └── templates/        #   Jinja2 templates
-├── data/                 # Configuration files
+├── data/                 # Configuration + personality + memory + sessions
 │   ├── tank_config.json       #   Default tank/control/simulation params
 │   ├── odd_specs.json         #   6-dimension ODD specification
 │   ├── alumina_config.json    #   Alumina plant node/edge/evap config
 │   ├── alumina_odd_specs.json #   12-dimension alumina ODD
 │   ├── process_ontology.json  #   Process entities and fault modes
-│   └── sample_timeseries.csv
-├── tests/                # pytest test suite (1725 tests)
+│   ├── sample_timeseries.csv
+│   ├── personality/           #   HydroClaw personality files (NEW)
+│   │   ├── SOUL.md            #   Shared soul — 小瀚 identity
+│   │   ├── IDENTITY.md        #   Agent name/emoji/platform
+│   │   ├── HEARTBEAT.md       #   Heartbeat check configuration
+│   │   └── groups/            #   Per-group USER.md profiles
+│   │       ├── admin/USER.md
+│   │       ├── student-a/USER.md
+│   │       ├── student-b/USER.md
+│   │       ├── peer/USER.md
+│   │       └── dev/USER.md
+│   ├── memory/                #   Long-term memory (auto-created)
+│   ├── sessions/              #   Session persistence (auto-created)
+│   └── interactions/          #   Interaction logs (auto-created)
+├── tests/                # pytest test suite (1851 tests: 1725 existing + 126 HydroClaw)
 │   ├── test_core/        #   Core module unit tests
 │   ├── test_compute/     #   Ray compute tests
 │   ├── test_mcp_servers/ #   MCP server tests
@@ -165,13 +203,22 @@ HydroMAS/
 │   ├── test_web/         #   Web API tests (all 20 routers with dedicated test files)
 │   ├── test_scenarios/   #   E2E scenario tests (6 scenarios: R1/D1/O1 tank + R2/D2/O2 alumina)
 │   ├── test_integrations/ #  Feishu integration tests (unit + E2E)
-│   └── test_openclaw/    #   OpenClaw content pipeline tests
-├── Dockerfile            # Production container
-├── docker-compose.yml    # Full stack with TDengine + Neo4j
+│   ├── test_openclaw/    #   OpenClaw content pipeline tests
+│   └── test_hydroclaw/   #   HydroClaw workbench tests (126 tests) (NEW)
+│       ├── test_personality.py   # 11 tests
+│       ├── test_memory.py        # 13 tests
+│       ├── test_session.py       # 14 tests
+│       ├── test_rbac.py          # 22 tests
+│       ├── test_heartbeat.py     # 12 tests
+│       ├── test_evolution.py     # 13 tests
+│       └── test_gateway_v2.py    # 27 tests (enhanced gateway endpoints)
+├── Dockerfile            # Production container (with healthcheck)
+├── docker-compose.yml    # Multi-instance stack: HydroClaw + 5 OpenClaw + TDengine + Neo4j
 ├── .dockerignore         # Exclude tests/docs from Docker image
-├── .env.example          # Environment variable template
+├── .env.example          # Environment variable template (HydroClaw + OpenClaw sections)
 ├── deploy.sh             # Deployment script (dev/prod/test/docker)
-└── pyproject.toml
+├── evolve_auto.sh        # Self-evolution pipeline (analyze→develop→test→deploy) (NEW)
+└── pyproject.toml        # Package: hydroclaw v0.2.0
 ```
 
 ## Key Concepts
@@ -190,7 +237,16 @@ HydroMAS/
 - **Content pipeline**: ContentPlanner → ContentReviewer → ContentPublisher → ContentOrchestrator (writing→review→publish)
 - **Scenario testing**: Research (写作+建模+管理=科研), Design (MBD设计), Operations (运维) × Tank/Alumina = 6 scenarios
 - **Feishu integration**: Bot handler (webhook → /api/feishu/webhook), Alert sender (card messages), Bitable sync (CRUD), singleton orchestrator injection
-- **OpenClaw gateway**: Unified `/api/gateway/` entry point — chat (NL), skill (direct), roles, skills listing, health; three roles: researcher/designer/operator
+- **HydroClaw workbench**: Unified personality + memory + session + RBAC + heartbeat + evolution layer on top of HydroMAS cognitive core
+- **HydroClaw gateway**: Unified `/api/gateway/` entry point — chat, skill, roles, skills, health, cognitive, sessions, heartbeat, evolution, memory, personality; five roles: researcher/designer/operator/admin/teacher
+- **Personality system**: SOUL.md (shared identity) + IDENTITY.md (name/emoji) + group USER.md + per-user overrides; inspired by OpenClaw
+- **Memory manager**: Long-term MEMORY.md + daily notes with keyword search (time-decay scoring: `score = hits/total * exp(-days/decay)`)
+- **Session scoping**: per-user (isolated), per-group (shared within group), main (single global); JSONL persistence with LRU eviction
+- **RBAC roles**: operator (运维), designer (设计), researcher (科研), admin (管理), teacher (教学); EXECUTE/READ/DENIED permission granularity
+- **Cognitive API categories**: CHS theory mapping — perception (感知: forecast, data_analysis), cognition (认知: warning, odd_assessment), decision (决策: rehearsal, plan, leak_diagnosis), control (控制: optimization_design, global_dispatch)
+- **Self-evolution pipeline**: JSONL interaction logging → EvolutionAnalyzer (failure rate, slow response, skill gaps) → Claude Code development → pytest gate → deployment
+- **Heartbeat service**: 5 default checks (system_health/15min, odd_scan/1h, water_balance/1h, memory_consolidation/4h, resource_monitor/1h)
+- **Multi-instance deployment**: Docker Compose with 5 OpenClaw instances (admin/student-a/student-b/peer/dev) mounting shared personality files
 - **HydroMASClient**: Stdlib-only Python SDK (`openclaw/hydromas_client.py`) for OpenClaw skill integration — no external deps
 
 ## Import Examples
@@ -248,21 +304,31 @@ from openclaw.hydromas_client import HydroMASClient
 
 # Knowledge
 from knowledge import load_ontology, query_ontology, RAGService
+
+# HydroClaw workbench (NEW)
+from hydroclaw.personality import PersonalityManager, PersonalityProfile
+from hydroclaw.memory import MemoryManager
+from hydroclaw.session import SessionManager, Session
+from hydroclaw.rbac import RBACManager, Role, Permission
+from hydroclaw.heartbeat import HeartbeatService, HeartbeatCheck, HeartbeatResult
+from hydroclaw.evolution import InteractionLogger, InteractionRecord
+from hydroclaw.evolution import EvolutionAnalyzer, EvolutionReport
 ```
 
 ## Running Tests
 
 ```bash
-pytest                          # All 1725 tests
-pytest tests/test_core/         # Core module tests only
-pytest tests/test_skills/       # Skill workflow tests
-pytest tests/test_agents/       # Agent tests (domain + dev pipeline + multi-agent infra)
-pytest tests/test_web/          # Web API tests
-pytest tests/test_scenarios/    # E2E scenario tests (R1/D1/O1 + R2/D2/O2)
-pytest tests/test_integrations/ # Feishu integration tests
-pytest tests/test_openclaw/     # OpenClaw content pipeline tests
-pytest -x                       # Stop on first failure
-pytest -q                       # Quiet output
+pytest                              # All 1851 tests
+pytest tests/test_core/             # Core module tests only
+pytest tests/test_skills/           # Skill workflow tests
+pytest tests/test_agents/           # Agent tests (domain + dev pipeline + multi-agent infra)
+pytest tests/test_web/              # Web API tests
+pytest tests/test_scenarios/        # E2E scenario tests (R1/D1/O1 + R2/D2/O2)
+pytest tests/test_integrations/     # Feishu integration tests
+pytest tests/test_openclaw/         # OpenClaw content pipeline tests
+pytest tests/test_hydroclaw/        # HydroClaw workbench tests (126 tests)
+pytest -x                           # Stop on first failure
+pytest -q                           # Quiet output
 ```
 
 ## Configuration
@@ -280,6 +346,32 @@ import json
 with open("data/alumina_config.json") as f:
     alumina_config = json.load(f)
 # alumina_config["daily_intake_m3"] == 10400
+```
+
+## HydroClaw Configuration
+
+Environment variables (see `.env.example`):
+```bash
+HYDROCLAW_SESSION_SCOPE=per-user     # per-user | per-group | main
+HYDROCLAW_PERSONALITY_DIR=           # Default: data/personality
+HYDROCLAW_MEMORY_DIR=                # Default: data/memory
+HYDROCLAW_SESSION_DIR=               # Default: data/sessions
+HYDROCLAW_INTERACTION_DIR=           # Default: data/interactions
+```
+
+Self-evolution pipeline:
+```bash
+./evolve_auto.sh analyze   # Analyze interaction logs
+./evolve_auto.sh develop   # Analyze + create dev branch
+./evolve_auto.sh full      # Full pipeline: analyze → develop → test → deploy
+# Cron: 0 3 * * * cd /home/admin/hydromas && ./evolve_auto.sh full
+```
+
+Multi-instance Docker deployment:
+```bash
+docker compose up -d                                    # Core services only
+docker compose --profile openclaw up -d                 # + admin/student-a/student-b
+docker compose --profile openclaw --profile openclaw-full up -d  # + peer/dev
 ```
 
 ## Tech Stack

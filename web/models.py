@@ -369,8 +369,8 @@ class GatewayRequest(BaseModel):
         ..., min_length=1, max_length=5000,
         description="用户自然语言输入",
     )
-    role: Literal["researcher", "designer", "operator"] = Field(
-        "operator", description="助理角色 (科研/设计/运维)",
+    role: Literal["researcher", "designer", "operator", "admin", "teacher"] = Field(
+        "operator", description="助理角色 (科研/设计/运维/管理/教学)",
     )
     session_id: str = Field(default="", description="会话 ID (用于上下文跟踪)")
     user_id: str = Field(default="", description="调用者 ID (飞书 open_id 等)")

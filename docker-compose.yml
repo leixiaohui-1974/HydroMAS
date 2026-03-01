@@ -1,34 +1,61 @@
 version: "3.9"
 
+# HydroClaw 多实例部署 — 水网智能工作台
+#
+# 架构:
+#   - hydromas: HydroMAS 认知智能内核 (FastAPI)
+#   - tdengine: 时序数据库 (传感器数据)
+#   - neo4j: 图数据库 (水网拓扑/知识图谱)
+#
+# 多实例扩展 (Phase 2+):
+#   - 每个 OpenClaw 实例服务 20-25 个用户
+#   - 通过 docker-compose --profile 按需启动
+#
+# 快速启动:
+#   docker-compose up -d                       # 核心服务
+#   docker-compose --profile openclaw up -d    # 包含 OpenClaw 实例
+
 services:
+  # ─── HydroMAS 认知智能内核 ───
   hydromas:
     build: .
-    container_name: hydromas-web
+    container_name: hydroclaw-core
     ports:
       - "8000:8000"
     environment:
       - ENV=production
-      - ALLOWED_ORIGINS=http://localhost:8000
+      - ALLOWED_ORIGINS=http://localhost:8000,http://47.252.80.72:8000
       - TDENGINE_HOST=tdengine
       - TDENGINE_PORT=6041
       - NEO4J_URI=bolt://neo4j:7687
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=hydromas2024
-      - FEISHU_APP_ID=${FEISHU_APP_ID:-}
+      - FEISHU_APP_ID=${FEISHU_APP_ID:-cli_a915cc56d5f89cb1}
       - FEISHU_APP_SECRET=${FEISHU_APP_SECRET:-}
       - FEISHU_WEBHOOK_URL=${FEISHU_WEBHOOK_URL:-}
       - FEISHU_ALERT_WEBHOOK_URL=${FEISHU_ALERT_WEBHOOK_URL:-}
       - HYDROMAS_API_KEY=${HYDROMAS_API_KEY:-}
+      # HydroClaw session scope
+      - HYDROCLAW_SESSION_SCOPE=per-user
     depends_on:
       - tdengine
       - neo4j
     restart: unless-stopped
     volumes:
       - ./data:/app/data
+      - hydroclaw_sessions:/app/data/sessions
+      - hydroclaw_memory:/app/data/memory
+      - hydroclaw_interactions:/app/data/interactions
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/gateway/health')"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
 
+  # ─── 时序数据库 ───
   tdengine:
     image: tdengine/tdengine:3.2.3.0
-    container_name: hydromas-tdengine
+    container_name: hydroclaw-tdengine
     ports:
       - "6030:6030"
       - "6041:6041"
@@ -36,9 +63,10 @@ services:
       - tdengine_data:/var/lib/taos
     restart: unless-stopped
 
+  # ─── 图数据库 ───
   neo4j:
     image: neo4j:5.15-community
-    container_name: hydromas-neo4j
+    container_name: hydroclaw-neo4j
     ports:
       - "7474:7474"
       - "7687:7687"
@@ -49,6 +77,119 @@ services:
       - neo4j_data:/data
     restart: unless-stopped
 
+  # ─── OpenClaw 管理组实例 (Phase 2+) ───
+  openclaw-admin:
+    image: openclaw/openclaw:latest
+    container_name: hydroclaw-oc-admin
+    profiles: ["openclaw"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENCLAW_MODEL=${OPENCLAW_MODEL:-claude-sonnet-4-5-20250929}
+    ports:
+      - "18789:18789"
+    volumes:
+      - ./data/personality/SOUL.md:/root/.openclaw/workspace/SOUL.md:ro
+      - ./data/personality/IDENTITY.md:/root/.openclaw/workspace/IDENTITY.md:ro
+      - ./data/personality/groups/admin/USER.md:/root/.openclaw/workspace/USER.md:ro
+      - oc_admin_data:/root/.openclaw
+    mem_limit: 1g
+    cpus: 2
+    restart: unless-stopped
+    depends_on:
+      - hydromas
+
+  # ─── OpenClaw 学生A组实例 (Phase 2+) ───
+  openclaw-student-a:
+    image: openclaw/openclaw:latest
+    container_name: hydroclaw-oc-student-a
+    profiles: ["openclaw"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENCLAW_MODEL=${OPENCLAW_MODEL:-claude-sonnet-4-5-20250929}
+    ports:
+      - "18790:18789"
+    volumes:
+      - ./data/personality/SOUL.md:/root/.openclaw/workspace/SOUL.md:ro
+      - ./data/personality/IDENTITY.md:/root/.openclaw/workspace/IDENTITY.md:ro
+      - ./data/personality/groups/student-a/USER.md:/root/.openclaw/workspace/USER.md:ro
+      - oc_student_a_data:/root/.openclaw
+    mem_limit: 1g
+    cpus: 2
+    restart: unless-stopped
+    depends_on:
+      - hydromas
+
+  # ─── OpenClaw 学生B组实例 (Phase 2+) ───
+  openclaw-student-b:
+    image: openclaw/openclaw:latest
+    container_name: hydroclaw-oc-student-b
+    profiles: ["openclaw"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENCLAW_MODEL=${OPENCLAW_MODEL:-claude-sonnet-4-5-20250929}
+    ports:
+      - "18791:18789"
+    volumes:
+      - ./data/personality/SOUL.md:/root/.openclaw/workspace/SOUL.md:ro
+      - ./data/personality/IDENTITY.md:/root/.openclaw/workspace/IDENTITY.md:ro
+      - ./data/personality/groups/student-b/USER.md:/root/.openclaw/workspace/USER.md:ro
+      - oc_student_b_data:/root/.openclaw
+    mem_limit: 1g
+    cpus: 2
+    restart: unless-stopped
+    depends_on:
+      - hydromas
+
+  # ─── OpenClaw 同行组实例 (Phase 3+) ───
+  openclaw-peer:
+    image: openclaw/openclaw:latest
+    container_name: hydroclaw-oc-peer
+    profiles: ["openclaw-full"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENCLAW_MODEL=${OPENCLAW_MODEL:-claude-sonnet-4-5-20250929}
+    ports:
+      - "18792:18789"
+    volumes:
+      - ./data/personality/SOUL.md:/root/.openclaw/workspace/SOUL.md:ro
+      - ./data/personality/IDENTITY.md:/root/.openclaw/workspace/IDENTITY.md:ro
+      - ./data/personality/groups/peer/USER.md:/root/.openclaw/workspace/USER.md:ro
+      - oc_peer_data:/root/.openclaw
+    mem_limit: 1g
+    cpus: 2
+    restart: unless-stopped
+    depends_on:
+      - hydromas
+
+  # ─── OpenClaw 开发组实例 (Phase 3+) ───
+  openclaw-dev:
+    image: openclaw/openclaw:latest
+    container_name: hydroclaw-oc-dev
+    profiles: ["openclaw-full"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENCLAW_MODEL=${OPENCLAW_MODEL:-claude-sonnet-4-5-20250929}
+    ports:
+      - "18793:18789"
+    volumes:
+      - ./data/personality/SOUL.md:/root/.openclaw/workspace/SOUL.md:ro
+      - ./data/personality/IDENTITY.md:/root/.openclaw/workspace/IDENTITY.md:ro
+      - ./data/personality/groups/dev/USER.md:/root/.openclaw/workspace/USER.md:ro
+      - oc_dev_data:/root/.openclaw
+    mem_limit: 1g
+    cpus: 2
+    restart: unless-stopped
+    depends_on:
+      - hydromas
+
 volumes:
   tdengine_data:
   neo4j_data:
+  hydroclaw_sessions:
+  hydroclaw_memory:
+  hydroclaw_interactions:
+  oc_admin_data:
+  oc_student_a_data:
+  oc_student_b_data:
+  oc_peer_data:
+  oc_dev_data:
