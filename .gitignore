@@ -9,3 +9,9 @@ build/
 .mypy_cache/
 *.egg
 .env
+
+# HydroClaw runtime data (auto-created)
+data/interactions/
+data/memory/
+data/sessions/
+data/evolution_reports/
