@@ -373,6 +373,7 @@ class GatewayRequest(BaseModel):
         "operator", description="助理角色 (科研/设计/运维)",
     )
     session_id: str = Field(default="", description="会话 ID (用于上下文跟踪)")
+    user_id: str = Field(default="", description="调用者 ID (飞书 open_id 等)")
     params: dict = Field(default_factory=dict, description="附加参数")
 
 

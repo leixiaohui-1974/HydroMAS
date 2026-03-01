@@ -119,10 +119,13 @@ class DailyReportSkill(BaseSkill):
         """
         anomaly_list = anomalies.get("anomalies", [])
         anomaly_count = len(anomaly_list)
-        total_evap = evap.get("total_evap_loss", 0.0)
-        total_input = balance.get("total_input", 0.0)
-        total_output = balance.get("total_output", 0.0)
-        residual = balance.get("residual", 0.0)
+        total_evap = evap.get("total_daily_m3", evap.get("total_evap_loss", 0.0))
+        total_input = balance.get("total_intake", balance.get("total_input", 0.0))
+        total_output = balance.get("total_consumption", balance.get("total_output", 0.0))
+        total_loss = balance.get("total_loss", 0.0)
+        total_evap_balance = balance.get("total_evap", 0.0)
+        reuse_rate = balance.get("reuse_rate", 0.0)
+        residual = balance.get("balance_error", balance.get("residual", 0.0))
 
         # KPI section
         kpi_lines = []
@@ -151,9 +154,12 @@ class DailyReportSkill(BaseSkill):
 
 | Metric / 指标 | Value / 值 |
 |---|---|
-| Total Input / 总入水 | {total_input:.2f} m³ |
-| Total Output / 总出水 | {total_output:.2f} m³ |
-| Residual / 残差 | {residual:.2f} m³ |
+| Total Intake / 总取水量 | {total_input:.2f} m³/d |
+| Total Consumption / 总消耗量 | {total_output:.2f} m³/d |
+| Total Loss / 总漏损 | {total_loss:.2f} m³/d |
+| Evap (Balance) / 蒸发（平衡） | {total_evap_balance:.2f} m³/d |
+| Reuse Rate / 回用率 | {reuse_rate:.1%} |
+| Balance Error / 平衡误差 | {residual:.2f} m³ |
 
 ---
 

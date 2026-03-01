@@ -140,6 +140,7 @@ async def gateway_chat(req: GatewayRequest):
             "domain": domain,
         },
         "role": req.role,
+        "user_id": req.user_id,
         "elapsed_ms": round(elapsed * 1000, 1),
         "session_id": req.session_id,
     }
@@ -166,7 +167,7 @@ async def gateway_skill(req: GatewayToolRequest):
         return {"status": "error", "error": f"Skill '{req.skill_name}' has no implementation"}
 
     try:
-        result = instance.run(req.params or {})
+        result = await instance.run(req.params or {})
         return {
             "status": "success",
             "skill": req.skill_name,
@@ -222,7 +223,7 @@ async def gateway_skills(role: str | None = None):
         skills.append({
             "name": name,
             "description": meta.description if meta else "",
-            "trigger_phrases": meta.trigger_phrases[:3] if meta else [],
+            "trigger_phrases": meta.trigger_phrases if meta else [],
             "has_instance": entry.get("instance") is not None,
         })
 
@@ -241,7 +242,109 @@ async def gateway_health():
         "status": "healthy",
         "agents_registered": len(registry.get_all_agents()),
         "platform": {
-            "version": "0.1.0",
+            "version": "0.2.0",
             "layers": ["L0_core", "L1_compute", "L2_mcp", "L3_skills", "L4_agents"],
         },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Report history
+# ---------------------------------------------------------------------------
+
+_REPORT_HISTORY_PATH = "/home/admin/hydromas/data/report_history.jsonl"
+
+
+@router.get("/reports")
+async def gateway_reports(user_id: str | None = None, limit: int = 20):
+    """Get report history, optionally filtered by user_id.
+    获取报告历史记录，可按用户 ID 过滤。
+    """
+    import json as _json
+    from pathlib import Path
+
+    history_path = Path(_REPORT_HISTORY_PATH)
+    if not history_path.exists():
+        return {"reports": [], "total": 0}
+
+    records = []
+    for line in history_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rec = _json.loads(line)
+        except _json.JSONDecodeError:
+            continue
+        if user_id and rec.get("user_id") != user_id:
+            continue
+        records.append(rec)
+
+    records.reverse()  # newest first
+    records = records[:limit]
+    return {"reports": records, "total": len(records)}
+
+
+# ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+@router.get("/dashboard")
+async def gateway_dashboard():
+    """System status dashboard data.
+    系统状态仪表盘数据。
+    """
+    import json as _json
+    from pathlib import Path
+
+    registry = get_agent_registry()
+    skill_reg = get_skill_registry()
+    monitor = get_health_monitor()
+
+    # Recent reports
+    recent_reports = []
+    history_path = Path(_REPORT_HISTORY_PATH)
+    if history_path.exists():
+        lines = history_path.read_text(encoding="utf-8").splitlines()
+        for line in reversed(lines[-10:]):
+            line = line.strip()
+            if line:
+                try:
+                    recent_reports.append(_json.loads(line))
+                except _json.JSONDecodeError:
+                    pass
+
+    # Unique users
+    unique_users = set()
+    if history_path.exists():
+        for line in history_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line:
+                try:
+                    rec = _json.loads(line)
+                    uid = rec.get("user_id", "")
+                    if uid:
+                        unique_users.add(uid)
+                except _json.JSONDecodeError:
+                    pass
+
+    all_agents = registry.get_all_agents()
+
+    return {
+        "status": "healthy",
+        "version": "0.2.0",
+        "agents": {
+            "total": len(all_agents),
+            "names": [a.agent_id if hasattr(a, "agent_id") else str(a)
+                      for a in all_agents],
+        },
+        "skills": {
+            "total": len(skill_reg),
+            "names": list(skill_reg.keys()),
+        },
+        "reports": {
+            "recent": recent_reports[:5],
+            "total_users": len(unique_users),
+        },
+        "roles": list(ROLE_PROFILES.keys()),
     }

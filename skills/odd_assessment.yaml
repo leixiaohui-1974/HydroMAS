@@ -6,10 +6,16 @@ trigger_phrases:
   - "安全评估"
   - "运行设计域"
   - "安全边界"
+  - "WNAL"
+  - "自主运行等级"
+  - "自主等级"
+  - "水网等级"
+  - "运行等级"
   - "assess ODD"
   - "safety assessment"
   - "operational design domain"
   - "safety boundary"
+  - "autonomy level"
 input_schema:
   current_state:
     type: object

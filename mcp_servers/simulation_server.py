@@ -13,7 +13,7 @@ mcp = FastMCP("HydroOS-Simulation")
 
 @mcp.tool()
 def simulate_tank(
-    duration: float,
+    duration: float = 300.0,
     dt: float = 1.0,
     q_in_profile: list[list[float]] | None = None,
     initial_h: float = 0.5,

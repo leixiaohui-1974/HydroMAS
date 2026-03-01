@@ -6,10 +6,16 @@ trigger_phrases:
   - "预测水位"
   - "数据分析"
   - "数据预测"
+  - "数据趋势"
+  - "趋势分析"
+  - "异常波动"
+  - "水位趋势"
+  - "水位分析"
   - "clean data"
   - "predict water level"
   - "data analysis"
   - "data prediction"
+  - "trend analysis"
 input_schema:
   raw_data:
     type: array

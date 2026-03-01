@@ -3,8 +3,12 @@ display_name: "全局调度 / Global Dispatch"
 description: "Optimize plant-wide water intake and distribution through demand prediction, evaporation forecasting, and ODD safety checks. / 通过需求预测、蒸发预报和ODD安全校验优化全厂取水与配水。"
 trigger_phrases:
   - "全局调度"
+  - "水量调度"
+  - "调度优化"
   - "水量优化"
   - "取水优化"
+  - "配水优化"
+  - "用水调度"
   - "global dispatch"
   - "water optimization"
 input_schema:

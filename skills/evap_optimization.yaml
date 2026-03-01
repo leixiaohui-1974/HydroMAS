@@ -4,7 +4,11 @@ description: "Predict and optimize evaporative water losses from cooling towers,
 trigger_phrases:
   - "蒸发优化"
   - "蒸发量"
+  - "蒸发损耗"
+  - "蒸发损失"
+  - "蒸发分析"
   - "冷却塔优化"
+  - "冷却塔蒸发"
   - "evaporation"
   - "cooling tower"
 input_schema:

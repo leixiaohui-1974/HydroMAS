@@ -14,13 +14,14 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from web.routers import (
     assistant,
+    chart,
     control,
     dataclean,
     design,
@@ -86,7 +87,48 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# ---------- API Key Authentication Middleware / API 密钥认证中间件 ----------
+
+_HYDROMAS_API_KEY = os.environ.get("HYDROMAS_API_KEY", "")
+
+# Paths that don't require API key authentication
+_OPEN_PATHS = frozenset({
+    "/", "/docs", "/redoc", "/openapi.json",
+    "/api/gateway/health",
+})
+
+
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    """Validate X-API-Key header on protected API routes.
+
+    - If HYDROMAS_API_KEY env is empty → no auth (backward compatible)
+    - Open paths (health, docs, root) are always allowed
+    - Static files are always allowed
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        if not _HYDROMAS_API_KEY:
+            return await call_next(request)
+
+        path = request.url.path
+        # Allow open paths and static files
+        if path in _OPEN_PATHS or path.startswith("/static"):
+            return await call_next(request)
+
+        provided_key = request.headers.get("X-API-Key", "")
+        if provided_key != _HYDROMAS_API_KEY:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or missing API key"},
+            )
+
+        return await call_next(request)
+
+
 app.add_middleware(SecurityHeadersMiddleware)
+
+if _HYDROMAS_API_KEY:
+    app.add_middleware(APIKeyMiddleware)
 
 # GZip compression for large simulation responses
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -99,7 +141,7 @@ app.add_middleware(
     allow_origins=_allowed_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-API-Key"],
 )
 
 
@@ -130,6 +172,7 @@ templates = Jinja2Templates(directory=_BASE_DIR / "templates")
 
 # Register API routers
 app.include_router(simulation.router, prefix="/api/simulation", tags=["Simulation / 仿真模拟"])
+app.include_router(chart.router, prefix="/api/chart", tags=["Chart / 图表生成"])
 app.include_router(control.router, prefix="/api/control", tags=["Control / 控制管理"])
 app.include_router(prediction.router, prefix="/api/prediction", tags=["Prediction / 智能预测"])
 app.include_router(scheduling.router, prefix="/api/scheduling", tags=["Scheduling / 调度优化"])
@@ -167,6 +210,14 @@ app.include_router(
     gateway.router, prefix="/api/gateway",
     tags=["Gateway / OpenClaw 网关"],
 )
+
+
+# ---------- Dashboard Page / 仪表盘页面 ----------
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard_page(request: Request):
+    """Render the monitoring dashboard page."""
+    return templates.TemplateResponse(request, "dashboard.html")
 
 
 # ---------- User Roles / 用户角色 ----------

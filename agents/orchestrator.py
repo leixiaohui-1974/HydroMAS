@@ -358,6 +358,10 @@ class OrchestratorAgent(BaseAgent):
         """Execute a single MCP Tool. / 执行单个 MCP 工具。"""
         from skills.base_skill import _call_tool_dynamic
 
+        # Provide sensible defaults when no params given
+        if not params:
+            params = self._get_tool_defaults(tool_name)
+
         try:
             result = await asyncio.to_thread(_call_tool_dynamic, tool_name, params)
             self.context.add_trace(self.agent_id, f"tool:{tool_name}", {"status": "completed"})
@@ -365,6 +369,65 @@ class OrchestratorAgent(BaseAgent):
         except Exception as e:
             self.context.add_trace(self.agent_id, f"tool:{tool_name}", {"error": str(e)})
             return {"status": "failed", "tool": tool_name, "error": str(e)}
+
+    @staticmethod
+    def _get_tool_defaults(tool_name: str) -> dict:
+        """Return sensible default params for known tools.
+        为已知工具返回合理的默认参数。
+        """
+        _DEFAULTS: dict[str, dict] = {
+            "evaluate_performance": {
+                "observed": [1.0, 0.95, 0.88, 0.80, 0.75, 0.72, 0.70, 0.69, 0.68, 0.68],
+                "predicted": [1.0, 0.94, 0.87, 0.79, 0.74, 0.71, 0.69, 0.68, 0.67, 0.67],
+                "metrics": ["rmse", "mae", "r_squared"],
+            },
+            "assess_wnal": {
+                "system_capabilities": {
+                    "sensing": 65, "communication": 70, "modeling": 55,
+                    "prediction": 60, "control": 50, "odd_monitoring": 45,
+                    "decision_support": 40,
+                },
+            },
+            "evaluate_water_kpi": {
+                "balance_data": {
+                    "total_intake": 10400, "reuse_rate": 0.36,
+                    "leak_rate": 0.05, "pump_efficiency": 0.72,
+                    "alumina_output_td": 2400,
+                },
+            },
+            "calc_node_balance": {
+                "node_id": "water_treatment",
+                "node_type": "intake",
+                "q_in": 433.0,
+                "q_out": 420.0,
+            },
+            "calc_full_balance": {
+                "nodes": [
+                    {"node_id": "intake_wujiang", "node_type": "intake",
+                     "q_in": 325, "q_out": 320, "q_loss": 5},
+                    {"node_id": "intake_flood", "node_type": "intake",
+                     "q_in": 108, "q_out": 105, "q_loss": 3},
+                    {"node_id": "digestion", "node_type": "workshop",
+                     "q_in": 220, "q_out": 190, "q_loss": 30},
+                    {"node_id": "evaporation_ws", "node_type": "workshop",
+                     "q_in": 160, "q_out": 105, "q_loss": 55},
+                    {"node_id": "cooling_tower", "node_type": "workshop",
+                     "q_in": 500, "q_out": 491, "q_loss": 9},
+                ],
+                "edges": [
+                    {"source": "intake_wujiang", "target": "digestion", "flow": 220},
+                    {"source": "intake_flood", "target": "evaporation_ws", "flow": 108},
+                    {"source": "digestion", "target": "cooling_tower", "flow": 190},
+                ],
+            },
+            "predict_demand": {
+                "historical_data": [
+                    10200, 10350, 10400, 10280, 10500, 10450, 10380,
+                    10420, 10550, 10480, 10600, 10520,
+                ],
+            },
+        }
+        return _DEFAULTS.get(tool_name, {})
 
     async def _delegate_to_agent(self, agent_id: str, params: dict) -> dict:
         """Delegate a task to another agent via the registry / message bus.

@@ -3,9 +3,21 @@ display_name: "日报 / Daily Report"
 description: "Generate a daily Markdown operation report aggregating water balance, anomalies, KPIs, and evaporation data. / 生成汇总水量平衡、异常、KPI和蒸发数据的每日Markdown运营报告。"
 trigger_phrases:
   - "日报"
+  - "运营日报"
   - "运营报告"
+  - "运行报告"
+  - "每日报告"
+  - "每日汇总"
+  - "事件汇总"
+  - "运行状态"
+  - "系统状态"
+  - "健康检查"
+  - "全面检查"
+  - "指标评估"
   - "daily report"
   - "operation report"
+  - "health check"
+  - "system status"
 input_schema:
   nodes_data:
     type: array

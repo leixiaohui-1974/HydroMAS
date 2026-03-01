@@ -48,14 +48,14 @@ def _mock_predict_evaporation(tower_params, weather):
     }
 
 
-def _mock_predict_calcination_evap(calc_params):
+def _mock_predict_calcination_evap(slurry_flow, moisture, temp):
     return {
         "evap_rate_m3h": 8.0,
         "evap_daily_m3": 192.0,
     }
 
 
-def _mock_predict_red_mud_water(mud_params):
+def _mock_predict_red_mud_water(mud_mass, moisture_ratio):
     return {
         "water_loss": 120.0,
         "water_carry_m3d": 120.0,

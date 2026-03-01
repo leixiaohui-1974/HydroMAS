@@ -75,28 +75,43 @@ class ODDAssessmentSkill(BaseSkill):
             })
             steps.append("mrc_plan_generation")
 
+        # Step 4: WNAL assessment (if system_capabilities provided)
+        wnal_result = None
+        system_capabilities = params.get("system_capabilities")
+        if system_capabilities:
+            wnal_result = await self.call_tool("assess_wnal", {
+                "system_capabilities": system_capabilities,
+            })
+            steps.append("wnal_assessment")
+
         return SkillResult(
             success=True,
             data={
                 "current_odd_status": odd_result,
                 "scan_results": scan_results,
                 "mrc_plan": mrc_plan,
-                "overall_assessment": self._summarize(odd_result, scan_results),
+                "wnal_assessment": wnal_result,
+                "overall_assessment": self._summarize(odd_result, scan_results, wnal_result),
             },
             steps_completed=steps,
         )
 
     @staticmethod
-    def _summarize(odd_result: dict, scan_results: list) -> dict:
+    def _summarize(odd_result: dict, scan_results: list, wnal_result: dict | None = None) -> dict:
         """Summarize assessment results. / 汇总评估结果。"""
         n_scenarios = len(scan_results)
         n_violations = sum(
             1 for s in scan_results
             if s["odd_assessment"].get("worst_zone") == "mrc"
         )
-        return {
+        summary = {
             "current_zone": odd_result.get("zone", "unknown"),
             "scenarios_tested": n_scenarios,
             "scenarios_with_violations": n_violations,
             "safety_rating": "safe" if n_violations == 0 else "at_risk",
         }
+        if wnal_result:
+            summary["wnal_level"] = wnal_result.get("level", "unknown")
+            summary["wnal_score"] = wnal_result.get("score", 0)
+            summary["wnal_gaps"] = wnal_result.get("gaps", [])
+        return summary

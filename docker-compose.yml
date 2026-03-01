@@ -18,6 +18,7 @@ services:
       - FEISHU_APP_SECRET=${FEISHU_APP_SECRET:-}
       - FEISHU_WEBHOOK_URL=${FEISHU_WEBHOOK_URL:-}
       - FEISHU_ALERT_WEBHOOK_URL=${FEISHU_ALERT_WEBHOOK_URL:-}
+      - HYDROMAS_API_KEY=${HYDROMAS_API_KEY:-}
     depends_on:
       - tdengine
       - neo4j

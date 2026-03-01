@@ -38,14 +38,14 @@ def _current_state():
 # Mock tool functions
 # ---------------------------------------------------------------------------
 
-def _mock_predict_demand(historical_demand):
+def _mock_predict_demand(historical_data, **kwargs):
     return {
         "predictions": [120.0, 122.0, 125.0],
         "model_type": "linear",
     }
 
 
-def _mock_predict_evaporation_hybrid(weather_forecast):
+def _mock_predict_evaporation_hybrid(historical_evap, weather_forecast, **kwargs):
     return {
         "predictions": [15.0, 16.0, 14.0],
         "method": "data_driven",
@@ -53,8 +53,8 @@ def _mock_predict_evaporation_hybrid(weather_forecast):
     }
 
 
-def _mock_optimize_global_dispatch(demand_forecast, evap_forecast, supply_config, current_state):
-    total_supply = sum(demand_forecast) + sum(evap_forecast)
+def _mock_optimize_global_dispatch(demand_forecast, supply_config, **kwargs):
+    total_supply = sum(demand_forecast.values()) if isinstance(demand_forecast, dict) else 0
     return {
         "total_supply": total_supply,
         "allocation": {"river_intake": 300.0, "well_field": 112.0},
@@ -64,7 +64,7 @@ def _mock_optimize_global_dispatch(demand_forecast, evap_forecast, supply_config
     }
 
 
-def _mock_check_alumina_odd(dispatch_plan, current_state):
+def _mock_check_alumina_odd(current_state, **kwargs):
     return {
         "zone": "normal",
         "violations": [],
@@ -177,7 +177,7 @@ class TestGlobalDispatch:
     @pytest.mark.asyncio
     async def test_global_dispatch_odd_extended(self):
         """When ODD check returns extended zone, summary reflects it."""
-        def mock_odd_extended(dispatch_plan, current_state):
+        def mock_odd_extended(current_state, **kwargs):
             return {
                 "zone": "extended",
                 "violations": [{"dimension": "reservoir_level", "value": 0.15}],

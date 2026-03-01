@@ -54,7 +54,9 @@ class EvapOptimizationSkill(BaseSkill):
         calc_result = {}
         if calc_params:
             calc_result = await self.call_tool("predict_calcination_evap", {
-                "calc_params": calc_params,
+                "slurry_flow": calc_params.get("slurry_flow", 25.0),
+                "moisture": calc_params.get("moisture", 0.15),
+                "temp": calc_params.get("temp", 1000),
             })
             if isinstance(calc_result, dict) and "error" in calc_result:
                 return SkillResult(
@@ -67,7 +69,8 @@ class EvapOptimizationSkill(BaseSkill):
         mud_result = {}
         if mud_params:
             mud_result = await self.call_tool("predict_red_mud_water", {
-                "mud_params": mud_params,
+                "mud_mass": mud_params.get("mud_mass", 800),
+                "moisture_ratio": mud_params.get("moisture_ratio", 0.55),
             })
             if isinstance(mud_result, dict) and "error" in mud_result:
                 return SkillResult(
