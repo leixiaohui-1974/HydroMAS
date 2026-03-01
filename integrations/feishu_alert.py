@@ -10,6 +10,10 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from integrations.feishu_client import FeishuClient
 
 logger = logging.getLogger(__name__)
 
@@ -132,16 +136,20 @@ class FeishuAlertSender:
         sender.send_alert(alert_event)
     """
 
-    def __init__(self, webhook_url: str = "") -> None:
+    def __init__(
+        self,
+        webhook_url: str = "",
+        client: FeishuClient | None = None,
+    ) -> None:
         self.webhook_url = webhook_url
+        self._client = client
         self._history: list[AlertEvent] = []
 
     def send_alert(self, event: AlertEvent) -> dict:
         """Send an alert to Feishu. Returns the card payload.
         向飞书发送告警。返回卡片 payload。
 
-        In production, this would POST to the webhook URL.
-        Currently returns the payload for testing.
+        When webhook_url is configured, actually POSTs the card.
         """
         card = build_alert_card(event)
         self._history.append(event)
@@ -151,11 +159,19 @@ class FeishuAlertSender:
             event.severity, event.dimension, event.alert_id,
         )
 
-        if self.webhook_url:
-            # Production: POST to webhook
-            # requests.post(self.webhook_url, json=card)
+        if self.webhook_url and self._client:
+            resp = self._client.post_webhook(self.webhook_url, card)
+            if not resp.ok:
+                logger.error(
+                    "FeishuAlert: POST failed: code=%d msg=%s",
+                    resp.code, resp.msg,
+                )
+            else:
+                logger.info("FeishuAlert: POST success to %s", self.webhook_url)
+        elif self.webhook_url:
             logger.info(
-                "FeishuAlert: would POST to %s", self.webhook_url,
+                "FeishuAlert: no client configured, skipping POST to %s",
+                self.webhook_url,
             )
 
         return card

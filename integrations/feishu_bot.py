@@ -10,6 +10,10 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from integrations.feishu_client import FeishuClient
 
 logger = logging.getLogger(__name__)
 
@@ -131,18 +135,35 @@ class FeishuBotHandler:
         app_secret: str = "",
         webhook_url: str = "",
         orchestrator: object | None = None,
+        client: FeishuClient | None = None,
     ) -> None:
         self.app_id = app_id
         self.app_secret = app_secret
         self.webhook_url = webhook_url
         self._orchestrator = orchestrator
+        self._client = client
         self._token: str = ""
         self._token_expires: float = 0
+        self._processed_msg_ids: set[str] = set()  # Dedup
 
     async def handle_message(self, message: FeishuMessage) -> FeishuCardResponse:
         """Process an incoming message and generate response.
         处理传入消息并生成响应。
         """
+        # Dedup: skip already-processed messages
+        if message.msg_id and message.msg_id in self._processed_msg_ids:
+            logger.info("FeishuBot: skipping duplicate msg_id=%s", message.msg_id)
+            return FeishuCardResponse(
+                title="HydroMAS",
+                content="(duplicate message ignored)",
+                status="info",
+            )
+        if message.msg_id:
+            self._processed_msg_ids.add(message.msg_id)
+            # Keep set bounded
+            if len(self._processed_msg_ids) > 1000:
+                self._processed_msg_ids.clear()
+
         text = message.text.strip()
 
         # Check for command prefix
@@ -178,6 +199,8 @@ class FeishuBotHandler:
             orch = self._get_orchestrator()
             result = await orch.handle_request(
                 f"Execute {skill_name}: {args}",
+                user_id=message.user_id,
+                role="operator",
             )
 
             return FeishuCardResponse(
@@ -206,7 +229,11 @@ class FeishuBotHandler:
 
         try:
             orch = self._get_orchestrator()
-            result = await orch.handle_request(text)
+            result = await orch.handle_request(
+                text,
+                user_id=message.user_id,
+                role="operator",
+            )
 
             return FeishuCardResponse(
                 title="HydroMAS 水网助手",
@@ -221,8 +248,32 @@ class FeishuBotHandler:
                 status="error",
             )
 
-    def verify_webhook(self, body: dict) -> dict | None:
-        """Verify Feishu webhook challenge. / 验证飞书 Webhook 挑战。"""
+    def verify_webhook(
+        self,
+        body: dict,
+        timestamp: str = "",
+        nonce: str = "",
+        signature: str = "",
+        raw_body: str = "",
+    ) -> dict | None:
+        """Verify Feishu webhook challenge and signature.
+        验证飞书 Webhook 挑战和签名。
+
+        When encrypt_key is configured, also verifies the callback signature.
+        """
+        # Signature verification (when client has encrypt_key configured)
+        if self._client and signature and raw_body:
+            if not self._client.verify_signature(timestamp, nonce, raw_body, signature):
+                logger.warning("FeishuBot: webhook signature verification failed")
+                return {"error": "signature verification failed"}
+
+        # Verification token check
+        if self._client and body.get("token"):
+            if not self._client.verify_token(body["token"]):
+                logger.warning("FeishuBot: verification token mismatch")
+                return {"error": "token verification failed"}
+
+        # Challenge response
         if "challenge" in body:
             return {"challenge": body["challenge"]}
         return None

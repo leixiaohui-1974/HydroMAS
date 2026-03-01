@@ -15,7 +15,7 @@ import logging
 
 from fastapi import APIRouter
 
-from web.deps import get_feishu_bot, get_feishu_alert, get_feishu_sync
+from web.deps import get_feishu_bot, get_feishu_alert, get_feishu_sync, get_feishu_client
 from web.models import FeishuWebhookRequest, FeishuAlertRequest
 
 logger = logging.getLogger(__name__)
@@ -125,18 +125,28 @@ async def feishu_status():
     handler = get_feishu_bot()
     sender = get_feishu_alert()
     sync = get_feishu_sync()
+    client = get_feishu_client()
 
     return {
+        "client": {
+            "app_id_configured": bool(client.app_id),
+            "app_secret_configured": bool(client.app_secret),
+            "verification_token_configured": bool(client.verification_token),
+            "encrypt_key_configured": bool(client.encrypt_key),
+        },
         "bot": {
             "ready": True,
+            "webhook_url_configured": bool(handler.webhook_url),
             "commands": list(handler.COMMAND_MAP.keys()),
         },
         "alert": {
             "ready": True,
+            "webhook_url_configured": bool(sender.webhook_url),
             "history_count": len(sender.get_history()),
         },
         "sync": {
             "ready": True,
+            "app_token_configured": bool(sync.app_token),
             "table_schemas": list(sync.get_table_schemas().keys()),
         },
     }

@@ -301,6 +301,24 @@ def get_adaptive_scheduler():
     return get_adaptive_scheduler._instance
 
 
+def get_feishu_client():
+    """Get or create the singleton FeishuClient (thread-safe).
+    获取或创建单例 FeishuClient（线程安全）。
+    """
+    if not hasattr(get_feishu_client, "_instance"):
+        with _lock:
+            if not hasattr(get_feishu_client, "_instance"):
+                import os
+                from integrations.feishu_client import FeishuClient
+                get_feishu_client._instance = FeishuClient(
+                    app_id=os.environ.get("FEISHU_APP_ID", ""),
+                    app_secret=os.environ.get("FEISHU_APP_SECRET", ""),
+                    verification_token=os.environ.get("FEISHU_VERIFICATION_TOKEN", ""),
+                    encrypt_key=os.environ.get("FEISHU_ENCRYPT_KEY", ""),
+                )
+    return get_feishu_client._instance
+
+
 def get_feishu_bot():
     """Get or create the singleton FeishuBotHandler (thread-safe).
     获取或创建单例 FeishuBotHandler（线程安全）。
@@ -314,6 +332,7 @@ def get_feishu_bot():
                     app_id=os.environ.get("FEISHU_APP_ID", ""),
                     app_secret=os.environ.get("FEISHU_APP_SECRET", ""),
                     webhook_url=os.environ.get("FEISHU_WEBHOOK_URL", ""),
+                    client=get_feishu_client(),
                 )
     return get_feishu_bot._instance
 
@@ -329,6 +348,7 @@ def get_feishu_alert():
                 from integrations.feishu_alert import FeishuAlertSender
                 get_feishu_alert._instance = FeishuAlertSender(
                     webhook_url=os.environ.get("FEISHU_ALERT_WEBHOOK_URL", ""),
+                    client=get_feishu_client(),
                 )
     return get_feishu_alert._instance
 
@@ -343,7 +363,8 @@ def get_feishu_sync():
                 import os
                 from integrations.feishu_sync import FeishuBitableSync
                 get_feishu_sync._instance = FeishuBitableSync(
-                    app_token=os.environ.get("FEISHU_APP_ID", ""),
+                    app_token=os.environ.get("FEISHU_BITABLE_APP_TOKEN", ""),
+                    client=get_feishu_client(),
                 )
     return get_feishu_sync._instance
 

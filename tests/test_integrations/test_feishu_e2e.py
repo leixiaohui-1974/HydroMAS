@@ -28,7 +28,7 @@ class MockOrchestrator:
     def __init__(self):
         self.requests: list[str] = []
 
-    async def handle_request(self, text: str) -> dict:
+    async def handle_request(self, text: str, **kwargs) -> dict:
         self.requests.append(text)
         return {
             "status": "completed",
@@ -40,7 +40,7 @@ class MockOrchestrator:
 class FailOrchestrator:
     """Orchestrator that always raises."""
 
-    async def handle_request(self, text: str) -> dict:
+    async def handle_request(self, text: str, **kwargs) -> dict:
         raise RuntimeError("Simulated failure")
 
 
