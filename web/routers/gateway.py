@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+from pathlib import Path
 
 from fastapi import APIRouter
 
@@ -463,7 +464,7 @@ async def gateway_health():
         "agents_registered": len(registry.get_all_agents()),
         "platform": {
             "name": "HydroClaw",
-            "version": "0.2.0",
+            "version": "0.2.2",
             "layers": ["L0_core", "L1_compute", "L2_mcp", "L3_skills", "L4_agents"],
         },
         "heartbeat": heartbeat_status,
@@ -658,7 +659,9 @@ async def gateway_personality(group: str = "default", role: str = "operator"):
 # Report history
 # ---------------------------------------------------------------------------
 
-_REPORT_HISTORY_PATH = "/home/admin/hydromas/data/report_history.jsonl"
+_REPORT_HISTORY_PATH = str(
+    Path(__file__).resolve().parent.parent.parent / "data" / "report_history.jsonl"
+)
 
 
 @router.get("/reports")
@@ -742,7 +745,7 @@ async def gateway_dashboard():
     return {
         "status": "healthy",
         "platform": "HydroClaw",
-        "version": "0.2.0",
+        "version": "0.2.2",
         "agents": {
             "total": len(all_agents),
             "names": [a.agent_id if hasattr(a, "agent_id") else str(a)

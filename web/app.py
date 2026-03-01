@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -49,13 +50,31 @@ _BASE_DIR = Path(__file__).parent
 
 _is_prod = os.environ.get("ENV", "development") == "production"
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan: startup/shutdown hooks."""
+    # Startup — nothing special needed (singletons lazy-init on first use)
+    yield
+    # Shutdown — persist active sessions to disk
+    try:
+        from web.deps import get_session_mgr
+        session_mgr = get_session_mgr()
+        for session in session_mgr.get_active_sessions():
+            session_mgr.save_session(session)
+        logger.info("Persisted %d sessions on shutdown", session_mgr.get_session_count())
+    except Exception:
+        logger.exception("Failed to persist sessions on shutdown")
+
+
 app = FastAPI(
     title="HydroClaw — 水网智能工作台",
-    description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform (HydroClaw v0.2.0)",
-    version="0.2.0",
+    description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform (HydroClaw v0.2.2)",
+    version="0.2.2",
     docs_url=None if _is_prod else "/docs",
     redoc_url=None if _is_prod else "/redoc",
     openapi_url=None if _is_prod else "/openapi.json",
+    lifespan=lifespan,
 )
 
 
@@ -140,7 +159,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "X-API-Key"],
 )
 
@@ -230,16 +249,16 @@ ROLES = {
         "modules": ["dashboard", "control", "fourpred", "odd", "reports"],
         "description": "实时监控、调度控制、四预系统、安全监测",
     },
-    "engineer": {
+    "designer": {
         "name": "规划设计",
-        "name_en": "Engineering",
+        "name_en": "Design",
         "icon": "cpu",
         "modules": ["dashboard", "simulation", "design", "control", "identification"],
         "description": "仿真模拟、系统设计、敏感性分析、参数辨识",
     },
-    "analyst": {
-        "name": "数据分析",
-        "name_en": "Analysis",
+    "researcher": {
+        "name": "科研分析",
+        "name_en": "Research",
         "icon": "bar-chart-2",
         "modules": ["dashboard", "prediction", "data", "evaluation", "reports"],
         "description": "智能预测、数据清洗、性能评价、报告生成",
@@ -291,7 +310,7 @@ async def system_status():
         "status": "online",
         "tank_config_loaded": bool(config),
         "odd_dimensions": len(odd_specs.get("dimensions", [])),
-        "version": "0.1.0",
+        "version": "0.2.2",
         "layers": {
             "L0_core": "operational",
             "L1_compute": "operational",

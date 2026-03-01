@@ -23,8 +23,8 @@ class TestSystemEndpoints:
         assert resp.status_code == 200
         data = resp.json()
         assert "operator" in data
-        assert "engineer" in data
-        assert "analyst" in data
+        assert "designer" in data
+        assert "researcher" in data
         assert "admin" in data
 
     def test_system_status(self):
@@ -295,7 +295,7 @@ class TestAssistantAPI:
         assert "intent" in data
 
     def test_quick_actions(self):
-        for role in ["operator", "engineer", "analyst", "admin"]:
+        for role in ["operator", "designer", "researcher", "admin", "teacher"]:
             resp = client.get(f"/api/assistant/quick-actions/{role}")
             assert resp.status_code == 200
             data = resp.json()

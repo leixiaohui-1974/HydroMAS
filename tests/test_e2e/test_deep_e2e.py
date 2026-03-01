@@ -177,7 +177,7 @@ def mock_api(monkeypatch):
                                         "warning_level": "低"}}}
         elif "gateway/health" in path:
             return {"status": "healthy", "agents_registered": 15,
-                    "platform": {"version": "0.2.0",
+                    "platform": {"version": "0.2.2",
                                  "layers": ["L0_core", "L1_compute", "L2_mcp",
                                              "L3_skills", "L4_agents"]}}
         elif "gateway/roles" in path:
@@ -1342,6 +1342,6 @@ class TestSystemStatus:
         assert resp.status_code == 200
         data = resp.json()
         assert "operator" in data
-        assert "engineer" in data
-        assert "analyst" in data
+        assert "designer" in data
+        assert "researcher" in data
         assert "admin" in data

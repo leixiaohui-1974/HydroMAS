@@ -11,7 +11,7 @@ HydroClaw = OpenClaw精简（通用Agent壳）+ HydroMAS认知智能内核 + 水
 - evolution: 自进化数据采集与分析
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.2"
 __all__ = [
     "PersonalityManager",
     "MemoryManager",

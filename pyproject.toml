@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hydroclaw"
-version = "0.2.0"
+version = "0.2.2"
 description = "HydroClaw: Water Network Intelligent Workbench — Multi-Agent Cognitive Decision Platform"
 readme = "README.md"
 requires-python = ">=3.11"

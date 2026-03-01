@@ -344,7 +344,7 @@ class HeartbeatService:
                         if daily_dir.exists():
                             note_count = len(list(daily_dir.glob("*.md")))
                             if note_count > 7:
-                                mgr.consolidate_memory(group_dir.name, days=7)
+                                mgr.consolidate(group_dir.name, days_back=7)
                                 consolidated += 1
 
             return HeartbeatResult(

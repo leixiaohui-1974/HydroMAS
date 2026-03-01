@@ -25,7 +25,7 @@ class TestRolePathValidation:
 
         from web.app import app
         client = TestClient(app)
-        for role in ("operator", "engineer", "analyst", "admin"):
+        for role in ("operator", "designer", "researcher", "admin", "teacher"):
             resp = client.get(f"/api/assistant/quick-actions/{role}")
             assert resp.status_code == 200
             assert len(resp.json()["actions"]) > 0
