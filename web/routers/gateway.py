@@ -20,9 +20,16 @@ from fastapi import APIRouter
 
 from web.deps import (
     get_agent_registry,
+    get_evolution_analyzer,
     get_health_monitor,
+    get_heartbeat,
     get_intent_classifier,
+    get_interaction_logger,
+    get_memory_mgr,
     get_orchestrator,
+    get_personality_mgr,
+    get_rbac,
+    get_session_mgr,
     get_skill_registry,
 )
 from web.models import GatewayRequest, GatewayToolRequest
@@ -173,59 +180,6 @@ COGNITIVE_CATEGORIES = {
 
 
 # ---------------------------------------------------------------------------
-# HydroClaw singleton accessors (lazy)
-# ---------------------------------------------------------------------------
-
-def _get_rbac():
-    if not hasattr(_get_rbac, "_instance"):
-        from hydroclaw.rbac import RBACManager
-        _get_rbac._instance = RBACManager()
-    return _get_rbac._instance
-
-
-def _get_session_mgr():
-    if not hasattr(_get_session_mgr, "_instance"):
-        from hydroclaw.session import SessionManager
-        _get_session_mgr._instance = SessionManager()
-    return _get_session_mgr._instance
-
-
-def _get_interaction_logger():
-    if not hasattr(_get_interaction_logger, "_instance"):
-        from hydroclaw.evolution.logger import InteractionLogger
-        _get_interaction_logger._instance = InteractionLogger()
-    return _get_interaction_logger._instance
-
-
-def _get_memory_mgr():
-    if not hasattr(_get_memory_mgr, "_instance"):
-        from hydroclaw.memory import MemoryManager
-        _get_memory_mgr._instance = MemoryManager()
-    return _get_memory_mgr._instance
-
-
-def _get_personality_mgr():
-    if not hasattr(_get_personality_mgr, "_instance"):
-        from hydroclaw.personality import PersonalityManager
-        _get_personality_mgr._instance = PersonalityManager()
-    return _get_personality_mgr._instance
-
-
-def _get_heartbeat():
-    if not hasattr(_get_heartbeat, "_instance"):
-        from hydroclaw.heartbeat import HeartbeatService
-        _get_heartbeat._instance = HeartbeatService()
-    return _get_heartbeat._instance
-
-
-def _get_evolution_analyzer():
-    if not hasattr(_get_evolution_analyzer, "_instance"):
-        from hydroclaw.evolution.analyzer import EvolutionAnalyzer
-        _get_evolution_analyzer._instance = EvolutionAnalyzer()
-    return _get_evolution_analyzer._instance
-
-
-# ---------------------------------------------------------------------------
 # Gateway endpoints
 # ---------------------------------------------------------------------------
 
@@ -239,10 +193,10 @@ async def gateway_chat(req: GatewayRequest):
     """
     start = time.time()
     orch = get_orchestrator()
-    rbac = _get_rbac()
-    session_mgr = _get_session_mgr()
-    interaction_logger = _get_interaction_logger()
-    memory_mgr = _get_memory_mgr()
+    rbac = get_rbac()
+    session_mgr = get_session_mgr()
+    interaction_logger = get_interaction_logger()
+    memory_mgr = get_memory_mgr()
 
     # Sanitize
     text = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f]', '', req.message.strip())
@@ -293,7 +247,13 @@ async def gateway_chat(req: GatewayRequest):
                 "allowed_skills": rbac.get_allowed_skills(effective_role),
             }
         else:
-            result = await orch.handle_request(text, req.params or {})
+            result = await orch.handle_request(
+                text, req.params or {},
+                user_id=req.user_id or "anonymous",
+                role=effective_role,
+                session_id=req.session_id or session.session_id,
+                group=group,
+            )
     except Exception:
         logger.exception("Gateway chat error")
         error_msg = "Internal error. Please try again."
@@ -361,10 +321,19 @@ async def gateway_skill(req: GatewayToolRequest):
     """
     start = time.time()
     skill_reg = get_skill_registry()
-    rbac = _get_rbac()
-    interaction_logger = _get_interaction_logger()
+    rbac = get_rbac()
+    interaction_logger = get_interaction_logger()
 
     effective_role = req.role if req.role in ROLE_PROFILES else "operator"
+
+    # Check skill existence first
+    entry = skill_reg.get(req.skill_name)
+    if not entry:
+        return {
+            "status": "error",
+            "error": f"Skill '{req.skill_name}' not found",
+            "available_skills": list(skill_reg.keys()),
+        }
 
     # RBAC check
     if not rbac.check_skill(effective_role, req.skill_name):
@@ -372,14 +341,6 @@ async def gateway_skill(req: GatewayToolRequest):
             "status": "denied",
             "error": f"角色 '{effective_role}' 无权执行技能 '{req.skill_name}'",
             "allowed_skills": rbac.get_allowed_skills(effective_role),
-        }
-
-    entry = skill_reg.get(req.skill_name)
-    if not entry:
-        return {
-            "status": "error",
-            "error": f"Skill '{req.skill_name}' not found",
-            "available_skills": list(skill_reg.keys()),
         }
 
     instance = entry.get("instance")
@@ -418,7 +379,7 @@ async def gateway_roles():
     """Get available assistant roles and their capabilities.
     获取可用助理角色及其能力（含 RBAC 权限信息）。
     """
-    rbac = _get_rbac()
+    rbac = get_rbac()
     roles_with_permissions = {}
     for role_name, profile in ROLE_PROFILES.items():
         role_info = dict(profile)
@@ -454,7 +415,7 @@ async def gateway_skills(role: str | None = None):
     列出可用技能（带 RBAC 权限过滤）。
     """
     skill_reg = get_skill_registry()
-    rbac = _get_rbac()
+    rbac = get_rbac()
     skills = []
     role_caps = set()
     if role and role in ROLE_PROFILES:
@@ -493,7 +454,7 @@ async def gateway_health():
     """
     monitor = get_health_monitor()
     registry = get_agent_registry()
-    heartbeat = _get_heartbeat()
+    heartbeat = get_heartbeat()
 
     heartbeat_status = heartbeat.get_status_summary()
 
@@ -549,7 +510,7 @@ async def gateway_sessions(group: str | None = None):
     """List active sessions.
     列出活跃会话。
     """
-    session_mgr = _get_session_mgr()
+    session_mgr = get_session_mgr()
     sessions = session_mgr.get_active_sessions(group=group)
     return {
         "sessions": [s.to_dict() for s in sessions[:50]],
@@ -568,7 +529,7 @@ async def gateway_heartbeat_run(check_name: str | None = None):
     """Run heartbeat checks (all due or specific).
     运行心跳检查。
     """
-    heartbeat = _get_heartbeat()
+    heartbeat = get_heartbeat()
     if check_name:
         result = await heartbeat.run_check(check_name)
         return {"results": [result.to_dict()]}
@@ -582,7 +543,7 @@ async def gateway_heartbeat_status():
     """Get heartbeat status summary.
     获取心跳状态摘要。
     """
-    heartbeat = _get_heartbeat()
+    heartbeat = get_heartbeat()
     return heartbeat.get_status_summary()
 
 
@@ -596,7 +557,7 @@ async def gateway_evolution_stats(date: str | None = None):
     """Get interaction statistics for self-evolution.
     获取交互统计（自进化数据）。
     """
-    interaction_logger = _get_interaction_logger()
+    interaction_logger = get_interaction_logger()
     return interaction_logger.get_stats(date=date)
 
 
@@ -605,9 +566,35 @@ async def gateway_evolution_report(days: int = 7):
     """Generate self-evolution analysis report.
     生成自进化分析报告。
     """
-    analyzer = _get_evolution_analyzer()
+    analyzer = get_evolution_analyzer()
     report = analyzer.analyze(days_back=days)
     return report.to_dict()
+
+
+@router.get("/evolution/by-role")
+async def gateway_evolution_by_role(days: int = 7):
+    """Get interaction analysis segmented by role.
+    按角色分析交互数据。
+    """
+    analyzer = get_evolution_analyzer()
+    return {
+        "segmentation": "by_role",
+        "days": days,
+        "roles": analyzer.analyze_by_role(days_back=days),
+    }
+
+
+@router.get("/evolution/by-group")
+async def gateway_evolution_by_group(days: int = 7):
+    """Get interaction analysis segmented by group.
+    按群组分析交互数据。
+    """
+    analyzer = get_evolution_analyzer()
+    return {
+        "segmentation": "by_group",
+        "days": days,
+        "groups": analyzer.analyze_by_group(days_back=days),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -620,7 +607,7 @@ async def gateway_memory(group: str = "default"):
     """Get long-term memory for a group.
     获取群组长期记忆。
     """
-    memory_mgr = _get_memory_mgr()
+    memory_mgr = get_memory_mgr()
     return {
         "group": group,
         "memory": memory_mgr.get_memory(group),
@@ -633,7 +620,7 @@ async def gateway_memory_search(query: str, group: str = "default", limit: int =
     """Search memory and daily notes.
     搜索记忆和每日笔记。
     """
-    memory_mgr = _get_memory_mgr()
+    memory_mgr = get_memory_mgr()
     results = memory_mgr.search(group, query, max_results=limit)
     return {
         "query": query,
@@ -656,7 +643,7 @@ async def gateway_personality(group: str = "default", role: str = "operator"):
     """Get personality profile for a group/role.
     获取群组/角色的人格配置。
     """
-    personality_mgr = _get_personality_mgr()
+    personality_mgr = get_personality_mgr()
     profile = personality_mgr.load_profile(group=group, role=role)
     return {
         "group": group,
@@ -719,9 +706,9 @@ async def gateway_dashboard():
 
     registry = get_agent_registry()
     skill_reg = get_skill_registry()
-    heartbeat = _get_heartbeat()
-    session_mgr = _get_session_mgr()
-    interaction_logger = _get_interaction_logger()
+    heartbeat = get_heartbeat()
+    session_mgr = get_session_mgr()
+    interaction_logger = get_interaction_logger()
 
     # Recent reports
     recent_reports = []

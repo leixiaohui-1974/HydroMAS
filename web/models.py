@@ -237,7 +237,7 @@ class FourPredRequest(BaseModel):
 
 class AssistantMessage(BaseModel):
     message: str = Field(..., min_length=1, max_length=10000, description="用户消息")
-    role: Literal["operator", "engineer", "analyst", "admin"] = Field(
+    role: Literal["researcher", "designer", "operator", "admin", "teacher"] = Field(
         "admin", description="用户角色",
     )
     params: dict = Field(default_factory=dict, max_length=50, description="附加参数")

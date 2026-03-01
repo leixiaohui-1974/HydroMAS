@@ -242,20 +242,126 @@ class HeartbeatService:
             )
 
     async def _check_water_balance(self) -> HeartbeatResult:
-        """Check water balance residuals."""
-        return HeartbeatResult(
-            check_name="water_balance",
-            status=CheckStatus.OK,
-            message="水平衡检查正常 (无实时数据源时为默认通过)",
-        )
+        """Check water balance residuals using core module."""
+        try:
+            import json
+            from pathlib import Path
+            config_path = Path("data/alumina_config.json")
+            if not config_path.exists():
+                return HeartbeatResult(
+                    check_name="water_balance",
+                    status=CheckStatus.OK,
+                    message="水平衡检查: 无配置文件，跳过",
+                )
+
+            with open(config_path, encoding="utf-8") as f:
+                config = json.load(f)
+
+            nodes_raw = config.get("nodes", [])
+            if not nodes_raw:
+                return HeartbeatResult(
+                    check_name="water_balance",
+                    status=CheckStatus.OK,
+                    message="水平衡检查: 配置中无节点数据",
+                )
+
+            # Check if nodes have balance data (q_in/q_out)
+            has_balance_data = any(
+                isinstance(n, dict) and ("q_in" in n or "q_out" in n)
+                for n in nodes_raw
+            )
+            if not has_balance_data:
+                return HeartbeatResult(
+                    check_name="water_balance",
+                    status=CheckStatus.OK,
+                    message=f"水平衡检查: {len(nodes_raw)} 个拓扑节点已加载 (无实时流量数据)",
+                    details={"node_count": len(nodes_raw)},
+                )
+
+            from core.water_balance import BalanceNode, calc_full_balance
+            nodes = []
+            for n in nodes_raw:
+                node_type = n.get("type", n.get("node_type", "workshop"))
+                # Map config types to valid BalanceNode types
+                type_map = {
+                    "treatment": "intake", "source": "intake",
+                    "pool": "pool", "tank": "pool",
+                    "workshop": "workshop", "process": "workshop",
+                    "reuse": "reuse", "recycle": "reuse",
+                    "wastewater": "wastewater", "discharge": "wastewater",
+                }
+                mapped_type = type_map.get(node_type, "workshop")
+                nodes.append(BalanceNode(
+                    node_id=n.get("id", n.get("node_id", "")),
+                    node_type=mapped_type,
+                    q_in=n.get("q_in", 0),
+                    q_out=n.get("q_out", 0),
+                    q_loss=n.get("q_loss", 0),
+                    q_evap=n.get("q_evap", 0),
+                ))
+            balance = calc_full_balance(nodes)
+            total_residual = balance.get("total_residual", 0)
+            status = (
+                CheckStatus.OK if abs(total_residual) < 100
+                else CheckStatus.WARNING if abs(total_residual) < 500
+                else CheckStatus.CRITICAL
+            )
+            return HeartbeatResult(
+                check_name="water_balance",
+                status=status,
+                message=f"水平衡残差: {total_residual:.1f} m³/d",
+                details=balance,
+            )
+        except ImportError:
+            return HeartbeatResult(
+                check_name="water_balance",
+                status=CheckStatus.OK,
+                message="水平衡检查: core.water_balance 模块不可用",
+            )
+        except Exception as exc:
+            return HeartbeatResult(
+                check_name="water_balance",
+                status=CheckStatus.WARNING,
+                message=f"水平衡检查异常: {type(exc).__name__}: {exc}",
+            )
 
     async def _check_memory_consolidation(self) -> HeartbeatResult:
-        """Trigger memory consolidation if needed."""
-        return HeartbeatResult(
-            check_name="memory_consolidation",
-            status=CheckStatus.OK,
-            message="记忆整理完成",
-        )
+        """Trigger memory consolidation for all groups."""
+        try:
+            from hydroclaw.memory import MemoryManager
+            from pathlib import Path
+
+            mgr = MemoryManager()
+            base_dir = Path(mgr._dir)
+            consolidated = 0
+            groups_checked = 0
+
+            if base_dir.exists():
+                for group_dir in base_dir.iterdir():
+                    if group_dir.is_dir():
+                        groups_checked += 1
+                        daily_dir = group_dir / "daily"
+                        if daily_dir.exists():
+                            note_count = len(list(daily_dir.glob("*.md")))
+                            if note_count > 7:
+                                mgr.consolidate_memory(group_dir.name, days=7)
+                                consolidated += 1
+
+            return HeartbeatResult(
+                check_name="memory_consolidation",
+                status=CheckStatus.OK,
+                message=f"记忆整理完成: {groups_checked} 个分组检查, {consolidated} 个已整合",
+                details={
+                    "groups_checked": groups_checked,
+                    "groups_consolidated": consolidated,
+                },
+            )
+        except Exception as exc:
+            return HeartbeatResult(
+                check_name="memory_consolidation",
+                status=CheckStatus.WARNING,
+                message=f"记忆整理异常: {type(exc).__name__}: {exc}",
+            )
 
     async def _check_resource_monitor(self) -> HeartbeatResult:
         """Check disk and memory usage."""

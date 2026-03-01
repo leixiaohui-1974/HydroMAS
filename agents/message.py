@@ -73,6 +73,11 @@ class AgentMessage:
     priority: MessagePriority = MessagePriority.NORMAL
     metadata: dict[str, Any] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
+    # HydroClaw user context (v0.2.0)
+    user_id: str = ""
+    role: str = ""
+    session_id: str = ""
+    group: str = ""
 
     def reply(
         self,

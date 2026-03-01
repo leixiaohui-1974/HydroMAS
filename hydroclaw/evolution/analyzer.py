@@ -285,3 +285,62 @@ class EvolutionAnalyzer:
                 date = datetime.fromtimestamp(ts).strftime("%Y-%m-%d")
                 daily[date] = daily.get(date, 0) + 1
         return daily
+
+    def analyze_by_role(self, days_back: int = 7) -> dict[str, dict]:
+        """Analyze interactions segmented by user role.
+
+        Returns a dict keyed by role, each containing:
+        - total, success_rate, avg_response_ms, top_skills, failure_skills
+        """
+        all_records = self._load_records(days_back)
+        role_data: dict[str, list[dict]] = {}
+        for r in all_records:
+            role = r.get("role", "unknown")
+            role_data.setdefault(role, []).append(r)
+
+        result = {}
+        for role, records in role_data.items():
+            total = len(records)
+            success = sum(1 for r in records if r.get("success", True))
+            times = [r.get("response_time_ms", 0) for r in records if r.get("response_time_ms")]
+            skills = Counter(r.get("skill_used", "") for r in records if r.get("skill_used"))
+            fail_skills = Counter(
+                r.get("skill_used", "") for r in records
+                if r.get("skill_used") and not r.get("success", True)
+            )
+            result[role] = {
+                "total": total,
+                "success_rate": round(success / total * 100, 1) if total else 0,
+                "avg_response_ms": round(sum(times) / len(times), 1) if times else 0,
+                "top_skills": dict(skills.most_common(5)),
+                "failure_skills": dict(fail_skills.most_common(5)),
+            }
+        return result
+
+    def analyze_by_group(self, days_back: int = 7) -> dict[str, dict]:
+        """Analyze interactions segmented by user group.
+
+        Returns a dict keyed by group, each containing:
+        - total, success_rate, unique_users, active_roles, top_skills
+        """
+        all_records = self._load_records(days_back)
+        group_data: dict[str, list[dict]] = {}
+        for r in all_records:
+            group = r.get("group", "default")
+            group_data.setdefault(group, []).append(r)
+
+        result = {}
+        for group, records in group_data.items():
+            total = len(records)
+            success = sum(1 for r in records if r.get("success", True))
+            users = set(r.get("user_id", "") for r in records if r.get("user_id"))
+            roles = set(r.get("role", "") for r in records if r.get("role"))
+            skills = Counter(r.get("skill_used", "") for r in records if r.get("skill_used"))
+            result[group] = {
+                "total": total,
+                "success_rate": round(success / total * 100, 1) if total else 0,
+                "unique_users": len(users),
+                "active_roles": sorted(roles),
+                "top_skills": dict(skills.most_common(5)),
+            }
+        return result

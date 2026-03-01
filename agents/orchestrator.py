@@ -288,19 +288,41 @@ class OrchestratorAgent(BaseAgent):
     # Request handling
     # ------------------------------------------------------------------
 
-    async def handle_request(self, user_input: str, params: dict | None = None) -> dict:
+    async def handle_request(
+        self,
+        user_input: str,
+        params: dict | None = None,
+        *,
+        user_id: str = "",
+        role: str = "",
+        session_id: str = "",
+        group: str = "",
+    ) -> dict:
         """Handle a user request end-to-end.
         端到端处理用户请求。
 
         Args:
             user_input: Natural language input / 用户自然语言输入
             params: Additional parameters / 附加参数
+            user_id: HydroClaw user identifier
+            role: HydroClaw RBAC role
+            session_id: HydroClaw session identifier
+            group: HydroClaw user group
 
         Returns:
             Response dict with results.
         """
         intent = self.classify_intent(user_input)
         params = params or {}
+        # Inject user context into params for downstream use
+        if user_id:
+            params.setdefault("_user_id", user_id)
+        if role:
+            params.setdefault("_role", role)
+        if session_id:
+            params.setdefault("_session_id", session_id)
+        if group:
+            params.setdefault("_group", group)
 
         # Record in context
         self.context.add_trace(self.agent_id, "classify_intent", {
