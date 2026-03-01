@@ -1,0 +1,53 @@
+name: content_pipeline
+display_name: "内容流水线 / Content Pipeline"
+description: "Multi-agent content production pipeline. Planning→Writing→Review→Publishing with multi-channel delivery. / 多Agent内容生产流水线：规划→写作→审查→发布，支持多渠道分发。"
+trigger_phrases:
+  - "内容流水线"
+  - "写文章"
+  - "发布文章"
+  - "content pipeline"
+  - "write article"
+  - "publish content"
+  - "生成视频"
+  - "公众号发布"
+  - "配图"
+  - "全套发布"
+input_schema:
+  requirement:
+    type: string
+    description: "Content requirement / 内容需求"
+  content:
+    type: string
+    description: "Pre-written content (optional) / 已有内容（可选）"
+    optional: true
+  channels:
+    type: array
+    description: "Publish channels: feishu, wechat, video, ppt / 发布渠道"
+    optional: true
+  image_config:
+    type: object
+    description: "Image pipeline config / 配图配置"
+    optional: true
+  publish_config:
+    type: object
+    description: "Publish config / 发布配置"
+    optional: true
+  video_config:
+    type: object
+    description: "Video config / 视频配置"
+    optional: true
+output_schema:
+  pipeline:
+    type: object
+    description: "Pipeline execution result / 流水线结果"
+  plan:
+    type: object
+    description: "Content plan / 内容规划"
+  review:
+    type: object
+    description: "Review results / 审查结果"
+  publish_results:
+    type: array
+    description: "Publish results per channel / 各渠道发布结果"
+tools_required: []
+max_execution_time: 600

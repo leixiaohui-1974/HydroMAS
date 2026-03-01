@@ -26,12 +26,22 @@ from unittest import mock
 import pytest
 from fastapi.testclient import TestClient
 
-# Import hydromas_call for CLI tests
+# Import hydromas_call for CLI tests (optional — not part of this repo)
 _SCRIPT_DIR = os.path.expanduser(
     "~/.openclaw/workspace/skills/hydromas/scripts"
 )
 if os.path.isdir(_SCRIPT_DIR):
     sys.path.insert(0, _SCRIPT_DIR)
+
+try:
+    import hydromas_call as _hc_module  # noqa: F401
+    _HAS_HYDROMAS_CALL = True
+except ImportError:
+    _HAS_HYDROMAS_CALL = False
+
+_skip_no_hc = pytest.mark.skipif(
+    not _HAS_HYDROMAS_CALL, reason="hydromas_call module not installed"
+)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -332,6 +342,7 @@ class TestSecurityHeaders:
 # 3. Concurrent Multi-User Report Generation
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestConcurrentMultiUser:
     """Test thread-safety of report generation and history recording."""
 
@@ -398,6 +409,7 @@ class TestConcurrentMultiUser:
 # 4. Full Pipeline Chain
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestFullPipelineChain:
     """Test complete flow: report → CLI history → API reports → dashboard."""
 
@@ -464,6 +476,7 @@ class TestFullPipelineChain:
 # 5. CLI Commands Complete Coverage
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestCLICommands:
     """Test all CLI commands of hydromas_call.py."""
 
@@ -576,6 +589,7 @@ class TestCLICommands:
 # 6. Feishu Integration Edge Cases
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestFeishuEdgeCases:
     """Test Feishu integration error handling."""
 
@@ -649,6 +663,7 @@ class TestFeishuEdgeCases:
 # 7. Skill Matching Edge Cases
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestSkillMatchingEdgeCases:
     """Test _find_matching_skill with various edge cases."""
 
@@ -749,6 +764,7 @@ class TestSkillMatchingEdgeCases:
 # 8. Report Content Quality
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestReportContentQuality:
     """Test Markdown report generation quality."""
 
@@ -1032,6 +1048,7 @@ class TestGatewayEndpoints:
 # 10. Simulation Parameter Parsing
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestSimulationParamParsing:
     """Test natural language → simulation parameter extraction."""
 
@@ -1097,6 +1114,7 @@ class TestSimulationParamParsing:
 # 11. Performance & Stress Tests
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestPerformanceStress:
     """Test system behavior under load."""
 
@@ -1204,6 +1222,7 @@ class TestCORSConfiguration:
 # 13. Error Handling & Resilience
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestErrorResilience:
     """Test error handling and edge cases for resilience."""
 
@@ -1292,6 +1311,7 @@ class TestErrorResilience:
 # 14. Auto-Detect Charts
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestAutoDetectCharts:
     """Test _auto_detect_charts function."""
 

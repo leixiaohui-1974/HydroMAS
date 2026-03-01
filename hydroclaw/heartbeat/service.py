@@ -101,6 +101,11 @@ class HeartbeatService:
             description="系统资源 (磁盘/内存) 监测",
             interval_seconds=3600,
         )
+        self._checks["session_cleanup"] = HeartbeatCheck(
+            name="session_cleanup",
+            description="过期会话清理 (24小时不活跃)",
+            interval_seconds=3600,
+        )
 
     def register_check(
         self,
@@ -175,6 +180,8 @@ class HeartbeatService:
             return await self._check_memory_consolidation()
         elif check.name == "resource_monitor":
             return await self._check_resource_monitor()
+        elif check.name == "session_cleanup":
+            return await self._check_session_cleanup()
         else:
             return HeartbeatResult(
                 check_name=check.name,
@@ -384,6 +391,48 @@ class HeartbeatService:
                 "disk_usage_pct": round(usage_pct, 1),
             },
         )
+
+    async def _check_session_cleanup(self) -> HeartbeatResult:
+        """Clean up stale sessions (idle > 24 hours) and persist active ones.
+        清理过期会话（空闲超过24小时）并持久化活跃会话。
+        """
+        try:
+            from hydroclaw.session import SessionManager
+            import os
+
+            session_dir = os.environ.get("HYDROCLAW_SESSION_DIR")
+            scope = os.environ.get("HYDROCLAW_SESSION_SCOPE", "per-user")
+            mgr = SessionManager(session_dir=session_dir, scope=scope)
+
+            # Clean up stale sessions
+            removed = mgr.cleanup_stale(max_idle_hours=24.0)
+
+            # Persist remaining active sessions
+            active = mgr.get_active_sessions()
+            saved = 0
+            for session in active:
+                try:
+                    mgr.save_session(session)
+                    saved += 1
+                except Exception:
+                    pass
+
+            return HeartbeatResult(
+                check_name="session_cleanup",
+                status=CheckStatus.OK,
+                message=f"会话清理完成: {removed} 个过期清除, {saved} 个活跃持久化",
+                details={
+                    "stale_removed": removed,
+                    "active_persisted": saved,
+                    "active_count": mgr.get_session_count(),
+                },
+            )
+        except Exception as exc:
+            return HeartbeatResult(
+                check_name="session_cleanup",
+                status=CheckStatus.WARNING,
+                message=f"会话清理异常: {exc}",
+            )
 
     def get_status_summary(self) -> dict:
         """Get overall heartbeat status summary."""
