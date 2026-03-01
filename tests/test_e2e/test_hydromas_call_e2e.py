@@ -10,7 +10,7 @@ from unittest import mock
 
 import pytest
 
-# Add the script directory to path so we can import hydromas_call
+# Add the script directory to path so we can import hydromas_call (optional)
 _SCRIPT_DIR = os.path.join(
     os.path.dirname(__file__), "..", "..", ".openclaw", "workspace",
     "skills", "hydromas", "scripts",
@@ -20,6 +20,16 @@ _SCRIPT_DIR_REAL = os.path.expanduser(
 )
 if os.path.isdir(_SCRIPT_DIR_REAL):
     sys.path.insert(0, _SCRIPT_DIR_REAL)
+
+try:
+    import hydromas_call as _hc_module  # noqa: F401
+    _HAS_HYDROMAS_CALL = True
+except ImportError:
+    _HAS_HYDROMAS_CALL = False
+
+pytestmark = pytest.mark.skipif(
+    not _HAS_HYDROMAS_CALL, reason="hydromas_call module not installed"
+)
 
 
 # ---------------------------------------------------------------------------

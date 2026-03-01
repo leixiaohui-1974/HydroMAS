@@ -70,8 +70,8 @@ class CollaborativeDevSkill(BaseSkill):
         max_execution_time=300,
     )
 
-    def __init__(self) -> None:
-        super().__init__(metadata=self._DEFAULT_METADATA)
+    def __init__(self, metadata: SkillMetadata | None = None) -> None:
+        super().__init__(metadata=metadata or self._DEFAULT_METADATA)
 
     async def execute(self, params: dict) -> SkillResult:
         """Execute the collaborative development pipeline.

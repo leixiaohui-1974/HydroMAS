@@ -23,8 +23,8 @@ class TestSystemEndpoints:
         assert resp.status_code == 200
         data = resp.json()
         assert "operator" in data
-        assert "engineer" in data
-        assert "analyst" in data
+        assert "designer" in data
+        assert "researcher" in data
         assert "admin" in data
 
     def test_system_status(self):
@@ -278,7 +278,7 @@ class TestAssistantAPI:
     def test_chat_simulation(self):
         resp = client.post("/api/assistant/chat", json={
             "message": "运行仿真模拟",
-            "role": "engineer",
+            "role": "designer",
         })
         assert resp.status_code == 200
         data = resp.json()
@@ -288,14 +288,14 @@ class TestAssistantAPI:
     def test_chat_forecast(self):
         resp = client.post("/api/assistant/chat", json={
             "message": "预测未来水位",
-            "role": "analyst",
+            "role": "researcher",
         })
         assert resp.status_code == 200
         data = resp.json()
         assert "intent" in data
 
     def test_quick_actions(self):
-        for role in ["operator", "engineer", "analyst", "admin"]:
+        for role in ["operator", "designer", "researcher", "admin", "teacher"]:
             resp = client.get(f"/api/assistant/quick-actions/{role}")
             assert resp.status_code == 200
             data = resp.json()

@@ -14,7 +14,7 @@ from fastapi import APIRouter
 from web.deps import get_orchestrator
 from web.models import AssistantMessage
 
-_RoleType = Literal["operator", "engineer", "analyst", "admin"]
+_RoleType = Literal["operator", "designer", "researcher", "admin", "teacher"]
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ QUICK_ACTIONS = {
         {"label": "泄漏检测", "message": "执行管网泄漏检测", "icon": "alert-circle"},
         {"label": "日运营报告", "message": "生成今日运营报告", "icon": "file-text"},
     ],
-    "engineer": [
+    "designer": [
         {"label": "运行仿真", "message": "运行水箱仿真模拟", "icon": "play"},
         {"label": "对比 PID/MPC", "message": "比较 PID 和 MPC 控制器", "icon": "git-branch"},
         {"label": "敏感性分析", "message": "运行参数敏感性分析", "icon": "trending-up"},
@@ -40,11 +40,17 @@ QUICK_ACTIONS = {
         {"label": "回用优化", "message": "优化回用水调度方案", "icon": "refresh-cw"},
         {"label": "全局调度", "message": "运行全局水量调度优化", "icon": "settings"},
     ],
-    "analyst": [
+    "researcher": [
         {"label": "智能预测", "message": "对水位数据进行预测分析", "icon": "trending-up"},
         {"label": "数据清洗", "message": "清洗时序数据异常值", "icon": "filter"},
         {"label": "性能评价", "message": "评价系统性能指标", "icon": "award"},
         {"label": "WNAL 评估", "message": "评估水网自主运行等级", "icon": "layers"},
+    ],
+    "teacher": [
+        {"label": "仿真演示", "message": "演示双容水箱仿真", "icon": "play"},
+        {"label": "PID整定", "message": "演示PID控制器整定过程", "icon": "sliders"},
+        {"label": "阶跃响应", "message": "分析系统阶跃响应特性", "icon": "trending-up"},
+        {"label": "参数辨识", "message": "演示系统参数辨识", "icon": "crosshair"},
     ],
     "admin": [
         {"label": "系统总览", "message": "查看系统整体状态", "icon": "monitor"},

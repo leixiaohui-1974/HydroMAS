@@ -1,0 +1,46 @@
+name: collaborative_dev
+display_name: "协同开发 / Collaborative Development"
+description: "Multi-agent collaborative development pipeline. Planning→Development→Review→Testing with iterative refinement. / 多智能体协同开发流水线：规划→开发→评审→测试，支持迭代改进。"
+trigger_phrases:
+  - "协同开发"
+  - "开发流水线"
+  - "collaborative dev"
+  - "dev pipeline"
+  - "规划开发评审测试"
+  - "plan develop review test"
+  - "代码审查"
+  - "生成测试"
+  - "开发任务"
+  - "requirement analysis"
+input_schema:
+  requirement:
+    type: string
+    description: "Development requirement / 开发需求描述"
+  files:
+    type: object
+    description: "Code files to review (filepath→content) / 待审查代码文件"
+    optional: true
+  modules:
+    type: array
+    description: "Modules to test / 待测试模块"
+    optional: true
+  scenario:
+    type: string
+    enum: ["research", "design", "operations"]
+    description: "Scenario context / 场景上下文"
+    optional: true
+output_schema:
+  pipeline:
+    type: object
+    description: "Pipeline execution result / 流水线执行结果"
+  design_doc:
+    type: object
+    description: "Generated design document / 生成的设计文档"
+  review:
+    type: object
+    description: "Code review results / 代码审查结果"
+  integration:
+    type: object
+    description: "Integration test results / 集成测试结果"
+tools_required: []
+max_execution_time: 300

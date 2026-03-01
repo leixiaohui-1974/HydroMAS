@@ -301,6 +301,24 @@ def get_adaptive_scheduler():
     return get_adaptive_scheduler._instance
 
 
+def get_feishu_client():
+    """Get or create the singleton FeishuClient (thread-safe).
+    获取或创建单例 FeishuClient（线程安全）。
+    """
+    if not hasattr(get_feishu_client, "_instance"):
+        with _lock:
+            if not hasattr(get_feishu_client, "_instance"):
+                import os
+                from integrations.feishu_client import FeishuClient
+                get_feishu_client._instance = FeishuClient(
+                    app_id=os.environ.get("FEISHU_APP_ID", ""),
+                    app_secret=os.environ.get("FEISHU_APP_SECRET", ""),
+                    verification_token=os.environ.get("FEISHU_VERIFICATION_TOKEN", ""),
+                    encrypt_key=os.environ.get("FEISHU_ENCRYPT_KEY", ""),
+                )
+    return get_feishu_client._instance
+
+
 def get_feishu_bot():
     """Get or create the singleton FeishuBotHandler (thread-safe).
     获取或创建单例 FeishuBotHandler（线程安全）。
@@ -310,10 +328,22 @@ def get_feishu_bot():
             if not hasattr(get_feishu_bot, "_instance"):
                 import os
                 from integrations.feishu_bot import FeishuBotHandler
+                # Parse user→role mapping: "uid1:admin,uid2:researcher"
+                user_roles = {}
+                roles_env = os.environ.get("FEISHU_USER_ROLES", "")
+                if roles_env:
+                    for pair in roles_env.split(","):
+                        parts = pair.strip().split(":")
+                        if len(parts) == 2:
+                            user_roles[parts[0].strip()] = parts[1].strip()
+
                 get_feishu_bot._instance = FeishuBotHandler(
                     app_id=os.environ.get("FEISHU_APP_ID", ""),
                     app_secret=os.environ.get("FEISHU_APP_SECRET", ""),
                     webhook_url=os.environ.get("FEISHU_WEBHOOK_URL", ""),
+                    client=get_feishu_client(),
+                    user_roles=user_roles,
+                    rate_limit=int(os.environ.get("FEISHU_RATE_LIMIT", "5")),
                 )
     return get_feishu_bot._instance
 
@@ -329,6 +359,7 @@ def get_feishu_alert():
                 from integrations.feishu_alert import FeishuAlertSender
                 get_feishu_alert._instance = FeishuAlertSender(
                     webhook_url=os.environ.get("FEISHU_ALERT_WEBHOOK_URL", ""),
+                    client=get_feishu_client(),
                 )
     return get_feishu_alert._instance
 
@@ -343,6 +374,95 @@ def get_feishu_sync():
                 import os
                 from integrations.feishu_sync import FeishuBitableSync
                 get_feishu_sync._instance = FeishuBitableSync(
-                    app_token=os.environ.get("FEISHU_APP_ID", ""),
+                    app_token=os.environ.get("FEISHU_BITABLE_APP_TOKEN", ""),
+                    client=get_feishu_client(),
                 )
     return get_feishu_sync._instance
+
+
+# ---------------------------------------------------------------------------
+# HydroClaw workbench singletons (v0.2.0)
+# ---------------------------------------------------------------------------
+
+def get_rbac():
+    """Get or create the singleton RBACManager (thread-safe).
+    获取或创建 RBAC 权限管理器单例（线程安全）。
+    """
+    if not hasattr(get_rbac, "_instance"):
+        with _lock:
+            if not hasattr(get_rbac, "_instance"):
+                from hydroclaw.rbac import RBACManager
+                get_rbac._instance = RBACManager()
+    return get_rbac._instance
+
+
+def get_session_mgr():
+    """Get or create the singleton SessionManager (thread-safe).
+    获取或创建会话管理器单例（线程安全）。
+    """
+    if not hasattr(get_session_mgr, "_instance"):
+        with _lock:
+            if not hasattr(get_session_mgr, "_instance"):
+                from hydroclaw.session import SessionManager
+                get_session_mgr._instance = SessionManager()
+    return get_session_mgr._instance
+
+
+def get_interaction_logger():
+    """Get or create the singleton InteractionLogger (thread-safe).
+    获取或创建交互日志记录器单例（线程安全）。
+    """
+    if not hasattr(get_interaction_logger, "_instance"):
+        with _lock:
+            if not hasattr(get_interaction_logger, "_instance"):
+                from hydroclaw.evolution.logger import InteractionLogger
+                get_interaction_logger._instance = InteractionLogger()
+    return get_interaction_logger._instance
+
+
+def get_memory_mgr():
+    """Get or create the singleton MemoryManager (thread-safe).
+    获取或创建记忆管理器单例（线程安全）。
+    """
+    if not hasattr(get_memory_mgr, "_instance"):
+        with _lock:
+            if not hasattr(get_memory_mgr, "_instance"):
+                from hydroclaw.memory import MemoryManager
+                get_memory_mgr._instance = MemoryManager()
+    return get_memory_mgr._instance
+
+
+def get_personality_mgr():
+    """Get or create the singleton PersonalityManager (thread-safe).
+    获取或创建人格管理器单例（线程安全）。
+    """
+    if not hasattr(get_personality_mgr, "_instance"):
+        with _lock:
+            if not hasattr(get_personality_mgr, "_instance"):
+                from hydroclaw.personality import PersonalityManager
+                get_personality_mgr._instance = PersonalityManager()
+    return get_personality_mgr._instance
+
+
+def get_heartbeat():
+    """Get or create the singleton HeartbeatService (thread-safe).
+    获取或创建心跳服务单例（线程安全）。
+    """
+    if not hasattr(get_heartbeat, "_instance"):
+        with _lock:
+            if not hasattr(get_heartbeat, "_instance"):
+                from hydroclaw.heartbeat import HeartbeatService
+                get_heartbeat._instance = HeartbeatService()
+    return get_heartbeat._instance
+
+
+def get_evolution_analyzer():
+    """Get or create the singleton EvolutionAnalyzer (thread-safe).
+    获取或创建进化分析器单例（线程安全）。
+    """
+    if not hasattr(get_evolution_analyzer, "_instance"):
+        with _lock:
+            if not hasattr(get_evolution_analyzer, "_instance"):
+                from hydroclaw.evolution.analyzer import EvolutionAnalyzer
+                get_evolution_analyzer._instance = EvolutionAnalyzer()
+    return get_evolution_analyzer._instance

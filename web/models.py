@@ -237,7 +237,7 @@ class FourPredRequest(BaseModel):
 
 class AssistantMessage(BaseModel):
     message: str = Field(..., min_length=1, max_length=10000, description="用户消息")
-    role: Literal["operator", "engineer", "analyst", "admin"] = Field(
+    role: Literal["researcher", "designer", "operator", "admin", "teacher"] = Field(
         "admin", description="用户角色",
     )
     params: dict = Field(default_factory=dict, max_length=50, description="附加参数")
@@ -369,12 +369,12 @@ class GatewayRequest(BaseModel):
         ..., min_length=1, max_length=5000,
         description="用户自然语言输入",
     )
-    role: Literal["researcher", "designer", "operator"] = Field(
-        "operator", description="助理角色 (科研/设计/运维)",
+    role: Literal["researcher", "designer", "operator", "admin", "teacher"] = Field(
+        "operator", description="助理角色 (科研/设计/运维/管理/教学)",
     )
-    session_id: str = Field(default="", description="会话 ID (用于上下文跟踪)")
-    user_id: str = Field(default="", description="调用者 ID (飞书 open_id 等)")
-    params: dict = Field(default_factory=dict, description="附加参数")
+    session_id: str = Field(default="", max_length=200, description="会话 ID (用于上下文跟踪)")
+    user_id: str = Field(default="", max_length=200, description="调用者 ID (飞书 open_id 等)")
+    params: dict = Field(default_factory=dict, max_length=50, description="附加参数")
 
 
 class GatewayToolRequest(BaseModel):
@@ -382,5 +382,7 @@ class GatewayToolRequest(BaseModel):
         ..., min_length=1, max_length=200,
         description="技能名称",
     )
-    params: dict = Field(default_factory=dict, description="技能参数")
-    role: str = Field(default="operator", description="调用角色")
+    params: dict = Field(default_factory=dict, max_length=50, description="技能参数")
+    role: Literal["researcher", "designer", "operator", "admin", "teacher"] = Field(
+        default="operator", description="调用角色",
+    )

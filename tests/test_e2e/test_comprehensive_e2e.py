@@ -20,12 +20,22 @@ from unittest import mock
 import pytest
 from fastapi.testclient import TestClient
 
-# Import hydromas_call for CLI tests
+# Import hydromas_call for CLI tests (optional — not part of this repo)
 _SCRIPT_DIR = os.path.expanduser(
     "~/.openclaw/workspace/skills/hydromas/scripts"
 )
 if os.path.isdir(_SCRIPT_DIR):
     sys.path.insert(0, _SCRIPT_DIR)
+
+try:
+    import hydromas_call as _hc_module  # noqa: F401
+    _HAS_HYDROMAS_CALL = True
+except ImportError:
+    _HAS_HYDROMAS_CALL = False
+
+_skip_no_hc = pytest.mark.skipif(
+    not _HAS_HYDROMAS_CALL, reason="hydromas_call module not installed"
+)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -166,6 +176,7 @@ def mock_api(monkeypatch):
 # Multi-Scenario Report Route Tests
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestReportRoutes:
     """Test all 3 report routing paths."""
 
@@ -226,6 +237,7 @@ class TestReportRoutes:
 # Multi-User Permission Tests
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestMultiUserPermissions:
     """Test per-user document permissions via --user-openid."""
 
@@ -273,6 +285,7 @@ class TestMultiUserPermissions:
 # Report History Isolation Tests
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestReportHistoryIsolation:
     """Test that report history is properly isolated per user."""
 
@@ -534,6 +547,7 @@ class TestReportsAPI:
 # Edge Cases
 # ═══════════════════════════════════════════════════════════════
 
+@_skip_no_hc
 class TestEdgeCases:
     """Test edge cases and error handling."""
 

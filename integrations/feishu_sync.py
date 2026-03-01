@@ -10,6 +10,10 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from integrations.feishu_client import FeishuClient
 
 logger = logging.getLogger(__name__)
 
@@ -132,9 +136,11 @@ class FeishuBitableSync:
         self,
         app_token: str = "",
         table_map: dict[str, str] | None = None,
+        client: FeishuClient | None = None,
     ) -> None:
         self.app_token = app_token
         self.table_map = table_map or {}
+        self._client = client
         self._pending: list[BitableRecord] = []
         self._synced: list[BitableRecord] = []
 
@@ -231,12 +237,41 @@ class FeishuBitableSync:
         if not total:
             return SyncResult(records_synced=0)
 
-        # In production: batch API call to Feishu
+        errors: list[str] = []
+
+        if self._client and self.app_token:
+            # Production: batch API call to Feishu by table
+            by_table: dict[str, list[dict]] = {}
+            for rec in self._pending:
+                by_table.setdefault(rec.table_id, []).append(rec.fields)
+
+            for table_id, field_list in by_table.items():
+                resp = self._client.bitable_batch_create(
+                    self.app_token, table_id, field_list,
+                )
+                if not resp.ok:
+                    errors.append(
+                        f"Table {table_id}: {resp.msg}",
+                    )
+                    logger.error(
+                        "FeishuSync: batch create failed for table %s: %s",
+                        table_id, resp.msg,
+                    )
+                else:
+                    logger.info(
+                        "FeishuSync: pushed %d records to table %s",
+                        len(field_list), table_id,
+                    )
+
         self._synced.extend(self._pending)
         self._pending.clear()
 
         logger.info("FeishuSync: flushed %d records", total)
-        return SyncResult(records_synced=total)
+        return SyncResult(
+            success=len(errors) == 0,
+            records_synced=total,
+            errors=errors,
+        )
 
     def get_table_schemas(self) -> dict:
         """Get the Bitable table schema definitions."""
