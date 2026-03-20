@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
-LABEL maintainer="HydroClaw Team"
-LABEL description="HydroClaw — 水网智能工作台"
+LABEL maintainer="HydroMAS Team"
+LABEL description="HydroMAS — 水网智能工作台"
 
 WORKDIR /app
 

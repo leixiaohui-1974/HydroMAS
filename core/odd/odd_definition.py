@@ -97,7 +97,7 @@ class ODDSpec:
     @classmethod
     def from_json(cls, path: str | Path) -> ODDSpec:
         """Load from JSON file. / 从 JSON 文件加载。"""
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             return cls.from_dict(json.load(f))
 
 

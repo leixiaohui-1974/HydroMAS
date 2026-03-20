@@ -1,5 +1,5 @@
-"""Gateway API router — unified entry point for external callers (OpenClaw/HydroClaw).
-统一网关路由 — 外部调用者 (OpenClaw/HydroClaw) 的统一入口。
+"""Gateway API router — unified entry point for external callers.
+统一网关路由 — 外部调用者的统一入口。
 
 v2 升级：
   - 认知 API 分类 (感知/认知/决策/控制)
@@ -187,7 +187,7 @@ COGNITIVE_CATEGORIES = {
 
 @router.post("/chat")
 async def gateway_chat(req: GatewayRequest):
-    """Unified natural language chat endpoint for OpenClaw/HydroClaw.
+    """Unified natural language chat endpoint for HydroMAS.
     统一自然语言对话入口。
 
     v2: 增加 RBAC 校验、会话管理、交互日志、记忆查询。
@@ -463,8 +463,8 @@ async def gateway_health():
         "status": "healthy",
         "agents_registered": len(registry.get_all_agents()),
         "platform": {
-            "name": "HydroClaw",
-            "version": "0.2.2",
+            "name": "HydroMAS",
+            "version": "0.3.0",
             "layers": ["L0_core", "L1_compute", "L2_mcp", "L3_skills", "L4_agents"],
         },
         "heartbeat": heartbeat_status,
@@ -701,8 +701,8 @@ async def gateway_reports(user_id: str | None = None, limit: int = 20):
 
 @router.get("/dashboard")
 async def gateway_dashboard():
-    """System status dashboard data (enhanced with HydroClaw components).
-    系统状态仪表盘数据（增强 HydroClaw 组件信息）。
+    """System status dashboard data for HydroMAS.
+    HydroMAS 系统状态仪表盘数据。
     """
     import json as _json
     from pathlib import Path
@@ -744,8 +744,8 @@ async def gateway_dashboard():
 
     return {
         "status": "healthy",
-        "platform": "HydroClaw",
-        "version": "0.2.2",
+        "platform": "HydroMAS",
+        "version": "0.3.0",
         "agents": {
             "total": len(all_agents),
             "names": [a.agent_id if hasattr(a, "agent_id") else str(a)

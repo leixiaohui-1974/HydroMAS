@@ -448,7 +448,7 @@ class TestGatewayEndpointsIntegration:
         data = resp.json()
         assert data["status"] == "healthy"
         assert "platform" in data
-        assert data["platform"]["version"] == "0.2.2"
+        assert data["platform"]["version"] == "0.3.0"
 
     def test_gateway_roles(self, client):
         """GET /api/gateway/roles should return all 5 roles."""
@@ -492,7 +492,7 @@ class TestGatewayEndpointsIntegration:
         data = resp.json()
         assert "status" in data
         assert "version" in data
-        assert data["version"] == "0.2.2"
+        assert data["version"] == "0.3.0"
 
     def test_gateway_skill_execution(self, client):
         """POST /api/gateway/skill should execute a skill."""
@@ -621,16 +621,16 @@ class TestSystemStatus:
     """Test system-wide status and version consistency."""
 
     def test_system_status_version(self, client):
-        """System status should report v0.2.2."""
+        """System status should report v0.3.0."""
         resp = client.get("/api/system/status")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["version"] == "0.2.2"
+        assert data["version"] == "0.3.0"
 
     def test_hydroclaw_package_version(self):
-        """hydroclaw.__version__ should match pyproject.toml."""
+        """hydroclaw compatibility package version should match pyproject.toml."""
         import hydroclaw
-        assert hydroclaw.__version__ == "0.2.2"
+        assert hydroclaw.__version__ == "0.3.0"
 
     def test_roles_endpoint(self, client):
         """GET /api/roles should return all 5 roles."""

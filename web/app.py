@@ -1,5 +1,5 @@
-"""FastAPI application — HydroOS-Agent Web Platform.
-FastAPI 应用 — HydroOS-Agent Web 平台。
+"""FastAPI application — HydroMAS Web Platform.
+FastAPI 应用 — HydroMAS Web 平台。
 
 Usage:
     uvicorn web.app:app --reload --port 8000
@@ -68,9 +68,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="HydroClaw — 水网智能工作台",
-    description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform (HydroClaw v0.2.2)",
-    version="0.2.2",
+    title="HydroMAS — 水网智能工作台",
+    description="多智能体智能决策平台 — Multi-Agent Intelligent Decision Platform (HydroMAS v0.3.0)",
+    version="0.3.0",
     docs_url=None if _is_prod else "/docs",
     redoc_url=None if _is_prod else "/redoc",
     openapi_url=None if _is_prod else "/openapi.json",
@@ -227,7 +227,7 @@ app.include_router(
 )
 app.include_router(
     gateway.router, prefix="/api/gateway",
-    tags=["Gateway / OpenClaw 网关"],
+    tags=["Gateway / HydroMAS 网关"],
 )
 
 
@@ -310,7 +310,7 @@ async def system_status():
         "status": "online",
         "tank_config_loaded": bool(config),
         "odd_dimensions": len(odd_specs.get("dimensions", [])),
-        "version": "0.2.2",
+        "version": "0.3.0",
         "layers": {
             "L0_core": "operational",
             "L1_compute": "operational",

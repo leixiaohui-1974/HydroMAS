@@ -77,7 +77,7 @@ class CollaborativeDevSkill(BaseSkill):
         """Execute the collaborative development pipeline.
         执行协同开发流水线。
         """
-        start = time.time()
+        start = time.perf_counter()
         steps: list[str] = []
 
         requirement = params.get("requirement", "")
@@ -111,7 +111,7 @@ class CollaborativeDevSkill(BaseSkill):
             return SkillResult(
                 success=True,
                 data=result,
-                execution_time=time.time() - start,
+                execution_time=time.perf_counter() - start,
                 steps_completed=steps,
             )
 
@@ -120,6 +120,6 @@ class CollaborativeDevSkill(BaseSkill):
             return SkillResult(
                 success=False,
                 error=str(exc),
-                execution_time=time.time() - start,
+                execution_time=time.perf_counter() - start,
                 steps_completed=steps,
             )

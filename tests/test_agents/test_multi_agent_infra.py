@@ -493,6 +493,12 @@ class TestExecutionPlan:
         with pytest.raises(ValueError, match="Cycle"):
             plan.validate()
 
+    def test_validate_unknown_dependency_detected(self):
+        plan = ExecutionPlan()
+        plan.add_task(ExecutionTask(id="a", agent_id="x", action="x", dependencies=["missing"]))
+        with pytest.raises(ValueError, match="unknown dependencies"):
+            plan.validate()
+
     def test_get_ready_tasks(self):
         plan = ExecutionPlan()
         plan.add_task(ExecutionTask(id="a", agent_id="x", action="x"))

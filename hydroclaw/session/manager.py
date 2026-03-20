@@ -99,10 +99,21 @@ class SessionManager:
         scope: str = "per-user",
         max_sessions: int = 1000,
     ):
-        self._dir = Path(session_dir or os.environ.get(
-            "HYDROCLAW_SESSION_DIR", _DEFAULT_SESSION_DIR
-        ))
-        self._scope = scope  # "per-user" | "per-group" | "main"
+        resolved_dir = (
+            session_dir
+            or os.environ.get("HYDROMAS_SESSION_DIR")
+            or os.environ.get("HYDROCLAW_SESSION_DIR")
+            or _DEFAULT_SESSION_DIR
+        )
+        resolved_scope = (
+            scope
+            if scope != "per-user"
+            else os.environ.get("HYDROMAS_SESSION_SCOPE")
+            or os.environ.get("HYDROCLAW_SESSION_SCOPE")
+            or scope
+        )
+        self._dir = Path(resolved_dir)
+        self._scope = resolved_scope  # "per-user" | "per-group" | "main"
         self._max_sessions = max_sessions
         self._sessions: dict[str, Session] = {}
 

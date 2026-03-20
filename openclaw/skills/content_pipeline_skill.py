@@ -80,7 +80,7 @@ class ContentPipelineSkill(BaseSkill):
 
     async def execute(self, params: dict) -> SkillResult:
         """Execute the content production pipeline."""
-        start = time.time()
+        start = time.perf_counter()
         steps: list[str] = []
 
         requirement = params.get("requirement", "")
@@ -113,7 +113,7 @@ class ContentPipelineSkill(BaseSkill):
             return SkillResult(
                 success=result.get("success", False),
                 data=result,
-                execution_time=time.time() - start,
+                execution_time=max(time.perf_counter() - start, 1e-6),
                 steps_completed=steps,
             )
 
@@ -122,6 +122,6 @@ class ContentPipelineSkill(BaseSkill):
             return SkillResult(
                 success=False,
                 error=str(exc),
-                execution_time=time.time() - start,
+                execution_time=max(time.perf_counter() - start, 1e-6),
                 steps_completed=steps,
             )

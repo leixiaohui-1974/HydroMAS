@@ -1,6 +1,7 @@
-"""HydroClaw — 水网AI助理平台框架。
+"""Legacy HydroClaw compatibility package for HydroMAS runtime.
 
-HydroClaw = OpenClaw精简（通用Agent壳）+ HydroMAS认知智能内核 + 水利行业深度定制
+The canonical package identity now moves toward ``hydromas`` while
+``hydroclaw`` remains as a backwards-compatible import surface.
 
 核心模块：
 - personality: SOUL/USER/IDENTITY 人格系统
@@ -11,7 +12,7 @@ HydroClaw = OpenClaw精简（通用Agent壳）+ HydroMAS认知智能内核 + 水
 - evolution: 自进化数据采集与分析
 """
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 __all__ = [
     "PersonalityManager",
     "MemoryManager",

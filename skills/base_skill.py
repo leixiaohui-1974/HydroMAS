@@ -60,7 +60,7 @@ class SkillMetadata:
     @classmethod
     def from_yaml(cls, path: str | Path) -> SkillMetadata:
         """Load metadata from YAML file. / 从 YAML 加载元数据。"""
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         return cls(
             name=data["name"],

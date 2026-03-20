@@ -1,6 +1,6 @@
-# HydroOS-Agent
+# HydroMAS
 
-Multi-Agent Intelligent Decision Platform for Water Network Lifecycle Management.
+Multi-Agent intelligent decision platform for water network lifecycle management.
 
 ## Architecture
 
@@ -18,6 +18,10 @@ Five-layer architecture (L0-L4):
 pip install -e ".[dev]"
 pytest
 ```
+
+Install metadata now publishes the package as `hydromas`. Legacy
+`hydroclaw` imports remain available as a compatibility surface during the
+ongoing migration.
 
 ## MVP Target
 

@@ -125,6 +125,12 @@ class ExecutionPlan:
         visited: set[str] = set()
         in_stack: set[str] = set()
 
+        for tid, deps in adj.items():
+            missing = [dep for dep in deps if dep not in task_ids]
+            if missing:
+                missing_list = ", ".join(sorted(missing))
+                raise ValueError(f"Task '{tid}' has unknown dependencies: {missing_list}")
+
         def _dfs(tid: str) -> None:
             if tid in in_stack:
                 raise ValueError(f"Cycle detected involving task '{tid}'")
@@ -132,8 +138,7 @@ class ExecutionPlan:
                 return
             in_stack.add(tid)
             for dep in adj.get(tid, []):
-                if dep in task_ids:
-                    _dfs(dep)
+                _dfs(dep)
             in_stack.discard(tid)
             visited.add(tid)
 

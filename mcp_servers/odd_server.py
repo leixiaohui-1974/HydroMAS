@@ -73,7 +73,7 @@ def check_alumina_odd(current_state: dict, odd_config: dict | None = None) -> di
     if odd_config is None:
         config_path = Path(__file__).parent.parent / "data" / "alumina_odd_specs.json"
         if config_path.exists():
-            with open(config_path) as f:
+            with open(config_path, encoding="utf-8") as f:
                 odd_config = json.load(f)
         else:
             odd_config = {"dimensions": []}

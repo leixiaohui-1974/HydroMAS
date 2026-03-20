@@ -24,7 +24,7 @@ def _load_json(filename: str) -> dict:
     path = _DATA_DIR / filename
     if not path.exists():
         raise FileNotFoundError(f"Configuration file not found: {path}")
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -114,7 +114,7 @@ def _load_sample_timeseries_cached() -> dict[str, list[float]]:
         raise FileNotFoundError(f"Sample data file not found: {path}")
 
     columns: dict[str, list[float]] = {}
-    with open(path, newline="") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             for key, value in row.items():

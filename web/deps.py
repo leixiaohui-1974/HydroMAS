@@ -391,7 +391,7 @@ def get_rbac():
     if not hasattr(get_rbac, "_instance"):
         with _lock:
             if not hasattr(get_rbac, "_instance"):
-                from hydroclaw.rbac import RBACManager
+                from hydromas.rbac import RBACManager
                 get_rbac._instance = RBACManager()
     return get_rbac._instance
 
@@ -403,7 +403,7 @@ def get_session_mgr():
     if not hasattr(get_session_mgr, "_instance"):
         with _lock:
             if not hasattr(get_session_mgr, "_instance"):
-                from hydroclaw.session import SessionManager
+                from hydromas.session import SessionManager
                 get_session_mgr._instance = SessionManager()
     return get_session_mgr._instance
 
@@ -415,7 +415,7 @@ def get_interaction_logger():
     if not hasattr(get_interaction_logger, "_instance"):
         with _lock:
             if not hasattr(get_interaction_logger, "_instance"):
-                from hydroclaw.evolution.logger import InteractionLogger
+                from hydromas.evolution import InteractionLogger
                 get_interaction_logger._instance = InteractionLogger()
     return get_interaction_logger._instance
 
@@ -427,7 +427,7 @@ def get_memory_mgr():
     if not hasattr(get_memory_mgr, "_instance"):
         with _lock:
             if not hasattr(get_memory_mgr, "_instance"):
-                from hydroclaw.memory import MemoryManager
+                from hydromas.memory import MemoryManager
                 get_memory_mgr._instance = MemoryManager()
     return get_memory_mgr._instance
 
@@ -439,7 +439,7 @@ def get_personality_mgr():
     if not hasattr(get_personality_mgr, "_instance"):
         with _lock:
             if not hasattr(get_personality_mgr, "_instance"):
-                from hydroclaw.personality import PersonalityManager
+                from hydromas.personality import PersonalityManager
                 get_personality_mgr._instance = PersonalityManager()
     return get_personality_mgr._instance
 
@@ -451,7 +451,7 @@ def get_heartbeat():
     if not hasattr(get_heartbeat, "_instance"):
         with _lock:
             if not hasattr(get_heartbeat, "_instance"):
-                from hydroclaw.heartbeat import HeartbeatService
+                from hydromas.heartbeat import HeartbeatService
                 get_heartbeat._instance = HeartbeatService()
     return get_heartbeat._instance
 
@@ -463,6 +463,6 @@ def get_evolution_analyzer():
     if not hasattr(get_evolution_analyzer, "_instance"):
         with _lock:
             if not hasattr(get_evolution_analyzer, "_instance"):
-                from hydroclaw.evolution.analyzer import EvolutionAnalyzer
+                from hydromas.evolution import EvolutionAnalyzer
                 get_evolution_analyzer._instance = EvolutionAnalyzer()
     return get_evolution_analyzer._instance

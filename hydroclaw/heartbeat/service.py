@@ -400,8 +400,15 @@ class HeartbeatService:
             from hydroclaw.session import SessionManager
             import os
 
-            session_dir = os.environ.get("HYDROCLAW_SESSION_DIR")
-            scope = os.environ.get("HYDROCLAW_SESSION_SCOPE", "per-user")
+            session_dir = (
+                os.environ.get("HYDROMAS_SESSION_DIR")
+                or os.environ.get("HYDROCLAW_SESSION_DIR")
+            )
+            scope = (
+                os.environ.get("HYDROMAS_SESSION_SCOPE")
+                or os.environ.get("HYDROCLAW_SESSION_SCOPE")
+                or "per-user"
+            )
             mgr = SessionManager(session_dir=session_dir, scope=scope)
 
             # Clean up stale sessions

@@ -171,7 +171,7 @@ class TestGatewayHealth:
         data = resp.json()
         assert data["status"] == "healthy"
         assert "platform" in data
-        assert data["platform"]["name"] == "HydroClaw"
+        assert data["platform"]["name"] == "HydroMAS"
         assert "heartbeat" in data
 
 
@@ -260,7 +260,7 @@ class TestGatewayDashboard:
         resp = client.get("/api/gateway/dashboard")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["platform"] == "HydroClaw"
+        assert data["platform"] == "HydroMAS"
         assert "agents" in data
         assert "skills" in data
         assert "roles" in data
